@@ -20,17 +20,8 @@ public class Drivetrain {
     private DcMotor backRight;
     private GoBildaPinpointDriver odometry;
 
-    private Limelight3A limelight;
-
     private double headingOffset;
 
-    private double llx;
-
-    private double lly;
-
-    private double llh;
-
-    private final double METER_TO_INCH = 39.37;
 
     public void init(HardwareMap hardwareMap) {
         // drive
@@ -73,9 +64,6 @@ public class Drivetrain {
 
         headingOffset = 0;
 
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-
-        limelight.pipelineSwitch(0);
     }
 
     public void drive(double y, double x, double rx, double accelerator) {
@@ -120,44 +108,14 @@ public class Drivetrain {
 
     public void setHeading(double heading){ odometry.setHeading(heading, AngleUnit.DEGREES);}
 
+    public void setOdometryXY(double x, double y){
+        odometry.setPosX(x, DistanceUnit.INCH);
+        odometry.setPosY(y, DistanceUnit.INCH);
+    }
     public void odometryUpdate() {
         odometry.update();
     }
 
-    public void limelightUpdate(double heading, boolean isLimelightOn){
-        limelight.updateRobotOrientation(heading);
-        LLResult result = limelight.getLatestResult();
 
-        if (result != null){
-            if (result.isValid()){
-                Pose3D botpose = result.getBotpose();
-                 llx = METER_TO_INCH * botpose.getPosition().x;
-                 lly = METER_TO_INCH * botpose.getPosition().y;
-                 llh = botpose.getOrientation().getYaw();
-
-
-                if (isLimelightOn){
-                        Pose3D pose_mt2 = result.getBotpose_MT2();
-                        double mt2x = METER_TO_INCH * pose_mt2.getPosition().x;
-                        double mt2y = METER_TO_INCH * pose_mt2.getPosition().y;
-                        odometry.setPosX(mt2y + 72, DistanceUnit.INCH);
-                        odometry.setPosY((-mt2x) + 72, DistanceUnit.INCH);
-                }
-            }
-        }
-    }
-
-    public void limelightStart(){
-        limelight.start();
-    }
-    public double getLlx(){
-        return llx;
-    }
-    public double getLly(){
-        return lly;
-    }
-    public double getLlh(){
-        return llh;
-    }
 }
 

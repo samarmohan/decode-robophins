@@ -21,6 +21,8 @@ public class OBJDecodeTeleOp extends LinearOpMode {
     Turret turret = new Turret();
     Drivetrain drive = new Drivetrain();
 
+    Limelight limelight = new Limelight();
+
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
@@ -56,7 +58,7 @@ public class OBJDecodeTeleOp extends LinearOpMode {
         double limitedTurretDeg = 0;
         ElapsedTime runtime = new ElapsedTime();
         double turretOffset = (5.75/2); //inches
-        drive.limelightStart();
+        limelight.start();
 
         waitForStart();
         runtime.reset();
@@ -164,7 +166,7 @@ public class OBJDecodeTeleOp extends LinearOpMode {
                 turret.frontIntake.setPower(-1.0);
             }
             //limelight
-            drive.limelightUpdate(heading, limelightOn);
+            limelight.update(heading, limelightOn);
             if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left){
                 limelightOn = !limelightOn;
             }
@@ -210,9 +212,9 @@ public class OBJDecodeTeleOp extends LinearOpMode {
             telemetry.addData("Auto Aim?", autoAim);
             telemetry.addData("RightR Pos", turret.rightR.getPosition());
             telemetry.addData("LeftR Pos", turret.leftR.getPosition());
-            telemetry.addData("limelight x", drive.getLlx());
-            telemetry.addData("limelight y", drive.getLly());
-            telemetry.addData("limelight rot", drive.getLlh());
+            telemetry.addData("limelight x", limelight.getLlx());
+            telemetry.addData("limelight y", limelight.getLly());
+            telemetry.addData("limelight rot", limelight.getLlh());
             telemetry.update();
         }
 

@@ -87,7 +87,9 @@ public class Turret {
     public void flywheelStop() {
         setFlywheelRPM(0);
     }
-    
+
+    //antiquated
+    //regression for close distance based off limelight
     public double taToDistClose(double ta){
         double scale = 77.16813;
         double exponent = -0.4654198;
@@ -95,7 +97,8 @@ public class Turret {
         double dist = scale * Math.pow(ta, exponent);
         return dist;
     }
-    
+    //antiquated
+    //regression for far distance based off limelight
     public double taToDistFar(double ta){
         double scale = 73.20354;
         double exponent = -0.486885;
@@ -103,36 +106,44 @@ public class Turret {
         double dist = scale * Math.pow(ta, exponent);
       return dist;
     }
-    
+
+    //regression for pitch when close based off distance
     public double closePitch(double dist){
         double pitch = -0.00075*dist + 0.332235;
         
         return pitch;
     }
+
+    //regression for flywheel RPM when close based off distance
     public double closeRPM(double dist){
         double rpm = 9.09090909*dist+1993.18181818;
         
         return rpm;
     }
-    
+
+    //regression for pitch when far based off distance
     public double farPitch(double dist){
         double pitch = 0.00921875*dist - 1.16848;
         
         return pitch;
     }
-    
+
+    //regression for pitch when close based off distance(not actually a regression since our data was 3400 for all parts of far)
     public double farRPM(double dist){
         double rpm = 3400;
         
         return rpm;
     }
-    
+
+    //changes angle from -180 to 180 into 0 to 360
     public double standardizeAngle(double angle){
         if (angle < 0){
             return angle + 360;
         }
         return angle;
     }
+
+    //forces turret rotation when outside of bounds and stops it from rotating too far
     public double correctTurretAngle(double desiredAngle, double max, double min){
         if (desiredAngle > max && desiredAngle-360 > min){
             return desiredAngle - 360;
@@ -143,9 +154,12 @@ public class Turret {
         return Math.min(max, (Math.max(desiredAngle, min)));
     }
 
+    //gets the servo position from desired turret angle
     public double posFromAngle(double angle){
         return angle  / 820.0 + 0.5;
     }
+
+    //finds the angle between the front of the robot and the target
     public double angleToTarget(double xPos, double yPos, double heading, boolean isTeamRed){
         double goalX;
         double goalY;
