@@ -173,6 +173,9 @@ public class OBJDecodeTeleOp extends LinearOpMode {
             if (currentGamepad1.a && !previousGamepad1.a) {
                 autoAim = !autoAim;
             }
+            if (currentGamepad1.a && currentGamepad1.b) {
+                limelight.setFieldHeading();
+            }
             if (autoAim) {
                 rotationPos = turret.posFromAngle(turret.correctTurretAngle(idealTurretRelDeg, TURRET_MAX_DEG, TURRET_MIN_DEG));
             }

@@ -60,4 +60,8 @@ public class Limelight {
     public double getLlh(){
         return llh;
     }
+
+    public void setFieldHeading(){
+        drive.setHeading(llh);
+    }
 }
