@@ -18,8 +18,6 @@ public class Turret {
     public DcMotor backIntake;
     public Servo rightR;
     public Servo leftR;
-    public Limelight3A limelight;
-
     public Servo pitch;
 
     private static final double ENCODER_TICKS_PER_REV = 28.0;
@@ -66,9 +64,6 @@ public class Turret {
         pitch.setDirection(Servo.Direction.REVERSE);
         rightR.setDirection(Servo.Direction.FORWARD);
         leftR.setDirection(Servo.Direction.FORWARD);
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        
-        limelight.pipelineSwitch(0);
     }
     
 

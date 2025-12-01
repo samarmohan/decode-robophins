@@ -56,7 +56,7 @@ public class OBJDecodeTeleOp extends LinearOpMode {
         double limitedTurretDeg = 0;
         ElapsedTime runtime = new ElapsedTime();
         double turretOffset = (5.75/2); //inches
-        turret.limelight.start();
+        drive.limelightStart();
 
         waitForStart();
         runtime.reset();
@@ -124,7 +124,7 @@ public class OBJDecodeTeleOp extends LinearOpMode {
 
         if (autoAim) {
             idealTurretRelDeg = turret.angleToTarget(xPos, yPos, heading, isTeamRed);
-}
+        }
 
             turret.setPitch(pitchPos);
             if (currentGamepad1.right_trigger > 0.2) {
@@ -163,37 +163,10 @@ public class OBJDecodeTeleOp extends LinearOpMode {
             else if (spinningFront&&!in){
                 turret.frontIntake.setPower(-1.0);
             }
-        
-            
-            turret.limelight.updateRobotOrientation(standardizedHeading);
-            LLResult result = turret.limelight.getLatestResult();
-            
-            if (result != null){
-                if (result.isValid()){
-                    Pose3D botpose = result.getBotpose();
-                    llx = mToIn * botpose.getPosition().x;
-                    lly = mToIn * botpose.getPosition().y;
-                    llr = botpose.getOrientation().getYaw();
-                
-                    if (currentGamepad1.back){
-                        //drive.odometry.setHeading(llr, AngleUnit.DEGREES);
-                    }
-                    if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left){
-                        limelightOn = !limelightOn;
-                    }
-                    if (limelightOn){
-                        if (!hasHeading){
-                            hasHeading = true;
-                            //drive.odometry.setHeading(llr, AngleUnit.DEGREES);
-                        }else{
-                            Pose3D pose_mt2 = result.getBotpose_MT2();
-                            double mt2x = mToIn * pose_mt2.getPosition().x;
-                            double mt2y = mToIn * pose_mt2.getPosition().y;
-                            //drive.odometry.setPosX(mt2y + 72, DistanceUnit.INCH);
-                            //drive.odometry.setPosY((-mt2x) + 72, DistanceUnit.INCH);
-                        }
-                    }
-                }
+            //limelight
+            drive.limelightUpdate(heading, limelightOn);
+            if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left){
+                limelightOn = !limelightOn;
             }
             if (currentGamepad1.a && !previousGamepad1.a) {
                 autoAim = !autoAim;
