@@ -142,6 +142,10 @@ public class Turret {
         }
         return Math.min(max, (Math.max(desiredAngle, min)));
     }
+
+    public double posFromAngle(double angle){
+        return angle  / 820.0 + 0.5;
+    }
     public double angleToTarget(double xPos, double yPos, double heading, boolean isTeamRed){
         double goalX;
         double goalY;

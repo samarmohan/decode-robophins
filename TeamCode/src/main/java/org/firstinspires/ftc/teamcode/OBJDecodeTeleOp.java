@@ -98,7 +98,7 @@ public class OBJDecodeTeleOp extends LinearOpMode {
             }
 
             drive.drive(y, x, rx, accelerator);
-
+            //need to redo distance calculations
             if (currentGamepad1.left_bumper) {
                 dist = turret.taToDistFar(lastTA);
                 targetVelocity = turret.farRPM(dist);
@@ -119,14 +119,14 @@ public class OBJDecodeTeleOp extends LinearOpMode {
                 turret.setFlywheelRPM(targetVelocity);
                 close = true;
             }
-            double desRot = 0.0;
-            double desTurretAngleDeg = 0.0;
+
 
         if (autoAim) {
             idealTurretRelDeg = turret.angleToTarget(xPos, yPos, heading, isTeamRed);
         }
 
             turret.setPitch(pitchPos);
+
             if (currentGamepad1.right_trigger > 0.2) {
                 if (turret.getFlywheelVelocity() > 2000.0) {
                     spinningUp = true;
@@ -172,8 +172,7 @@ public class OBJDecodeTeleOp extends LinearOpMode {
                 autoAim = !autoAim;
             }
             if (autoAim) {
-                limitedTurretDeg = turret.correctTurretAngle(idealTurretRelDeg, TURRET_MAX_DEG, TURRET_MIN_DEG);
-                rotationPos = limitedTurretDeg / 820.0 + 0.5;
+                rotationPos = turret.posFromAngle(turret.correctTurretAngle(idealTurretRelDeg, TURRET_MAX_DEG, TURRET_MIN_DEG));
             }
 
             rotationPos = Math.max(0.0, Math.min(1.0, rotationPos));
@@ -200,7 +199,6 @@ public class OBJDecodeTeleOp extends LinearOpMode {
             } else if (pitchStick < -0.1D && pitchPos <= 1.0) {
                 pitchPos -= 0.005;
             }
-            telemetry.addData("Desired Angle Pos",desRot);
             telemetry.addData("Run Time", runtime.toString());
             telemetry.addData("Turret Pitch", turret.pitch.getPosition());
             telemetry.addData("Stick Pitch", pitchStick);
@@ -212,9 +210,9 @@ public class OBJDecodeTeleOp extends LinearOpMode {
             telemetry.addData("Auto Aim?", autoAim);
             telemetry.addData("RightR Pos", turret.rightR.getPosition());
             telemetry.addData("LeftR Pos", turret.leftR.getPosition());
-            telemetry.addData("limelight x", llx);
-            telemetry.addData("limelight y", lly);
-            telemetry.addData("limelight rot", llr);
+            telemetry.addData("limelight x", drive.getLlx());
+            telemetry.addData("limelight y", drive.getLly());
+            telemetry.addData("limelight rot", drive.getLlh());
             telemetry.update();
         }
 
