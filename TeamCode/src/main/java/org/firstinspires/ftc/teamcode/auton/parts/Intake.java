@@ -14,6 +14,11 @@ public class Intake {
     public Intake(HardwareMap hardwareMap) {
         frontIntake = hardwareMap.get(DcMotor.class, "frontIntake");
         backIntake = hardwareMap.get(DcMotor.class, "backIntake");
+
+        //positive is in, negative is out
+        frontIntake.setDirection(DcMotor.Direction.REVERSE);
+        //positive is up, negative is down
+        backIntake.setDirection(DcMotor.Direction.FORWARD);
     }
 
     public Action intakeOff() {
@@ -50,7 +55,7 @@ public class Intake {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             frontIntake.setPower(1);
-            backIntake.setPower(-0.5);
+            backIntake.setPower(-1);
             return false;
         }
     }

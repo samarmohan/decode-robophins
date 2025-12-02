@@ -27,12 +27,20 @@ public class BlueCloseAuton extends LinearOpMode {
         // TODO run on init
         //Actions.runBlocking(new SequentialAction(claw.clawClose()));
 
+        Vector2d shoot = new Vector2d(-27, -35);
         Action action = new ParallelAction(
                 intake.intakeHold(),
                 drive.actionBuilder(beginPose)
-                        .strafeTo(new Vector2d(0, -10))
-                        .strafeTo(new Vector2d(-20, -20))
-                        .strafeTo(new Vector2d(-20, 0))
+                        .strafeTo(new Vector2d(0, -24))
+                        .strafeTo(shoot)
+                        .strafeTo(new Vector2d(-27, -24))
+                        .strafeTo(new Vector2d(-27, 0))
+                        .strafeTo(shoot)
+                        .strafeTo(new Vector2d(-53, -24))
+                        .strafeTo(new Vector2d(-53, 0))
+                        .strafeTo(shoot)
+                        //.strafeTo(new Vector2d(-20, -20))
+                        //.strafeTo(new Vector2d(-20, 0))
                         .afterTime(1, intake.intakeOff())
                         .build()
         );
