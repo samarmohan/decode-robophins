@@ -128,43 +128,12 @@ public class OBJDecodeTeleOp extends LinearOpMode {
         }
 
             turret.setPitch(pitchPos);
+            //right trigger shoots
 
-            if (currentGamepad1.right_trigger > 0.2) {
-                if (turret.getFlywheelVelocity() > 2000.0) {
-                    spinningUp = true;
-                    spinningFront = true;
-                    in = true;
-                    turret.frontIntake.setPower(1.0);
-                    turret.backIntake.setPower(1.0);
-                } else {
-                spinningUp = false;
-                turret.backIntake.setPower(-0.5);
-                    
-                }
-            }else{
-                turret.backIntake.setPower(-0.5);
-            }
+            //x toggle off/in
+            //y toggles in/out
+            
 
-            if (currentGamepad1.x && !previousGamepad1.x) {
-                if (spinningFront) {
-                    spinningFront = false;
-                    turret.frontIntake.setPower(0.0);
-                    turret.backIntake.setPower(0.0);
-                } else {
-                    spinningFront = true;
-                    turret.frontIntake.setPower(1.0);
-                    turret.backIntake.setPower(-0.5);
-                }
-            }
-
-            if (currentGamepad1.y && !previousGamepad1.y) {
-                in=!in;}
-            if (spinningFront && in){
-                turret.frontIntake.setPower(1.0);
-            }
-            else if (spinningFront&&!in){
-                turret.frontIntake.setPower(-1.0);
-            }
             //limelight
             limelight.update(heading, limelightOn);
             if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left){
@@ -180,17 +149,9 @@ public class OBJDecodeTeleOp extends LinearOpMode {
                 rotationPos = turret.posFromAngle(turret.correctTurretAngle(idealTurretRelDeg, TURRET_MAX_DEG, TURRET_MIN_DEG));
             }
 
-            rotationPos = Math.max(0.0, Math.min(1.0, rotationPos));
-
             turret.rightR.setPosition(rotationPos);
             turret.leftR.setPosition(rotationPos);
 
-            double rotationStick = currentGamepad2.left_stick_x;
-            if (rotationStick > 0.1 && rotationPos <= 500.0) {
-                //turret.rotation.setPower(-0.6D * rotationStick);
-            } else if (rotationStick < -0.1 && rotationPos >= -3000.0) {
-                //turret.rotation.setPower(-0.6 * rotationStick);
-            }
 
             if (currentGamepad1.dpad_down && pitchPos <= 1.0) {
                 pitchPos += 0.005;

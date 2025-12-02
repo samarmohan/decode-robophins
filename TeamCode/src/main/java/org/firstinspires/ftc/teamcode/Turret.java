@@ -14,8 +14,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class Turret {
     public DcMotorEx flywheel;
     public DcMotorEx flywheel2;
-    public DcMotor frontIntake;
-    public DcMotor backIntake;
     public Servo rightR;
     public Servo leftR;
     public Servo pitch;
@@ -26,18 +24,12 @@ public class Turret {
     public static final double FLYWHEEL_RPM_FAST = 3400.0;
     public static final double FLYWHEEL_RPM_SLOW = 2800.0;
 
-    enum RobotState {
-        HOLD,
-        OUTPUT,
-        SHOOT
-    }
+
 
     public void init(HardwareMap hardwareMap) {
         //rotation = hardwareMap.get(DcMotorEx.class, "rotation");
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
-        frontIntake = hardwareMap.get(DcMotor.class, "frontIntake");
-        backIntake = hardwareMap.get(DcMotor.class, "backIntake");
 
         flywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -55,8 +47,6 @@ public class Turret {
         //rotation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         //rotation.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         //rotation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        frontIntake.setDirection(DcMotor.Direction.REVERSE);
 
         pitch = hardwareMap.get(Servo.class, "pitch");
         rightR = hardwareMap.get(Servo.class, "rightR");
@@ -156,7 +146,7 @@ public class Turret {
 
     //gets the servo position from desired turret angle
     public double posFromAngle(double angle){
-        return angle  / 820.0 + 0.5;
+        return Math.max(0.0, Math.min(1.0, angle  / 820.0 + 0.5));
     }
 
     //finds the angle between the front of the robot and the target
