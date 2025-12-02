@@ -6,12 +6,14 @@ import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
+
 
 public class Turret {
     public DcMotorEx flywheel;
     public DcMotorEx flywheel2;
-    public Servo rightR;
-    public Servo leftR;
+    public CRServo rightR;
+    public CRServo leftR;
     public Servo pitch;
 
     private static final double ENCODER_TICKS_PER_REV = 28.0;
@@ -45,11 +47,11 @@ public class Turret {
         //rotation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         pitch = hardwareMap.get(Servo.class, "pitch");
-        rightR = hardwareMap.get(Servo.class, "rightR");
-        leftR  = hardwareMap.get(Servo.class, "leftR");
+        rightR = hardwareMap.get(CRServo.class, "rightR");
+        leftR  = hardwareMap.get(CRServo.class, "leftR");
         pitch.setDirection(Servo.Direction.REVERSE);
-        rightR.setDirection(Servo.Direction.FORWARD);
-        leftR.setDirection(Servo.Direction.FORWARD);
+        rightR.setDirection(CRServo.Direction.FORWARD);
+        leftR.setDirection(CRServo.Direction.FORWARD);
     }
     
 
@@ -144,8 +146,17 @@ public class Turret {
         pitch.setPosition(pos);
     }
 
-    public void setRotation(double pos){
-        rightR.setPosition(pos);
-        leftR.setPosition(pos);
+    public void setRotationPower(double power){
+        rightR.setPower(power);
+        leftR.setPower(power);
+    }
+
+    //the through bore encoder is plugged into flywheel 2 slot
+    public double getRotationRealPosition(){
+        return flywheel2.getCurrentPosition();
+    }
+
+    public void rotationPID(double targetAngle){
+
     }
 }

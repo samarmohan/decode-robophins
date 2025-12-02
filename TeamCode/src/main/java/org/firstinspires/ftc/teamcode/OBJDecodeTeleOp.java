@@ -6,9 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-
-
-
 @TeleOp
 public class OBJDecodeTeleOp extends LinearOpMode {
     Turret turret = new Turret();
@@ -148,7 +145,7 @@ public class OBJDecodeTeleOp extends LinearOpMode {
                 rotationPos = turret.posFromAngle(turret.correctTurretAngle(idealTurretRelDeg, TURRET_MAX_DEG, TURRET_MIN_DEG));
             }
 
-            turret.setRotation(rotationPos);
+            //turret.setRotation(rotationPos);
 
 
             if (currentGamepad1.dpad_down && pitchPos <= 1.0) {
@@ -172,8 +169,7 @@ public class OBJDecodeTeleOp extends LinearOpMode {
             telemetry.addData("Flywheel Velocity", turret.getFlywheelVelocity());
             telemetry.addData("Target RPM", targetVelocity);
             telemetry.addData("Auto Aim?", autoAim);
-            telemetry.addData("RightR Pos", turret.rightR.getPosition());
-            telemetry.addData("LeftR Pos", turret.leftR.getPosition());
+            telemetry.addData("Turret Pos", turret.getRotationRealPosition());
             telemetry.addData("limelight x", limelight.getLlx());
             telemetry.addData("limelight y", limelight.getLly());
             telemetry.addData("limelight rot", limelight.getLlh());
