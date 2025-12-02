@@ -171,4 +171,9 @@ public class Turret {
     public void setPitch(double pos){
         pitch.setPosition(pos);
     }
+
+    public void setRotation(double pos){
+        rightR.setPosition(pos);
+        leftR.setPosition(pos);
+    }
 }

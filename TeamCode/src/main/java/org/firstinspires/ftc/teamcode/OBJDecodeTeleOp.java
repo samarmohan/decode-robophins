@@ -95,11 +95,15 @@ public class OBJDecodeTeleOp extends LinearOpMode {
             double rx = currentGamepad1.right_stick_x;
             double accelerator = gamepad1.left_trigger;
 
+            //resets field centric heading
             if (gamepad1.options) {
                 drive.resetFieldCentric();
             }
 
+            //runs drive code
             drive.drive(y, x, rx, accelerator);
+
+
             //need to redo distance calculations
             if (currentGamepad1.left_bumper) {
                 dist = turret.taToDistFar(lastTA);
@@ -123,9 +127,9 @@ public class OBJDecodeTeleOp extends LinearOpMode {
             }
 
 
-        if (autoAim) {
-            idealTurretRelDeg = turret.angleToTarget(xPos, yPos, heading, isTeamRed);
-        }
+            if (autoAim) {
+                idealTurretRelDeg = turret.angleToTarget(xPos, yPos, heading, isTeamRed);
+            }
 
             turret.setPitch(pitchPos);
             //right trigger shoots
@@ -149,8 +153,7 @@ public class OBJDecodeTeleOp extends LinearOpMode {
                 rotationPos = turret.posFromAngle(turret.correctTurretAngle(idealTurretRelDeg, TURRET_MAX_DEG, TURRET_MIN_DEG));
             }
 
-            turret.rightR.setPosition(rotationPos);
-            turret.leftR.setPosition(rotationPos);
+            turret.setRotation(rotationPos);
 
 
             if (currentGamepad1.dpad_down && pitchPos <= 1.0) {
