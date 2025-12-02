@@ -1,18 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.limelightvision.LLResult;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.hardware.IMU;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 
 
 
@@ -20,14 +13,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class OBJDecodeTeleOp extends LinearOpMode {
     Turret turret = new Turret();
     Drivetrain drive = new Drivetrain();
-
     Limelight limelight = new Limelight();
+    Intake intake = new Intake();
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
         turret.init(hardwareMap);
         drive.init(hardwareMap);
+        intake.init(hardwareMap);
+        limelight.init(hardwareMap);
+
 
         Gamepad currentGamepad1 = new Gamepad();
         Gamepad currentGamepad2 = new Gamepad();
@@ -35,29 +31,17 @@ public class OBJDecodeTeleOp extends LinearOpMode {
         Gamepad previousGamepad2 = new Gamepad();
 
         double pitchPos = 1.0;
-        boolean in = true;
-        boolean spinningFront = false;
-        boolean spinningUp = false;
         double targetVelocity = 0.0;
         boolean autoAim = false;
-        double lastTA = 0.0;
-        double dist = 0.0;
-        boolean close = true;
         double rotationPos = 0.5;
-        final double TURRET_ROTATION_GEAR_RATIO = 2.0;
-        double turretAngle = (rotationPos-0.5)*450.0* TURRET_ROTATION_GEAR_RATIO;
-        double llx = 0;
-        double lly = 0;
-        double llr = 0;
-        final double mToIn = 39.37;
-        boolean hasHeading = false;
+
         boolean limelightOn = true;
         final double TURRET_MIN_DEG = -90.0;
         final double TURRET_MAX_DEG = 180.0;
         double idealTurretRelDeg = 0;
         double limitedTurretDeg = 0;
         ElapsedTime runtime = new ElapsedTime();
-        double turretOffset = (5.75/2); //inches
+        final double TURRET_OFFSET = (5.75/2); //inches
         limelight.start();
 
         waitForStart();
@@ -105,11 +89,15 @@ public class OBJDecodeTeleOp extends LinearOpMode {
 
 
             //need to redo distance calculations
+
             if (currentGamepad1.left_bumper) {
+                /*
                 dist = turret.taToDistFar(lastTA);
                 targetVelocity = turret.farRPM(dist);
                 turret.setFlywheelRPM(targetVelocity);
-                close = false;
+                 */
+                turret.setFlywheelRPM(3400);
+
             }
 
             if (currentGamepad1.b) {
@@ -119,11 +107,14 @@ public class OBJDecodeTeleOp extends LinearOpMode {
             }
 
             if (currentGamepad1.right_bumper) {
+                /*
                 dist = turret.taToDistClose(lastTA);
                 pitchPos = 1-turret.closePitch(dist);
                 targetVelocity = turret.closeRPM(dist);
                 turret.setFlywheelRPM(targetVelocity);
                 close = true;
+                */
+                turret.setFlywheelRPM(2800);
             }
 
 
@@ -132,11 +123,15 @@ public class OBJDecodeTeleOp extends LinearOpMode {
             }
 
             turret.setPitch(pitchPos);
+
+            //run intake state machine
+            intake.loop(currentGamepad1.y, currentGamepad1.x, currentGamepad1.right_trigger);
             //right trigger shoots
 
             //x toggle off/in
+
             //y toggles in/out
-            
+
 
             //limelight
             limelight.update(heading, limelightOn);

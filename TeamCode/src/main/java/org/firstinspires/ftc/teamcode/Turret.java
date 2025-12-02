@@ -1,10 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import com.qualcomm.hardware.limelightvision.LLStatus;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -78,51 +74,27 @@ public class Turret {
         setFlywheelRPM(0);
     }
 
-    //antiquated
-    //regression for close distance based off limelight
-    public double taToDistClose(double ta){
-        double scale = 77.16813;
-        double exponent = -0.4654198;
-        
-        double dist = scale * Math.pow(ta, exponent);
-        return dist;
-    }
-    //antiquated
-    //regression for far distance based off limelight
-    public double taToDistFar(double ta){
-        double scale = 73.20354;
-        double exponent = -0.486885;
-        
-        double dist = scale * Math.pow(ta, exponent);
-      return dist;
-    }
-
     //regression for pitch when close based off distance
     public double closePitch(double dist){
-        double pitch = -0.00075*dist + 0.332235;
-        
-        return pitch;
+        return -0.00075*dist + 0.332235;
     }
 
     //regression for flywheel RPM when close based off distance
     public double closeRPM(double dist){
-        double rpm = 9.09090909*dist+1993.18181818;
-        
-        return rpm;
+
+        return 9.09090909*dist+1993.18181818;
     }
 
     //regression for pitch when far based off distance
     public double farPitch(double dist){
-        double pitch = 0.00921875*dist - 1.16848;
-        
-        return pitch;
+
+        return 0.00921875*dist - 1.16848;
     }
 
     //regression for pitch when close based off distance(not actually a regression since our data was 3400 for all parts of far)
     public double farRPM(double dist){
-        double rpm = 3400;
-        
-        return rpm;
+
+        return 3400;
     }
 
     //changes angle from -180 to 180 into 0 to 360
