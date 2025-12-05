@@ -29,8 +29,8 @@ public class Intake {
         return new IntakeShoot();
     }
 
-    public Action intakeHold() {
-        return new IntakeHold();
+    public Action intakeIn() {
+        return new IntakeIn();
     }
 
     public class IntakeOff implements Action {
@@ -51,7 +51,7 @@ public class Intake {
         }
     }
 
-    public class IntakeHold implements Action {
+    public class IntakeIn implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             frontIntake.setPower(1);

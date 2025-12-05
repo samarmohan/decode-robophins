@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp
-public class OBJDecodeTeleOp extends LinearOpMode {
+public class DecodeTeleOp extends LinearOpMode {
     Turret turret = new Turret();
     Drivetrain drive = new Drivetrain();
     Limelight limelight = new Limelight();
