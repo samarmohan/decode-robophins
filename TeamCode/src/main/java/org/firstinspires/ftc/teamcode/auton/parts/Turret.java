@@ -19,9 +19,6 @@ public class Turret {
     private static final double ENCODER_TICKS_PER_REV = 28.0;
     private static final double SECONDS_PER_MINUTE = 60.0;
 
-    private static final double FLYWHEEL_RPM = 2600.0;
-    private static final double PITCH_POSITION = 0.64;
-
     public Turret(HardwareMap hardwareMap) {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
@@ -44,27 +41,39 @@ public class Turret {
         rightR.setDirection(CRServo.Direction.FORWARD);
     }
 
-    public Action setFlywheelRPM() {
-        return new SetFlywheelRPM();
+    public Action setFlywheelRPM(double rpm) {
+        return new SetFlywheelRPM(rpm);
     }
 
-    public Action setPitchPosition() {
-        return new SetPitchPosition();
+    public Action setPitchPosition(double pitchPos) {
+        return new SetPitchPosition(pitchPos);
     }
 
     public class SetFlywheelRPM implements Action {
+        public double rpm;
+
+        public SetFlywheelRPM(double rpm) {
+            this.rpm = rpm;
+        }
+
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
-            flywheel.setVelocity(FLYWHEEL_RPM * (ENCODER_TICKS_PER_REV / SECONDS_PER_MINUTE));
-            flywheel2.setVelocity(FLYWHEEL_RPM * (ENCODER_TICKS_PER_REV / SECONDS_PER_MINUTE));
+            flywheel.setVelocity(rpm * (ENCODER_TICKS_PER_REV / SECONDS_PER_MINUTE));
+            flywheel2.setVelocity(rpm * (ENCODER_TICKS_PER_REV / SECONDS_PER_MINUTE));
             return false;
         }
     }
 
     public class SetPitchPosition implements Action {
+        public double pitchPos;
+
+        public SetPitchPosition(double pitchPos) {
+            this.pitchPos = pitchPos;
+        }
+
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
-            pitch.setPosition(PITCH_POSITION);
+            pitch.setPosition(pitchPos);
             return false;
         }
     }

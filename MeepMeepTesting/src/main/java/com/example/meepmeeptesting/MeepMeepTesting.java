@@ -13,11 +13,16 @@ import org.jetbrains.annotations.NotNull;
 
 
 public class MeepMeepTesting {
+    private static final double BLUE_COLLECT_ROTATION = Math.toRadians(-90);
+    private static final double BLUE_SHOOT_ROTATION = Math.toRadians(-135);
+    public static final double SHOOT_WAIT_TIME = 2.8;
+    public static final double COLLECT_WAIT_TIME = 0.2;
+
     public static void main(String[] args) {
         MeepMeep meepMeep = new MeepMeep(600);
 
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
-                .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+                .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 13.03)
                 .build();
 
         Pose2d initialPose = new Pose2d(-38, -53, Math.toRadians(-90));
@@ -28,9 +33,6 @@ public class MeepMeepTesting {
         Vector2d lineUpThirdSet = new Vector2d(36, -24);
         Vector2d collectThirdSet = new Vector2d(36, -60);
 
-        final double SHOOT_WAIT_TIME = 3.0;
-        final double COLLECT_WAIT_TIME = 0.3;
-
         Action action = new Action() {
             @Override
             public boolean run(@NotNull TelemetryPacket telemetryPacket) {
@@ -38,41 +40,46 @@ public class MeepMeepTesting {
             }
         };
         myBot.runAction(myBot.getDrive().actionBuilder(initialPose)
-                .strafeToSplineHeading(shooting, Math.toRadians(-135))
-                .afterTime(0.1, action)
+                        // shoot preset balls
+                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
+                        .afterTime(0.1, action)
+                        .waitSeconds(SHOOT_WAIT_TIME)
+                        .stopAndAdd(action)
 
-                .waitSeconds(SHOOT_WAIT_TIME)
-                .stopAndAdd(action)
-                .strafeToSplineHeading(collectFirstSet, Math.toRadians(-90))
+                        // collect first spike and shoot
+                        .turnTo(BLUE_COLLECT_ROTATION)
+                        .strafeTo(collectFirstSet)
+                        .waitSeconds(COLLECT_WAIT_TIME)
+                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
+                        .afterTime(0.1, action)
+                        .waitSeconds(SHOOT_WAIT_TIME)
+                        .afterTime(0, action)
 
-                .waitSeconds(COLLECT_WAIT_TIME)
-                .strafeToSplineHeading(shooting, Math.toRadians(-135))
-                .afterTime(0.1, action)
+                        // collect second spike and shoot
+                        .strafeToSplineHeading(lineUpSecondSet, BLUE_COLLECT_ROTATION)
+                        .strafeTo(collectSecondSet)
+                        .waitSeconds(COLLECT_WAIT_TIME)
+                        //.strafeTo(new Vector2d(12, -50))
+                        .splineToConstantHeading(shooting, BLUE_SHOOT_ROTATION)
+                        .afterTime(0.1, action)
+                        .waitSeconds(SHOOT_WAIT_TIME)
 
-                .waitSeconds(SHOOT_WAIT_TIME)
-                .afterTime(0, action)
-                .strafeToSplineHeading(lineUpSecondSet, Math.toRadians(-90))
+                        // collect third spike and shoot
+                        .strafeToSplineHeading(lineUpThirdSet, BLUE_COLLECT_ROTATION)
+                        .afterTime(0, action)
+                        .strafeTo(collectThirdSet)
+                        .waitSeconds(COLLECT_WAIT_TIME)
+                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
+                        .afterTime(0.1, action)
+                        .waitSeconds(SHOOT_WAIT_TIME)
 
-                .strafeTo(collectSecondSet)
-                        .strafeTo(new Vector2d(12, -50))
-                .waitSeconds(COLLECT_WAIT_TIME)
-                .strafeToSplineHeading(shooting, Math.toRadians(-135))
-                .afterTime(0.1, action)
+                        // reset
+                        .strafeToSplineHeading(collectFirstSet, BLUE_COLLECT_ROTATION)
+                        .afterTime(0, action)
+                        .afterTime(0, action)
+                        .afterTime(0, action)
 
-                .waitSeconds(SHOOT_WAIT_TIME)
-                .strafeToSplineHeading(lineUpThirdSet, Math.toRadians(-90))
-                .afterTime(0, action)
-
-                .strafeTo(collectThirdSet)
-                .waitSeconds(COLLECT_WAIT_TIME)
-                .strafeToSplineHeading(shooting, Math.toRadians(-135))
-                .afterTime(0.1, action)
-
-                .waitSeconds(SHOOT_WAIT_TIME)
-                .strafeToSplineHeading(collectFirstSet, Math.toRadians(-90))
-                .afterTime(0, action)
-
-                .build());
+                        .build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_DECODE_OFFICIAL)
                 .setDarkMode(true)
