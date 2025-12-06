@@ -4,6 +4,6 @@ public final class Constants {
     public static final double FLYWHEEL_RPM = 2500.0;
 
     public static final double PITCH_POSITION = 0.32;
-    public static final double SHOOT_WAIT_TIME = 2.6;
-    public static final double COLLECT_WAIT_TIME = 0.1;
+    public static final double SHOOT_WAIT_TIME = 2.7;
+    public static final double COLLECT_WAIT_TIME = 0.01;
 }
