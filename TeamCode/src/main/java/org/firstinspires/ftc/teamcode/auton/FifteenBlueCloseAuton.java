@@ -1,6 +1,11 @@
 package org.firstinspires.ftc.teamcode.auton;
 
 
+import static org.firstinspires.ftc.teamcode.auton.parts.Constants.COLLECT_WAIT_TIME;
+import static org.firstinspires.ftc.teamcode.auton.parts.Constants.FLYWHEEL_RPM;
+import static org.firstinspires.ftc.teamcode.auton.parts.Constants.PITCH_POSITION;
+import static org.firstinspires.ftc.teamcode.auton.parts.Constants.SHOOT_WAIT_TIME;
+
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -22,7 +27,7 @@ public class FifteenBlueCloseAuton extends LinearOpMode {
         final double BLUE_SHOOT_ROTATION = Math.toRadians(-135);
         final double BLUE_COLLECT_ROTATION = Math.toRadians(-90);
 
-        Pose2d initialPose = new Pose2d(-38, -53, BLUE_COLLECT_ROTATION);
+        Pose2d initialPose = new Pose2d(-40, -53, BLUE_COLLECT_ROTATION);
         Vector2d shooting = new Vector2d(-12, -12);
         Vector2d collectFirstSet = new Vector2d(-12, -50);
         Vector2d lineUpSecondSet = new Vector2d(12, -24);
@@ -42,54 +47,54 @@ public class FifteenBlueCloseAuton extends LinearOpMode {
 
         Action action = new ParallelAction(
                 intake.intakeIn(),
-                turret.setFlywheelRPM(Constants.FLYWHEEL_RPM),
-                turret.setPitchPosition(Constants.PITCH_POSITION),
+                turret.setFlywheelRPM(FLYWHEEL_RPM),
+                turret.setPitchPosition(PITCH_POSITION),
                 drive.actionBuilder(initialPose)
                         // shoot preset balls
                         .setReversed(true)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
-                        .waitSeconds(Constants.SHOOT_WAIT_TIME)
-                        .stopAndAdd(intake.intakeIn())
+                        .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect first spike and shoot
                         .turnTo(BLUE_COLLECT_ROTATION)
+                        .afterTime(0, intake.intakeIn())
                         .strafeTo(collectFirstSet)
-                        .waitSeconds(Constants.COLLECT_WAIT_TIME)
+                        .waitSeconds(COLLECT_WAIT_TIME)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
-                        .waitSeconds(Constants.SHOOT_WAIT_TIME)
-                        .stopAndAdd(intake.intakeIn())
+                        .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect second spike and shoot
                         .setReversed(true)
                         .splineToSplineHeading(new Pose2d(lineUpSecondSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
+                        .afterTime(0, intake.intakeIn())
                         .strafeTo(collectSecondSet)
-                        .waitSeconds(Constants.COLLECT_WAIT_TIME)
+                        .waitSeconds(COLLECT_WAIT_TIME)
                         .setReversed(true)
                         .splineToSplineHeading(new Pose2d(shooting, BLUE_SHOOT_ROTATION), Math.toRadians(135))
                         .afterTime(0, intake.intakeShoot())
-                        .waitSeconds(Constants.SHOOT_WAIT_TIME)
-                        .stopAndAdd(intake.intakeIn())
+                        .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect third spike and shoot
                         .splineToSplineHeading(new Pose2d(lineUpThirdSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
+                        .afterTime(0, intake.intakeIn())
                         .strafeTo(collectThirdSet)
-                        .waitSeconds(Constants.COLLECT_WAIT_TIME)
+                        .waitSeconds(COLLECT_WAIT_TIME)
                         .setReversed(true)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
-                        .waitSeconds(Constants.SHOOT_WAIT_TIME)
-                        .stopAndAdd(intake.intakeIn())
+                        .waitSeconds(SHOOT_WAIT_TIME)
 
                         // fourth
                         .splineToSplineHeading(new Pose2d(lineUpFourthSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
+                        .afterTime(0, intake.intakeIn())
                         .strafeTo(collectFourthSet)
-                        .waitSeconds(Constants.COLLECT_WAIT_TIME)
+                        .waitSeconds(COLLECT_WAIT_TIME+0.5)
                         .setReversed(true)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
-                        .waitSeconds(Constants.SHOOT_WAIT_TIME)
+                        .waitSeconds(SHOOT_WAIT_TIME)
 
                         // reset
                         .strafeToSplineHeading(collectFirstSet, BLUE_COLLECT_ROTATION)
