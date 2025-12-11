@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.auton.parts;
 
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -22,41 +19,29 @@ public class Intake {
     }
 
     public Action intakeOff() {
-        return new IntakeOff();
+        return packet -> {
+            frontIntake.setPower(0);
+            backIntake.setPower(0);
+            packet.put("Intake Status", "Off");
+            return false;
+        };
     }
 
     public Action intakeShoot() {
-        return new IntakeShoot();
-    }
-
-    public Action intakeIn() {
-        return new IntakeIn();
-    }
-
-    public class IntakeOff implements Action {
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
-            frontIntake.setPower(0);
-            backIntake.setPower(0);
-            return false;
-        }
-    }
-
-    public class IntakeShoot implements Action {
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
+        return packet -> {
             frontIntake.setPower(1);
             backIntake.setPower(1);
+            packet.put("Intake Status", "Shooting");
             return false;
-        }
+        };
     }
 
-    public class IntakeIn implements Action {
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
+    public Action intakeHold() {
+        return packet -> {
             frontIntake.setPower(1);
             backIntake.setPower(-1);
+            packet.put("Intake Status", "Holding");
             return false;
-        }
+        };
     }
 }

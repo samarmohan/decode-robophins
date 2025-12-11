@@ -19,8 +19,8 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.auton.parts.Intake;
 import org.firstinspires.ftc.teamcode.auton.parts.Turret;
 
-@Autonomous(name = "TwelveBlueCloseAuton")
-public class TwelveBlueCloseAuton extends LinearOpMode {
+@Autonomous(name = "GateTwelveBlueCloseAuton")
+public class GateTwelveBlueCloseAuton extends LinearOpMode {
     @Override
     public void runOpMode() {
         final double BLUE_SHOOT_ROTATION = Math.toRadians(-135);
@@ -55,11 +55,16 @@ public class TwelveBlueCloseAuton extends LinearOpMode {
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
-                        // collect first spike and shoot
+                        // collect first spike
                         .turnTo(BLUE_COLLECT_ROTATION)
                         .afterTime(0, intake.intakeHold())
                         .strafeTo(collectFirstSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
+
+                        // open gate and shoot
+                        .strafeTo(lineUpGate)
+                        .strafeTo(openGate)
+                        .waitSeconds(GATE_OPEN_TIME)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)

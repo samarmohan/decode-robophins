@@ -37,44 +37,24 @@ public class Turret {
 
         pitch = hardwareMap.get(Servo.class, "pitch");
         rightR = hardwareMap.get(CRServo.class, "rightR");
-        pitch.setDirection(Servo.Direction.REVERSE);
+        pitch.setDirection(Servo.Direction.FORWARD);
         rightR.setDirection(CRServo.Direction.FORWARD);
     }
 
     public Action setFlywheelRPM(double rpm) {
-        return new SetFlywheelRPM(rpm);
+        return packet -> {
+            flywheel.setVelocity(rpm * (ENCODER_TICKS_PER_REV / SECONDS_PER_MINUTE));
+            flywheel2.setVelocity(rpm * (ENCODER_TICKS_PER_REV / SECONDS_PER_MINUTE));
+            packet.put("Flywheel RPM", rpm);
+            return false;
+        };
     }
 
     public Action setPitchPosition(double pitchPos) {
-        return new SetPitchPosition(pitchPos);
-    }
-
-    public class SetFlywheelRPM implements Action {
-        public double rpm;
-
-        public SetFlywheelRPM(double rpm) {
-            this.rpm = rpm;
-        }
-
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
-            flywheel.setVelocity(rpm * (ENCODER_TICKS_PER_REV / SECONDS_PER_MINUTE));
-            flywheel2.setVelocity(rpm * (ENCODER_TICKS_PER_REV / SECONDS_PER_MINUTE));
-            return false;
-        }
-    }
-
-    public class SetPitchPosition implements Action {
-        public double pitchPos;
-
-        public SetPitchPosition(double pitchPos) {
-            this.pitchPos = pitchPos;
-        }
-
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
+        return packet -> {
             pitch.setPosition(pitchPos);
+            packet.put("Pitch Position", pitchPos);
             return false;
-        }
+        };
     }
 }
