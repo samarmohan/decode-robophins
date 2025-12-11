@@ -76,7 +76,7 @@ public class GateTwelveBlueCloseAuton extends LinearOpMode {
                         .strafeTo(collectSecondSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
                         .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(shooting, BLUE_SHOOT_ROTATION), Math.toRadians(135))
+                        .splineToSplineHeading(new Pose2d(shooting, BLUE_SHOOT_ROTATION), -BLUE_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 

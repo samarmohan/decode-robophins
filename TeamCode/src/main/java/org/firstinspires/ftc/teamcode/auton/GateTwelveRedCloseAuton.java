@@ -23,8 +23,8 @@ import org.firstinspires.ftc.teamcode.auton.parts.Turret;
 public class GateTwelveRedCloseAuton extends LinearOpMode {
     @Override
     public void runOpMode() {
-        final double RED_SHOOT_ROTATION = Math.toRadians(-135);
-        final double RED_COLLECT_ROTATION = Math.toRadians(-90);
+        final double RED_SHOOT_ROTATION = Math.toRadians(135);
+        final double RED_COLLECT_ROTATION = Math.toRadians(90);
 
         Pose2d initialPose = new Pose2d(-40, 52, RED_COLLECT_ROTATION);
         Vector2d shooting = new Vector2d(-14, 14);
@@ -34,8 +34,8 @@ public class GateTwelveRedCloseAuton extends LinearOpMode {
         Vector2d lineUpThirdSet = new Vector2d(36, 20);
         Vector2d collectThirdSet = new Vector2d(36, 57);
 
-        Vector2d lineUpGate = new Vector2d(-3, -45);
-        Vector2d openGate = new Vector2d(-3, -53);
+        Vector2d lineUpGate = new Vector2d(-3, 45);
+        Vector2d openGate = new Vector2d(-3, 53);
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Intake intake = new Intake(hardwareMap);
@@ -76,7 +76,7 @@ public class GateTwelveRedCloseAuton extends LinearOpMode {
                         .strafeTo(collectSecondSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
                         .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(shooting, RED_SHOOT_ROTATION), Math.toRadians(135))
+                        .splineToSplineHeading(new Pose2d(shooting, RED_SHOOT_ROTATION), -RED_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
