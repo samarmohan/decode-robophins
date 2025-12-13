@@ -43,9 +43,9 @@ public class Turret {
 
     public Action setFlywheelRPM(double rpm) {
         return packet -> {
+            packet.put("Flywheel RPM", rpm);
             flywheel.setVelocity(rpm * (ENCODER_TICKS_PER_REV / SECONDS_PER_MINUTE));
             flywheel2.setVelocity(rpm * (ENCODER_TICKS_PER_REV / SECONDS_PER_MINUTE));
-            packet.put("Flywheel RPM", rpm);
             return false;
         };
     }
