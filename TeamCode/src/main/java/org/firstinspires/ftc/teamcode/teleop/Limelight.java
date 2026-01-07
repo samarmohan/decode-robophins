@@ -10,9 +10,9 @@ public class Limelight {
 
     private double llh;
     
-    private double mt2x;
+    private double llx;
      
-    private double mt2y;
+    private double lly;
 
     public void init(HardwareMap hardwareMap){
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -21,7 +21,6 @@ public class Limelight {
     }
 
     //runs limelight loop
-    //gets megaTag1&2 data and converts it to bottom left corner as 0,0 coords then sets that in odometry
     public void update(double heading){
         LLResult result = limelight.getLatestResult();
 
@@ -30,11 +29,11 @@ public class Limelight {
                 Pose3D botPose = result.getBotpose();
                 final double METER_TO_INCH = 39.37;
                 llh = botPose.getOrientation().getYaw();
-                
+
                 limelight.updateRobotOrientation(llh);
                 Pose3D pose_mt2 = result.getBotpose_MT2();
-                mt2x = METER_TO_INCH * pose_mt2.getPosition().x;
-                mt2y = METER_TO_INCH * pose_mt2.getPosition().y;
+                llx = METER_TO_INCH * pose_mt2.getPosition().x;
+                lly = METER_TO_INCH * pose_mt2.getPosition().y;
             }
         }
     }
@@ -42,15 +41,16 @@ public class Limelight {
     public void start(){
         limelight.start();
     }
+    public void stop() { limelight.stop(); }
     public double getLlh(){
         return llh;
     }
     
-    public double getMT2X(){
-        return mt2x;
+    public double getLlx(){
+        return llx;
     }
     
-    public double getMT2Y(){
-        return mt2y;
+    public double getLly(){
+        return lly;
     }
 }

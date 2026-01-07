@@ -1,205 +1,128 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 
+@Config
 public class Turret {
-    // --- Hardware ---
+    // Hardware
     public DcMotorEx flywheel;
-    public DcMotorEx flywheel2;
+    public DcMotorEx flywheel2; // Encoder Port
     public CRServo rightR;
     public CRServo leftR;
     public Servo pitch;
 
-    // --- Constants ---
+    // Constants
     private static final double ENCODER_TICKS_PER_REV = 28.0;
-
     private static final double DEGREES_PER_TICK = 90.0 / 5850.0;
+
+    // Tuning
     private static final double FLYWHEEL_RPM_FAR = 3400.0;
-    private static final double FLYWHEEL_RPM_MID = 2550.0;
+    private static final double FLYWHEEL_RPM_MID = 2800.0;
     private static final double FLYWHEEL_RPM_CLOSE = 2200.0;
 
-    // =========================================================
-    //               PIDF COEFFICIENTS
-    // =========================================================
+    // PID Coefficients
+    public static double rotation_kP = 0.001, rotation_kI = 0.0, rotation_kD = 0.0, rotation_kF = 0.0;
+    public static double flywheel_kP = 0.001, flywheel_kI = 0.0, flywheel_kD = 0.0, flywheel_kF = 0.0002;
 
-    // Rotation PID
-    public double rotation_kP = 0.015;
-    public double rotation_kI = 0.0;
-    public double rotation_kD = 0.0;
-    public double rotation_kF = 0.0;
-
-    // Flywheel PIDF
-    public double flywheel_kP = 0.0001;
-    public double flywheel_kI = 0;
-    public double flywheel_kD = 0;
-    public double flywheel_kF = 0.0002; // Feedforward (approx 1/MaxRPM)
-
-    // =========================================================
-    //               STATE VARIABLES
-    // =========================================================
-
-    // Targets
+    // State
     private double targetAngle = 0;
     private double targetRPM = 0;
-
-    // Outputs (Motor Power -1.0 to 1.0)
-    private double rotationOutput = 0;
+    public double rotationOutput = 0;
     private double flywheelOutput = 0;
 
-    // PID State Tracking
-    private double rotation_lastError = 0;
-    private double rotation_lastTime = 0;
-    private double rotation_integral = 0;
-
-    private double flywheel_lastError = 0;
-    private double flywheel_lastTime = 0;
-    private double flywheel_integral = 0;
-
-    // =========================================================
-    //               INIT
-    // =========================================================
+    // PID Internal State
+    private double rotation_lastError = 0, rotation_lastTime = 0, rotation_integral = 0;
+    private double flywheel_lastError = 0, flywheel_lastTime = 0, flywheel_integral = 0;
 
     public void init(HardwareMap hardwareMap) {
-        // Flywheel Hardware
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
 
+        // Flywheel Setup
         flywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flywheel2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
         flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Used as encoder source
 
         flywheel.setDirection(DcMotor.Direction.FORWARD);
-        flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
         flywheel2.setDirection(DcMotor.Direction.REVERSE);
+        flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheel2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // Turret Hardware
+        // Servo Setup
         pitch = hardwareMap.get(Servo.class, "pitch");
         rightR = hardwareMap.get(CRServo.class, "rightR");
         leftR  = hardwareMap.get(CRServo.class, "leftR");
 
-        pitch.setDirection(Servo.Direction.REVERSE);
+        pitch.setDirection(Servo.Direction.FORWARD);
         rightR.setDirection(CRServo.Direction.FORWARD);
         leftR.setDirection(CRServo.Direction.FORWARD);
     }
 
-    // =========================================================
-    //               SETTERS (Targets)
-    // =========================================================
+    // --- Auto Calculations ---
 
-    public void setTargetAngle(double angle) {
-        this.targetAngle = angle;
+    public double autoRPM(double dist) {
+        if (dist < 55) return FLYWHEEL_RPM_CLOSE;
+        if (dist < 100) return FLYWHEEL_RPM_MID;
+        return FLYWHEEL_RPM_FAR;
     }
 
-    public void setTargetRPM(double rpm) {
-        this.targetRPM = rpm;
+    public double autoPitch(double dist) {
+        if (dist < 55) return -0.0231174 * dist + 1.55621;
+        if (dist < 100) return 0.00375 * dist + 0.0958333;
+        return 0.1; // Far pitch
     }
 
-    // =========================================================
-    //               GETTERS (Sensors & Status)
-    // =========================================================
+    // --- PID Updates ---
 
-    public double getRotationPosition() {
-        // Converted to degrees
-        return flywheel2.getCurrentPosition() * DEGREES_PER_TICK;
-    }
-
-    public double getFlywheelVelocityRPM() {
-        // Converted to RPM
-        return (flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV;
-    }
-
-    public double getRotationOutput() {
-        return rotationOutput;
-    }
-
-    public double getFlywheelOutput() {
-        return flywheelOutput;
-    }
-
-    public double getTargetAngle() {
-        return targetAngle;
-    }
-
-    public double getTargetRPM() {
-        return targetRPM;
-    }
-
-    // =========================================================
-    //               PID UPDATE LOOPS
-    // =========================================================
-
-    /**
-     * Calculates Rotation PID. Does NOT apply power.
-     * @return calculated motor power (-1.0 to 1.0)
-     */
-    public double updateRotationPID(double currentTimeSeconds) {
+    public void updateRotationPID(double currentTimeSeconds) {
         double currentAngle = getRotationPosition();
         double error = targetAngle - currentAngle;
-        double dt = currentTimeSeconds - rotation_lastTime;
-
-        if (dt <= 0.0001) dt = 0.001;
+        double dt = Math.max(currentTimeSeconds - rotation_lastTime, 0.001); // Avoid div/0
 
         double derivative = (error - rotation_lastError) / dt;
         rotation_integral += error * dt;
 
-        // Calculate
-        double output = (rotation_kP * error) + (rotation_kI * rotation_integral) + (rotation_kD * derivative);
-
-        // Clamp
+        double feedforward = Math.signum(error) * rotation_kF;
+        double output = (rotation_kP * error) + (rotation_kI * rotation_integral) + (rotation_kD * derivative) + feedforward;
         rotationOutput = Math.max(-1.0, Math.min(1.0, output));
 
-        // Save State
         rotation_lastError = error;
         rotation_lastTime = currentTimeSeconds;
-
-        return rotationOutput;
     }
 
-    /**
-     * Calculates Flywheel PID. Does NOT apply power.
-     * @return calculated motor power (-1.0 to 1.0)
-     */
-    public double updateFlywheelPID(double currentTimeSeconds) {
-        double currentRPM = getFlywheelVelocityRPM();
+    public void updateFlywheelPID(double currentTimeSeconds) {
+        double currentRPM = getFlywheelRPM();
         double error = targetRPM - currentRPM;
-        double dt = currentTimeSeconds - flywheel_lastTime;
-
-        if (dt <= 0.0001) dt = 0.001;
+        double dt = Math.max(currentTimeSeconds - flywheel_lastTime, 0.001);
 
         double derivative = (error - flywheel_lastError) / dt;
         flywheel_integral += error * dt;
 
         double feedforward = targetRPM * flywheel_kF;
-
-        // Calculate
         double output = (flywheel_kP * error) + (flywheel_kI * flywheel_integral) + (flywheel_kD * derivative) + feedforward;
 
-        // Clamp
         flywheelOutput = Math.max(-1.0, Math.min(1.0, output));
 
-        // Save State
         flywheel_lastError = error;
         flywheel_lastTime = currentTimeSeconds;
-
-        return flywheelOutput;
     }
 
-    // =========================================================
-    //               APPLY POWER (Hardware Write)
-    // =========================================================
+    // --- Hardware Interaction ---
 
     public void applyRotationPower() {
-        // Add logic here if you want to disable rotation when power is negligible
         rightR.setPower(rotationOutput);
         // leftR.setPower(rotationOutput);
+    }
+
+    public void overrideRotationPower(double power) {
+        this.rotationOutput = power;
+        applyRotationPower(); // Apply immediately for responsiveness
     }
 
     public void applyFlywheelPower() {
@@ -212,55 +135,28 @@ public class Turret {
         }
     }
 
-    // Allow manual override of the output variable if needed (e.g. driver control)
-    public void overrideRotationPower(double power) {
-        this.rotationOutput = power;
-    }
+    // --- Helpers ---
 
-    // =========================================================
-    //               HELPER LOGIC
-    // =========================================================
+    public void setTargetAngle(double angle) { this.targetAngle = angle; }
+    public void setTargetRPM(double rpm) { this.targetRPM = rpm; }
+    public void setPitch(double pos) { pitch.setPosition(pos); }
 
-    public double autoPower(double dist){
-        if (dist < 55){
-            setTargetRPM(FLYWHEEL_RPM_CLOSE);
-            return closePitch(dist);
-        }
-        if (dist < 100){
-            setTargetRPM(FLYWHEEL_RPM_MID);
-            return midPitch(dist);
-        }
-        else{
-            setTargetRPM(FLYWHEEL_RPM_FAR);
-            return farPitch(dist);
-        }
-    }
+    public double getRotationPosition() { return flywheel2.getCurrentPosition() * DEGREES_PER_TICK; }
+    public double getFlywheelRPM() { return (flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV; }
+    public double getTargetRPM() { return targetRPM; }
+    public double getTargetAngle() { return targetAngle; }
 
-    public void setPitch(double pos){
-        pitch.setPosition(pos);
-    }
-
-    // Math Helpers
-    public double closePitch(double dist){ return -0.0231174*dist + 1.55621; }
-    public double midPitch(double dist){ return 0.00375*dist+0.0958333; }
-    public double farPitch(double dist){ return 0.1; }
-
-    public double correctTurretAngle(double desiredAngle, double max, double min){
-        if (desiredAngle > max && desiredAngle-360 > min){
-            return desiredAngle - 360;
-        }
-        if (desiredAngle < min && desiredAngle+360 < max){
-            return desiredAngle + 360;
-        }
-        return Math.min(max, (Math.max(desiredAngle, min)));
-    }
-
-    public double angleToTarget(double xPos, double yPos, double heading, boolean isTeamRed){
+    public double angleToTarget(double xPos, double yPos, double heading, boolean isTeamRed) {
         double goalX = -66.0;
         double goalY = isTeamRed ? 66.0 : -66.0;
         double dx = goalX - xPos;
         double dy = goalY - yPos;
-        double fieldTargetDeg = Math.toDegrees(Math.atan2(dy, dx));
-        return fieldTargetDeg - heading;
+        return Math.toDegrees(Math.atan2(dy, dx)) - heading;
+    }
+
+    public double correctTurretAngle(double desiredAngle, double max, double min) {
+        if (desiredAngle > max && desiredAngle - 360 > min) return desiredAngle - 360;
+        if (desiredAngle < min && desiredAngle + 360 < max) return desiredAngle + 360;
+        return Math.min(max, Math.max(desiredAngle, min));
     }
 }

@@ -7,91 +7,77 @@ public class Intake {
     private DcMotor frontIntake;
     private DcMotor backIntake;
 
-    public enum State{
-        IN,
-        OUT,
-        SHOOT,
+    public enum State {
+        INTAKE,
+        OUTTAKE,
+        SHOOTING,
         OFF
     }
-    private State state = State.OFF;
 
+    private State currentState = State.OFF;
 
-    public void init(HardwareMap hardwareMap){
+    public void init(HardwareMap hardwareMap) {
         frontIntake = hardwareMap.get(DcMotor.class, "frontIntake");
         backIntake = hardwareMap.get(DcMotor.class, "backIntake");
 
-        //positive is in, negative is out
-        frontIntake.setDirection(DcMotor.Direction.REVERSE);
-        //positive is up, negative is down
-        backIntake.setDirection(DcMotor.Direction.FORWARD);
+        frontIntake.setDirection(DcMotor.Direction.REVERSE); // Positive = In
+        backIntake.setDirection(DcMotor.Direction.FORWARD);  // Positive = Up/In
     }
 
-    public void in(){
-        frontIntake.setPower(1.0);
-        backIntake.setPower(-1.0);
-    }
-    public void out(){
-        frontIntake.setPower(-1.0);
-        backIntake.setPower(-1.0);
-    }
-    public void off(){
-        frontIntake.setPower(0.0);
-        backIntake.setPower(0.0);
-    }
-    public void shoot(){
-        frontIntake.setPower(1.0);
-        backIntake.setPower(1.0);
-    }
-    public void loop(boolean inOrOut, boolean onOrOff, double shouldShoot){
-        switch (state){
-            case IN:
-                in();
-                if (inOrOut){
-                    setState(State.OUT);
-                }
-                if (onOrOff){
-                    setState(State.OFF);
-                }
-                if (shouldShoot > 0.2){
-                    setState(State.SHOOT);
-                }
+    /**
+     * Updates intake state based on driver inputs.
+     * Buttons: Cross (In), Square (Out), Triangle (Off). Trigger (Shoot).
+     * Logic: Shoot only if INTAKE mode active + RPM ready. Return to INTAKE after shooting.
+     */
+    public void update(boolean in, boolean out, boolean off, double shootTrigger, boolean isFlywheelReady) {
+
+        // 1. Emergency/Stop Override
+        if (off) {
+            currentState = State.OFF;
+        }
+        // 2. Shooting Logic
+        else if (shootTrigger > 0.2) {
+            // Can only shoot if we are currently intaking (holding a ball) AND flywheel is fast enough
+            if (currentState == State.INTAKE && isFlywheelReady) {
+                currentState = State.SHOOTING;
+            }
+            // If in OFF or OUTTAKE, trigger does nothing
+        }
+        // 3. Return from Shooting
+        else if (currentState == State.SHOOTING && shootTrigger < 0.2) {
+            // Trigger released, go back to grabbing the next ball
+            currentState = State.INTAKE;
+        }
+        // 4. Selector Buttons (Latching)
+        else if (in) {
+            currentState = State.INTAKE;
+        }
+        else if (out) {
+            currentState = State.OUTTAKE;
+        }
+
+        // 5. Apply Motor Powers
+        switch (currentState) {
+            case INTAKE:
+                frontIntake.setPower(1.0);
+                backIntake.setPower(-1.0); // Rotate down/away to hold ball
                 break;
-            case OUT:
-                out();
-                if (inOrOut){
-                    setState(State.IN);
-                }
-                if (onOrOff){
-                    setState(State.OFF);
-                }
-                if (shouldShoot > 0.2){
-                    setState(State.SHOOT);
-                }
+            case OUTTAKE:
+                frontIntake.setPower(-1.0);
+                backIntake.setPower(-1.0);
+                break;
+            case SHOOTING:
+                frontIntake.setPower(1.0);
+                backIntake.setPower(1.0);  // Feed up into turret
                 break;
             case OFF:
-                off();
-                if (onOrOff){
-                    setState(State.IN);
-                }
-                if (shouldShoot > 0.2){
-                    setState(State.SHOOT);
-                }
-                break;
-            case SHOOT:
-                shoot();
-                if (shouldShoot < 0.1){
-                    setState(State.IN);
-                }
-                break;
-            default:
-                off();
+                frontIntake.setPower(0.0);
+                backIntake.setPower(0.0);
                 break;
         }
     }
-    public void setState(State state){
-        this.state = state;
-    }
-    public State getState(){
-        return state;
+
+    public State getState() {
+        return currentState;
     }
 }
