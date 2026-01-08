@@ -26,7 +26,7 @@ public class Turret {
     private static final double FLYWHEEL_RPM_CLOSE = 2200.0;
 
     // PID Coefficients
-    public static double rotation_kP = 0.001, rotation_kI = 0.0, rotation_kD = 0.0, rotation_kF = 0.0;
+    public static double rotation_kP = 0.02, rotation_kI = 0.0, rotation_kD = 0.0, rotation_kF = 0.0;
     public static double flywheel_kP = 0.001, flywheel_kI = 0.0, flywheel_kD = 0.0, flywheel_kF = 0.0002;
 
     // State
@@ -107,6 +107,7 @@ public class Turret {
         double feedforward = targetRPM * flywheel_kF;
         double output = (flywheel_kP * error) + (flywheel_kI * flywheel_integral) + (flywheel_kD * derivative) + feedforward;
 
+        if (error < 0.3) flywheelOutput = 0;
         flywheelOutput = Math.max(-1.0, Math.min(1.0, output));
 
         flywheel_lastError = error;
@@ -117,7 +118,7 @@ public class Turret {
 
     public void applyRotationPower() {
         rightR.setPower(rotationOutput);
-        // leftR.setPower(rotationOutput);
+        leftR.setPower(rotationOutput);
     }
 
     public void overrideRotationPower(double power) {

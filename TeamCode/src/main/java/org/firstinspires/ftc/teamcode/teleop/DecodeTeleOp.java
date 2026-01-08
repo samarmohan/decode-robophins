@@ -119,12 +119,12 @@ public class DecodeTeleOp extends LinearOpMode {
 
             double distance = Math.hypot((66.0) + xPos, (isTeamRed ? 66.0 : -66.0) - yPos);
 
+            double idealAngle = turret.angleToTarget(xPos, yPos, heading, isTeamRed);
+            turretRotationTarget = turret.correctTurretAngle(idealAngle, TURRET_MAX_DEG, TURRET_MIN_DEG);
 
             switch (turretMode) {
                 case FULL_AUTO:
                     // Auto Aim
-                    double idealAngle = turret.angleToTarget(xPos, yPos, heading, isTeamRed);
-                    turretRotationTarget = turret.correctTurretAngle(idealAngle, TURRET_MAX_DEG, TURRET_MIN_DEG);
                     turret.setTargetAngle(turretRotationTarget);
 
                     // Auto Pitch
@@ -136,6 +136,9 @@ public class DecodeTeleOp extends LinearOpMode {
                     break;
 
                 case IDLE:
+                    // Auto Aim
+                    turret.setTargetAngle(turretRotationTarget);
+
                     turret.setTargetRPM(0);
                     break;
 
@@ -153,9 +156,9 @@ public class DecodeTeleOp extends LinearOpMode {
                     }
 
                     if (currentGamepad2.left_stick_y > 0.1 && pitchPosition < 1.0) {
-                        pitchPosition += 0.005;
-                    } else if (currentGamepad2.left_stick_y < -0.1 && pitchPosition > 0.0) {
                         pitchPosition -= 0.005;
+                    } else if (currentGamepad2.left_stick_y < -0.1 && pitchPosition > 0.0) {
+                        pitchPosition += 0.005;
                     }
                     break;
             }
