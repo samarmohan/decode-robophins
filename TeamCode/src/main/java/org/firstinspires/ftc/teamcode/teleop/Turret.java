@@ -151,7 +151,7 @@ public class Turret {
 
 
     public double angleToTarget(double xPos, double yPos, double heading, boolean isTeamRed) {
-        double goalX = -66.0;
+        double goalX = -69.0;
         double goalY = isTeamRed ? 66.0 : -66.0;
         double dx = goalX - xPos;
         double dy = goalY - yPos;

@@ -17,8 +17,8 @@ public class DecodeTeleOp extends LinearOpMode {
     private final Intake intake = new Intake();
 
     // Constants
-    private static final double TURRET_MIN_DEG = -90.0;
-    private static final double TURRET_MAX_DEG = 90.0;
+    private static final double TURRET_MIN_DEG = -135.0;
+    private static final double TURRET_MAX_DEG = 135.0;
     private static final double OVERRIDE_TRIGGER_THRESHOLD = 0.1;
     private static final double RPM_MINIMUM_FOR_SHOOTING = 2000.0;
 
@@ -102,15 +102,19 @@ public class DecodeTeleOp extends LinearOpMode {
             );
 
             boolean isOverride = currentGamepad2.left_trigger > OVERRIDE_TRIGGER_THRESHOLD;
+            boolean auto = true;
 
             // If in testing mode, bumpers should change target RPM instead
             if (!TESTING) {
                 if (isOverride) {
                     turretMode = TurretMode.OVERRIDE;
-                } else if (currentGamepad1.right_bumper) {
-                    turretMode = TurretMode.FULL_AUTO;
-                } else if (currentGamepad1.left_bumper) {
-                    turretMode = TurretMode.IDLE;
+                } else {
+                    if (currentGamepad1.right_bumper) {
+                        turretMode = TurretMode.FULL_AUTO;
+                    }
+                    else if (currentGamepad1.left_bumper) {
+                        turretMode = TurretMode.IDLE;
+                    }
                 }
             } else {
                 turretMode = TurretMode.FULL_AUTO;
