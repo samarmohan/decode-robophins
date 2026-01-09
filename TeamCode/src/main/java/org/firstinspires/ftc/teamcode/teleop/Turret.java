@@ -73,9 +73,9 @@ public class Turret {
     }
 
     public double autoPitch(double dist) {
-        if (dist < 55) return -0.0231174 * dist + 1.55621;
-        if (dist < 100) return 0.00375 * dist + 0.0958333;
-        return 0.1; // Far pitch
+        if (dist < 55) return 0.3;
+        if (dist < 100) return 0.000862069 * dist + 0.637414;
+        return 0.77; // Far pitch
     }
 
     // --- PID Updates ---
@@ -142,10 +142,13 @@ public class Turret {
     public void setTargetRPM(double rpm) { this.targetRPM = rpm; }
     public void setPitch(double pos) { pitch.setPosition(pos); }
 
+    public double getPitch(){ return pitch.getPosition();}
+
     public double getRotationPosition() { return flywheel2.getCurrentPosition() * DEGREES_PER_TICK; }
     public double getFlywheelRPM() { return (flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV; }
     public double getTargetRPM() { return targetRPM; }
     public double getTargetAngle() { return targetAngle; }
+
 
     public double angleToTarget(double xPos, double yPos, double heading, boolean isTeamRed) {
         double goalX = -66.0;

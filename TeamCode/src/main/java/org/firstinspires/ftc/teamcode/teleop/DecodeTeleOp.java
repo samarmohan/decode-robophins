@@ -86,11 +86,15 @@ public class DecodeTeleOp extends LinearOpMode {
                 drive.setOdometryXY(limelight.getLlx(), limelight.getLly());
                 drive.setHeading(limelight.getLlh());
             }
+            if (currentGamepad1.touchpad){
+                drive.setOdometryXY(64, isTeamRed ? -63.5 : 63.5);
+                drive.setHeading(isTeamRed? -90: 90);
+            }
 
             if (currentGamepad1.options) {
                 drive.resetFieldCentric();
             }
-            drive.driveFieldCentric(
+                drive.driveFieldCentric(
                     -currentGamepad1.left_stick_y,
                     currentGamepad1.left_stick_x,
                     currentGamepad1.right_stick_x,
@@ -155,10 +159,10 @@ public class DecodeTeleOp extends LinearOpMode {
                         turret.overrideRotationPower(0);
                     }
 
-                    if (currentGamepad2.left_stick_y > 0.1 && pitchPosition < 1.0) {
-                        pitchPosition -= 0.005;
-                    } else if (currentGamepad2.left_stick_y < -0.1 && pitchPosition > 0.0) {
+                    if (currentGamepad2.left_stick_y > 0.1 && pitchPosition <= 1.0) {
                         pitchPosition += 0.005;
+                    } else if (currentGamepad2.left_stick_y < -0.1 && pitchPosition >= 0.0) {
+                        pitchPosition -= 0.005;
                     }
                     break;
             }
@@ -187,6 +191,8 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Testing?", TESTING);
             telemetry.addData("Team", isTeamRed ? "RED" : "BLUE");
             telemetry.addData("Pos", "X:%.1f Y:%.1f H:%.1f", xPos, yPos, heading);
+            telemetry.addData("Distance", distance);
+
             telemetry.addData("Limelight", "X:%.1f Y:%.1f", limelight.getLlx(), limelight.getLly());
             telemetry.addData("Intake", intake.getState());
 
@@ -196,6 +202,7 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Actual RPM", turret.getFlywheelRPM());
             telemetry.addData("Target Angle", turret.getTargetAngle());
             telemetry.addData("Actual Angle", turret.getRotationPosition());
+            telemetry.addData("Turret Pitch", turret.getPitch());
             telemetry.addData("Rotation Power", turret.rotationOutput);
             telemetry.update();
         }
