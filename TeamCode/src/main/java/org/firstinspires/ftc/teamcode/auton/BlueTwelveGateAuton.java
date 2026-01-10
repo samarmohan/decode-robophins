@@ -19,8 +19,8 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.auton.parts.Intake;
 import org.firstinspires.ftc.teamcode.auton.parts.Turret;
 
-@Autonomous(name = "GateTwelveBlueCloseAuton")
-public class GateTwelveBlueCloseAuton extends LinearOpMode {
+@Autonomous(name = "BLUE - 12 - Gate Auton")
+public class BlueTwelveGateAuton extends LinearOpMode {
     @Override
     public void runOpMode() {
         final double BLUE_SHOOT_ROTATION = Math.toRadians(-135);
@@ -46,17 +46,18 @@ public class GateTwelveBlueCloseAuton extends LinearOpMode {
 
         Action action = new ParallelAction(
                 intake.intakeHold(),
-                turret.setFlywheelRPM(FLYWHEEL_RPM),
                 turret.setPitchPosition(PITCH_POSITION),
                 drive.actionBuilder(initialPose)
+                        .stopAndAdd(turret.setFlywheelRPM(FLYWHEEL_RPM-100))
                         // shoot preset balls
                         .setReversed(true)
-                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
+                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION + Math.toRadians(3))
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect first spike
                         .turnTo(BLUE_COLLECT_ROTATION)
+                        .stopAndAdd(turret.setFlywheelRPM(FLYWHEEL_RPM))
                         .afterTime(0, intake.intakeHold())
                         .strafeTo(collectFirstSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
@@ -81,11 +82,11 @@ public class GateTwelveBlueCloseAuton extends LinearOpMode {
                         .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect third spike and shoot
-                        .splineToSplineHeading(new Pose2d(lineUpThirdSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
+                        .strafeToSplineHeading(lineUpThirdSet, BLUE_COLLECT_ROTATION)
                         .afterTime(0, intake.intakeHold())
+                        .waitSeconds(0.3)
                         .strafeTo(collectThirdSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .setReversed(true)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)

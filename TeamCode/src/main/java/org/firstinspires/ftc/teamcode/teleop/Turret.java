@@ -22,7 +22,7 @@ public class Turret {
 
     // Tuning
     private static final double FLYWHEEL_RPM_FAR = 3400.0;
-    private static final double FLYWHEEL_RPM_MID = 2800.0;
+    private static final double FLYWHEEL_RPM_MID = 2700.0;
     private static final double FLYWHEEL_RPM_CLOSE = 2200.0;
 
     // PID Coefficients
