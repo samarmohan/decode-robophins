@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.auton.parts.Intake;
 import org.firstinspires.ftc.teamcode.auton.parts.Turret;
 
-@Autonomous(name = "BLUE - 12 - Gate Auton")
+@Autonomous(name = "BLUE - 12 - GATE Auton")
 public class BlueTwelveGateAuton extends LinearOpMode {
     @Override
     public void runOpMode() {
@@ -47,9 +47,10 @@ public class BlueTwelveGateAuton extends LinearOpMode {
         Action action = new ParallelAction(
                 intake.intakeHold(),
                 turret.setPitchPosition(PITCH_POSITION),
+                turret.setFlywheelRPM(FLYWHEEL_RPM),
                 drive.actionBuilder(initialPose)
-                        .stopAndAdd(turret.setFlywheelRPM(FLYWHEEL_RPM-100))
                         // shoot preset balls
+                        .waitSeconds(1.5)
                         .setReversed(true)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION + Math.toRadians(3))
                         .afterTime(0, intake.intakeShoot())

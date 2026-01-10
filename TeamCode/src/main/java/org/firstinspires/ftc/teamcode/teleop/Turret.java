@@ -22,7 +22,7 @@ public class Turret {
 
     // Tuning
     private static final double FLYWHEEL_RPM_FAR = 3400.0;
-    private static final double FLYWHEEL_RPM_MID = 2700.0;
+    private static final double FLYWHEEL_RPM_MID = 2800.0;
     private static final double FLYWHEEL_RPM_CLOSE = 2200.0;
 
     // PID Coefficients
@@ -74,7 +74,7 @@ public class Turret {
 
     public double autoPitch(double dist) {
         if (dist < 55) return 0.3;
-        if (dist < 100) return 0.000862069 * dist + 0.637414;
+        if (dist < 130) return 0.000862069 * dist + 0.637414;
         return 0.77; // Far pitch
     }
 
@@ -152,7 +152,7 @@ public class Turret {
 
     public double angleToTarget(double xPos, double yPos, double heading, boolean isTeamRed) {
         double goalX = -69.0;
-        double goalY = isTeamRed ? 66.0 : -66.0;
+        double goalY = isTeamRed ? 64.0 : -64.0;
         double dx = goalX - xPos;
         double dy = goalY - yPos;
         return Math.toDegrees(Math.atan2(dy, dx)) - heading;
