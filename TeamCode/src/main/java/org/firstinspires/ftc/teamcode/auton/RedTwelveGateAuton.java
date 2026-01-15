@@ -19,23 +19,23 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.auton.parts.Intake;
 import org.firstinspires.ftc.teamcode.auton.parts.Turret;
 
-@Autonomous(name = "TwelveBlueCloseAuton")
-public class TwelveBlueCloseAuton extends LinearOpMode {
+@Autonomous(name = "RED - 12 - GATE Auton")
+public class RedTwelveGateAuton extends LinearOpMode {
     @Override
     public void runOpMode() {
-        final double BLUE_SHOOT_ROTATION = Math.toRadians(-135);
-        final double BLUE_COLLECT_ROTATION = Math.toRadians(-90);
+        final double RED_SHOOT_ROTATION = Math.toRadians(135);
+        final double RED_COLLECT_ROTATION = Math.toRadians(90);
 
-        Pose2d initialPose = new Pose2d(-40, -52, BLUE_COLLECT_ROTATION);
-        Vector2d shooting = new Vector2d(-14, -14);
-        Vector2d collectFirstSet = new Vector2d(-12, -50);
-        Vector2d lineUpSecondSet = new Vector2d(12, -22);
-        Vector2d collectSecondSet = new Vector2d(12, -57);
-        Vector2d lineUpThirdSet = new Vector2d(36, -20);
-        Vector2d collectThirdSet = new Vector2d(36, -57);
+        Pose2d initialPose = new Pose2d(-40, 52, RED_COLLECT_ROTATION);
+        Vector2d shooting = new Vector2d(-14, 14);
+        Vector2d collectFirstSet = new Vector2d(-12, 50);
+        Vector2d lineUpSecondSet = new Vector2d(12, 22);
+        Vector2d collectSecondSet = new Vector2d(12, 57);
+        Vector2d lineUpThirdSet = new Vector2d(36, 20);
+        Vector2d collectThirdSet = new Vector2d(36, 57);
 
-        Vector2d lineUpGate = new Vector2d(-3, -45);
-        Vector2d openGate = new Vector2d(-3, -53);
+        Vector2d lineUpGate = new Vector2d(-3, 45);
+        Vector2d openGate = new Vector2d(-3, 53);
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Intake intake = new Intake(hardwareMap);
@@ -46,47 +46,54 @@ public class TwelveBlueCloseAuton extends LinearOpMode {
 
         Action action = new ParallelAction(
                 intake.intakeHold(),
-                turret.setFlywheelRPM(FLYWHEEL_RPM),
                 turret.setPitchPosition(PITCH_POSITION),
+                turret.setFlywheelRPM(FLYWHEEL_RPM),
                 drive.actionBuilder(initialPose)
                         // shoot preset balls
+                        .waitSeconds(1.5)
                         .setReversed(true)
-                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
+                        .strafeToSplineHeading(shooting, RED_SHOOT_ROTATION - Math.toRadians(3))
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
-                        // collect first spike and shoot
-                        .turnTo(BLUE_COLLECT_ROTATION)
+                        // collect first spike
+                        .turnTo(RED_COLLECT_ROTATION)
+                        .stopAndAdd(turret.setFlywheelRPM(FLYWHEEL_RPM))
                         .afterTime(0, intake.intakeHold())
                         .strafeTo(collectFirstSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
+
+                        // open gate and shoot
+                        .strafeTo(lineUpGate)
+                        .strafeTo(openGate)
+                        .waitSeconds(GATE_OPEN_TIME)
+                        .strafeToSplineHeading(shooting, RED_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect second spike and shoot
                         .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(lineUpSecondSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
+                        .splineToSplineHeading(new Pose2d(lineUpSecondSet, RED_COLLECT_ROTATION), RED_COLLECT_ROTATION)
                         .afterTime(0, intake.intakeHold())
                         .strafeTo(collectSecondSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
                         .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(shooting, BLUE_SHOOT_ROTATION), Math.toRadians(135))
+                        .splineToSplineHeading(new Pose2d(shooting, RED_SHOOT_ROTATION), -RED_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect third spike and shoot
-                        .splineToSplineHeading(new Pose2d(lineUpThirdSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
+                        .strafeToSplineHeading(lineUpThirdSet, RED_COLLECT_ROTATION)
                         .afterTime(0, intake.intakeHold())
+                        .waitSeconds(0.3)
                         .strafeTo(collectThirdSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .setReversed(true)
-                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
+                        .strafeToSplineHeading(shooting, RED_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
                         // reset
-                        .strafeToSplineHeading(collectFirstSet, BLUE_COLLECT_ROTATION)
+                        .strafeToSplineHeading(collectFirstSet, RED_COLLECT_ROTATION)
                         .afterTime(0, intake.intakeOff())
                         .afterTime(0, turret.setFlywheelRPM(0))
                         .afterTime(0, turret.setPitchPosition(0))

@@ -19,8 +19,8 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.auton.parts.Intake;
 import org.firstinspires.ftc.teamcode.auton.parts.Turret;
 
-@Autonomous(name = "GateTwelveBlueCloseAuton")
-public class GateTwelveBlueCloseAuton extends LinearOpMode {
+@Autonomous(name = "BLUE - 12 - NO Gate Auton")
+public class BlueTwelveAuton extends LinearOpMode {
     @Override
     public void runOpMode() {
         final double BLUE_SHOOT_ROTATION = Math.toRadians(-135);
@@ -34,9 +34,6 @@ public class GateTwelveBlueCloseAuton extends LinearOpMode {
         Vector2d lineUpThirdSet = new Vector2d(36, -20);
         Vector2d collectThirdSet = new Vector2d(36, -57);
 
-        Vector2d lineUpGate = new Vector2d(-3, -45);
-        Vector2d openGate = new Vector2d(-3, -53);
-
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Intake intake = new Intake(hardwareMap);
         Turret turret = new Turret(hardwareMap);
@@ -46,25 +43,22 @@ public class GateTwelveBlueCloseAuton extends LinearOpMode {
 
         Action action = new ParallelAction(
                 intake.intakeHold(),
-                turret.setFlywheelRPM(FLYWHEEL_RPM),
                 turret.setPitchPosition(PITCH_POSITION),
+                turret.setFlywheelRPM(FLYWHEEL_RPM),
                 drive.actionBuilder(initialPose)
                         // shoot preset balls
+                        .waitSeconds(1.5)
                         .setReversed(true)
-                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
+                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION + Math.toRadians(3))
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
-                        // collect first spike
+                        // collect first spike and shoot
                         .turnTo(BLUE_COLLECT_ROTATION)
+                        .stopAndAdd(turret.setFlywheelRPM(FLYWHEEL_RPM))
                         .afterTime(0, intake.intakeHold())
                         .strafeTo(collectFirstSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
-
-                        // open gate and shoot
-                        .strafeTo(lineUpGate)
-                        .strafeTo(openGate)
-                        .waitSeconds(GATE_OPEN_TIME)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
@@ -81,11 +75,11 @@ public class GateTwelveBlueCloseAuton extends LinearOpMode {
                         .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect third spike and shoot
-                        .splineToSplineHeading(new Pose2d(lineUpThirdSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
+                        .strafeToSplineHeading(lineUpThirdSet, BLUE_COLLECT_ROTATION)
                         .afterTime(0, intake.intakeHold())
+                        .waitSeconds(0.3)
                         .strafeTo(collectThirdSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .setReversed(true)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
                         .afterTime(0, intake.intakeShoot())
                         .waitSeconds(SHOOT_WAIT_TIME)

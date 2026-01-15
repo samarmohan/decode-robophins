@@ -29,15 +29,15 @@ public class MeepMeepFull {
         Pose2d initialPose = new Pose2d(-40, -52, BLUE_COLLECT_ROTATION);
         Vector2d shooting = new Vector2d(-14, -14);
         Vector2d collectFirstSet = new Vector2d(-12, -50);
-        Vector2d lineUpSecondSet = new Vector2d(12, -24);
+        Vector2d lineUpSecondSet = new Vector2d(12, -22);
         Vector2d collectSecondSet = new Vector2d(12, -57);
-        Vector2d lineUpThirdSet = new Vector2d(36, -24);
+        Vector2d lineUpThirdSet = new Vector2d(36, -20);
         Vector2d collectThirdSet = new Vector2d(36, -57);
         Vector2d lineUpFourthSet = new Vector2d(60, -24);
         Vector2d collectFourthSet = new Vector2d(60, -57);
 
-        Vector2d lineUpGate = new Vector2d(0, -45);
-        Vector2d openGate = new Vector2d(0, -53);
+        Vector2d lineUpGate = new Vector2d(-3, -45);
+        Vector2d openGate = new Vector2d(-3, -53);
 
         myBot.runAction(myBot.getDrive().actionBuilder(initialPose)
                 // shoot preset balls
@@ -67,19 +67,10 @@ public class MeepMeepFull {
                 .strafeTo(collectSecondSet)
                 .waitSeconds(COLLECT_WAIT_TIME)
                 .setReversed(true)
-                .splineToSplineHeading(new Pose2d(shooting, BLUE_SHOOT_ROTATION), Math.toRadians(135))
+                .splineToSplineHeading(new Pose2d(shooting, BLUE_SHOOT_ROTATION), -BLUE_SHOOT_ROTATION)
                 .afterTime(0, action())
                 .waitSeconds(SHOOT_WAIT_TIME)
 
-//                // collect third spike and shoot
-//                .splineToSplineHeading(new Pose2d(lineUpThirdSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
-//                .afterTime(0, action())
-//                .strafeTo(collectThirdSet)
-//                .waitSeconds(COLLECT_WAIT_TIME)
-//                .setReversed(true)
-//                .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
-//                .afterTime(0, action())
-//                .waitSeconds(SHOOT_WAIT_TIME)
                 // collect third spike and shoot
                 .strafeToSplineHeading(lineUpThirdSet, BLUE_COLLECT_ROTATION)
                 .strafeTo(collectThirdSet)
@@ -88,15 +79,15 @@ public class MeepMeepFull {
                 .afterTime(0, action())
                 .waitSeconds(SHOOT_WAIT_TIME)
 
-                // fourth
-                .splineToSplineHeading(new Pose2d(lineUpFourthSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
-                .afterTime(0, action())
-                .strafeTo(collectFourthSet)
-                .waitSeconds(COLLECT_WAIT_TIME+0.5)
-                .setReversed(true)
-                .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
-                .afterTime(0, action())
-                .waitSeconds(SHOOT_WAIT_TIME)
+//                // fourth
+//                .splineToSplineHeading(new Pose2d(lineUpFourthSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
+//                .afterTime(0, action())
+//                .strafeTo(collectFourthSet)
+//                .waitSeconds(COLLECT_WAIT_TIME+0.5)
+//                .setReversed(true)
+//                .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
+//                .afterTime(0, action())
+//                .waitSeconds(SHOOT_WAIT_TIME)
 
                 // reset
                 .strafeToSplineHeading(collectFirstSet, BLUE_COLLECT_ROTATION)

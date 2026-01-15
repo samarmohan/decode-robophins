@@ -152,6 +152,7 @@ public class DecodeTeleOp extends LinearOpMode {
 
                 case OVERRIDE:
                     turret.setTargetRPM(turret.autoRPM(distance));
+                    pitchPosition = turret.autoPitch(distance);
 
                     double rotationStick = -currentGamepad2.right_stick_x;
                     double manualPower = rotationStick * 0.5; // Half speed
