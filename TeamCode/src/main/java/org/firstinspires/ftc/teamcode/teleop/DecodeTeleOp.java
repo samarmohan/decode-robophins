@@ -16,6 +16,8 @@ public class DecodeTeleOp extends LinearOpMode {
     private final Limelight limelight = new Limelight();
     private final Intake intake = new Intake();
 
+    private final Spindexer spindexer = new Spindexer();
+
     // Constants
     private static final double TURRET_MIN_DEG = -135.0;
     private static final double TURRET_MAX_DEG = 135.0;
@@ -41,6 +43,7 @@ public class DecodeTeleOp extends LinearOpMode {
         drive.init(hardwareMap);
         intake.init(hardwareMap);
         limelight.init(hardwareMap);
+        spindexer.init(hardwareMap);
 
         Gamepad currentGamepad1 = new Gamepad();
         Gamepad currentGamepad2 = new Gamepad();
@@ -52,12 +55,15 @@ public class DecodeTeleOp extends LinearOpMode {
 
         double pitchPosition = 1.0;
         double testingFlywheelTargetRPM = 0.0;
+        double testPos = 0;
 
         double turretRotationTarget = 0.0;
 
         ElapsedTime runtime = new ElapsedTime();
 
         limelight.start();
+
+        spindexer.setPIDCoefficients(0.015, 0.0005, 0.0025);
 
         waitForStart();
         runtime.reset();
@@ -70,12 +76,22 @@ public class DecodeTeleOp extends LinearOpMode {
 
             double currentTime = runtime.seconds();
 
+            spindexer.setTargetPos(testPos);
+            spindexer.update();
+
             drive.odometryUpdate();
             double xPos = drive.getPosX();
             double yPos = drive.getPosY();
             double heading = drive.getHeading();
 
             limelight.update(heading);
+
+            if (currentGamepad2.right_bumper){
+                testPos = 0;
+            }
+            if (currentGamepad2.left_bumper){
+                testPos = 180;
+            }
 
             if (currentGamepad1.dpad_left && currentGamepad1.dpad_up) {
                 isTeamRed = false;
@@ -197,6 +213,9 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Team", isTeamRed ? "RED" : "BLUE");
             telemetry.addData("Pos", "X:%.1f Y:%.1f H:%.1f", xPos, yPos, heading);
             telemetry.addData("Distance", distance);
+
+            telemetry.addData("Spindexer Target", spindexer.getTarget());
+            telemetry.addData("Spindexer Pos(Testing PID)", spindexer.getAngle());
 
             telemetry.addData("Limelight", "X:%.1f Y:%.1f", limelight.getLlx(), limelight.getLly());
             telemetry.addData("Intake", intake.getState());

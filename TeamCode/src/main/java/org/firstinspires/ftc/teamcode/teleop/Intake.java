@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Intake {
     private DcMotor frontIntake;
-    private DcMotor backIntake;
+
 
     public enum State {
         INTAKE,
@@ -17,11 +17,9 @@ public class Intake {
     private State currentState = State.OFF;
 
     public void init(HardwareMap hardwareMap) {
-        frontIntake = hardwareMap.get(DcMotor.class, "frontIntake");
-        backIntake = hardwareMap.get(DcMotor.class, "backIntake");
+        frontIntake = hardwareMap.get(DcMotor.class, "intake");
 
         frontIntake.setDirection(DcMotor.Direction.REVERSE); // Positive = In
-        backIntake.setDirection(DcMotor.Direction.FORWARD);  // Positive = Up/In
     }
 
     /**
@@ -60,19 +58,15 @@ public class Intake {
         switch (currentState) {
             case INTAKE:
                 frontIntake.setPower(1.0);
-                backIntake.setPower(-1.0); // Rotate down/away to hold ball
                 break;
             case OUTTAKE:
                 frontIntake.setPower(-1.0);
-                backIntake.setPower(-1.0);
                 break;
             case SHOOTING:
                 frontIntake.setPower(1.0);
-                backIntake.setPower(1.0);  // Feed up into turret
                 break;
             case OFF:
                 frontIntake.setPower(0.0);
-                backIntake.setPower(0.0);
                 break;
         }
     }

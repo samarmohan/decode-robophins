@@ -12,8 +12,6 @@ public class Turret {
     // Hardware
     public DcMotorEx flywheel;
     public DcMotorEx flywheel2; // Encoder Port
-    public CRServo rightR;
-    public CRServo leftR;
     public Servo pitch;
 
     // Constants
@@ -56,12 +54,9 @@ public class Turret {
 
         // Servo Setup
         pitch = hardwareMap.get(Servo.class, "pitch");
-        rightR = hardwareMap.get(CRServo.class, "rightR");
-        leftR  = hardwareMap.get(CRServo.class, "leftR");
 
         pitch.setDirection(Servo.Direction.FORWARD);
-        rightR.setDirection(CRServo.Direction.FORWARD);
-        leftR.setDirection(CRServo.Direction.FORWARD);
+
     }
 
     // --- Auto Calculations ---
@@ -117,8 +112,7 @@ public class Turret {
     // --- Hardware Interaction ---
 
     public void applyRotationPower() {
-        rightR.setPower(rotationOutput);
-        leftR.setPower(rotationOutput);
+
     }
 
     public void overrideRotationPower(double power) {
@@ -144,7 +138,8 @@ public class Turret {
 
     public double getPitch(){ return pitch.getPosition();}
 
-    public double getRotationPosition() { return flywheel2.getCurrentPosition() * DEGREES_PER_TICK; }
+
+    public double getRotationPosition() { return 0; }
     public double getFlywheelRPM() { return (flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV; }
     public double getTargetRPM() { return targetRPM; }
     public double getTargetAngle() { return targetAngle; }
