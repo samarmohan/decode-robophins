@@ -27,6 +27,8 @@ public class Spindexer {
 
     public NormalizedColorSensor intakeColor;
 
+    public NormalizedColorSensor spinColor;
+
     private double trueRedIntake;
 
     private double trueBlueIntake;
@@ -35,11 +37,23 @@ public class Spindexer {
 
     private double sensorAlphaIntake;
 
-    
+    private double trueRedSpin;
+
+    private double trueBlueSpin;
+
+    private double trueGreenSpin;
+
+    private double sensorAlphaSpin;
+
+
+
+
+
     public void init(HardwareMap hardwareMap){
         forwardEncoder = hardwareMap.get(AnalogInput.class, "encoderForward");
         crServoForward = hardwareMap.get(CRServo.class, "axonForward");
         axonForward = new RTPAxon(crServoForward, forwardEncoder);
+        axonForward.setHomeAngle(0);
         leftEncoder = hardwareMap.get(AnalogInput.class, "encoderLeft");
         crServoLeft = hardwareMap.get(CRServo.class, "axonLeft");
         axonLeft = new RTPAxon(crServoLeft, leftEncoder);
@@ -47,7 +61,9 @@ public class Spindexer {
         crServoRight = hardwareMap.get(CRServo.class, "axonRight");
         axonRight = new RTPAxon(crServoForward, rightEncoder);
         intakeColor = hardwareMap.get(NormalizedColorSensor.class, "intakeColor");
-        intakeColor.setGain(1);
+        intakeColor.setGain(10);
+        spinColor = hardwareMap.get(NormalizedColorSensor.class, "spinColor");
+        spinColor.setGain(10);
     }
     //updates RTPaxon PID and sets power to all three axons
     //also updates color sensor values
@@ -58,32 +74,56 @@ public class Spindexer {
         axonRight.setPower(power);
 
         NormalizedRGBA colorsIntake = intakeColor.getNormalizedColors();
+        NormalizedRGBA colorsSpin = spinColor.getNormalizedColors();
 
         trueRedIntake = colorsIntake.red;
         trueBlueIntake = colorsIntake.blue;
         trueGreenIntake = colorsIntake.green;
         sensorAlphaIntake = colorsIntake.alpha;
+
+        trueRedSpin = colorsSpin.red;
+        trueBlueSpin = colorsSpin.blue;
+        trueGreenSpin = colorsSpin.green;
+        sensorAlphaSpin = colorsSpin.alpha;
     }
 
     public boolean ballDetectedIntake(){
-        //value not tuned
-        return sensorAlphaIntake > 0.5;
+        return sensorAlphaIntake > 0.2;
     }
 
     public boolean ballIsGreenIntake(){
-        //not tuned
         return ballDetectedIntake() &&
-                getNormalizedRedIntake() < 0.3 &&
-                getNormalizedGreenIntake() > 0.5 &&
-                getNormalizedBlueIntake() < 0.2;
+                getNormalizedRedIntake() < 0.06 &&
+                getNormalizedGreenIntake() > 0.1 &&
+                getNormalizedBlueIntake() > 0.075;
     }
 
     public boolean ballIsPurpleIntake(){
-        //not tuned
         return ballDetectedIntake() &&
-                getNormalizedRedIntake() > 0.4 &&
-                getNormalizedGreenIntake() < 0.2 &&
-                getNormalizedBlueIntake() > 0.3;
+                getNormalizedRedIntake() > 0.06 &&
+                getNormalizedGreenIntake() < 0.125 &&
+                getNormalizedBlueIntake() > 0.1;
+    }
+
+    public boolean ballDetectedSpin(){
+        //value not tuned
+        return sensorAlphaSpin > 0.4;
+    }
+
+    public boolean ballIsGreenSpin(){
+        //not tuned
+        return ballDetectedSpin() &&
+                getNormalizedRedSpin() < 0.075 &&
+                getNormalizedGreenSpin() > 0.15 &&
+                getNormalizedBlueSpin() > 0.125;
+    }
+
+    public boolean ballIsPurpleSpin(){
+        //not tuned
+        return ballDetectedSpin() &&
+                getNormalizedRedSpin() > 0.08 &&
+                getNormalizedGreenSpin() < 0.125 &&
+                getNormalizedBlueSpin() > 0.125;
     }
 
 
@@ -196,5 +236,13 @@ public class Spindexer {
     public double getNormalizedBlueIntake(){return trueBlueIntake/sensorAlphaIntake;}
 
     public double getNormalizedGreenIntake(){return trueGreenIntake/sensorAlphaIntake;}
+
+    public double getSensorAlphaSpin() {return sensorAlphaSpin;}
+
+    public double getNormalizedRedSpin(){return trueRedSpin/sensorAlphaSpin;}
+
+    public double getNormalizedBlueSpin(){return trueBlueSpin/sensorAlphaSpin;}
+
+    public double getNormalizedGreenSpin(){return trueGreenSpin/sensorAlphaSpin;}
 
 }

@@ -63,7 +63,7 @@ public class DecodeTeleOp extends LinearOpMode {
 
         limelight.start();
 
-        spindexer.setPIDCoefficients(0.006, 0, 0);
+        spindexer.setPIDCoefficients(0.008, 0, 0);
 
         waitForStart();
         runtime.reset();
@@ -216,6 +216,16 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addLine("-----------------------------------");
 
             //color sensor testing
+            telemetry.addData("Alpha: ", spindexer.getSensorAlphaSpin());
+            telemetry.addData("Red: ", spindexer.getNormalizedRedSpin());
+            telemetry.addData("Blue: ", spindexer.getNormalizedBlueSpin());
+            telemetry.addData("Green:", spindexer.getNormalizedGreenSpin());
+            telemetry.addData("Ball Detected:", spindexer.ballDetectedSpin());
+            telemetry.addData("Green Detected:", spindexer.ballIsGreenSpin());
+            telemetry.addData("Purple Detected:", spindexer.ballIsPurpleSpin());
+
+            telemetry.addLine("Intake Sensor");
+            telemetry.addData("Alpha: ", spindexer.getSensorAlphaIntake());
             telemetry.addData("Red: ", spindexer.getNormalizedRedIntake());
             telemetry.addData("Blue: ", spindexer.getNormalizedBlueIntake());
             telemetry.addData("Green:", spindexer.getNormalizedGreenIntake());
