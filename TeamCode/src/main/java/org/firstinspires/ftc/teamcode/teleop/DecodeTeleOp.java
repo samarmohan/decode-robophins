@@ -213,16 +213,22 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Team", isTeamRed ? "RED" : "BLUE");
             telemetry.addData("Pos", "X:%.1f Y:%.1f H:%.1f", xPos, yPos, heading);
             telemetry.addData("Distance", distance);
+            telemetry.addLine("-----------------------------------");
 
             //color sensor testing
             telemetry.addData("Red: ", spindexer.getNormalizedRedIntake());
             telemetry.addData("Blue: ", spindexer.getNormalizedBlueIntake());
             telemetry.addData("Green:", spindexer.getNormalizedGreenIntake());
+            telemetry.addData("Ball Detected:", spindexer.ballDetectedIntake());
+            telemetry.addData("Green Detected:", spindexer.ballIsGreenIntake());
+            telemetry.addData("Purple Detected:", spindexer.ballIsPurpleIntake());
+            telemetry.addLine("---------------------------------------");
 
             //spindexer testing
             telemetry.addData("Spindexer Target", spindexer.getTarget()*1.5);
             telemetry.addData("Spindexer Pos(Testing PID)", spindexer.getAngle());
             telemetry.addData("Spindexer Relative Position", spindexer.getRelativeAngle());
+            telemetry.addLine("--------------------------------------");
 
             telemetry.addData("Limelight", "X:%.1f Y:%.1f", limelight.getLlx(), limelight.getLly());
             telemetry.addData("Intake", intake.getState());
