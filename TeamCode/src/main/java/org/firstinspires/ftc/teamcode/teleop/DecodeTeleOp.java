@@ -63,7 +63,7 @@ public class DecodeTeleOp extends LinearOpMode {
 
         limelight.start();
 
-        spindexer.setPIDCoefficients(0.015, 0.0005, 0.0025);
+        spindexer.setPIDCoefficients(0.006, 0, 0);
 
         waitForStart();
         runtime.reset();
@@ -86,11 +86,11 @@ public class DecodeTeleOp extends LinearOpMode {
 
             limelight.update(heading);
 
-            if (currentGamepad2.right_bumper){
-                testPos = 0;
+            if (currentGamepad2.right_bumper && !previousGamepad2.right_bumper){
+                testPos -= 120;
             }
-            if (currentGamepad2.left_bumper){
-                testPos = 180;
+            if (currentGamepad2.left_bumper && !previousGamepad2.left_bumper){
+                testPos += 120;
             }
 
             if (currentGamepad1.dpad_left && currentGamepad1.dpad_up) {
@@ -214,8 +214,9 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Pos", "X:%.1f Y:%.1f H:%.1f", xPos, yPos, heading);
             telemetry.addData("Distance", distance);
 
-            telemetry.addData("Spindexer Target", spindexer.getTarget());
+            telemetry.addData("Spindexer Target", spindexer.getTarget()*1.5);
             telemetry.addData("Spindexer Pos(Testing PID)", spindexer.getAngle());
+            telemetry.addData("Spindexer Relative Position", spindexer.getRelativeAngle());
 
             telemetry.addData("Limelight", "X:%.1f Y:%.1f", limelight.getLlx(), limelight.getLly());
             telemetry.addData("Intake", intake.getState());

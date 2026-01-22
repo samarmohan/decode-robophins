@@ -258,6 +258,14 @@ public class RTPAxon {
         pidTimer.reset();
     }
 
+    public double getHomeAngle(){
+        return  homeAngle;
+    }
+
+    public void setHomeAngle(double angle){
+        homeAngle = angle;
+    }
+
     // Reset integral sum
     public void resetIntegral() {
         integralSum = 0;

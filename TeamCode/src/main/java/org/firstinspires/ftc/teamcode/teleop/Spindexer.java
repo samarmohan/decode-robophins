@@ -121,12 +121,16 @@ public class Spindexer {
     }
 
     public void setTargetPos(double position){
-        axonForward.setTargetRotation(position);
+        axonForward.setTargetRotation(position/1.5);
 
     }
 
     public double getAngle(){
-        return axonForward.getCurrentAngle();
+        return axonForward.getCurrentAngle()*1.5;
+    }
+
+    public double getRelativeAngle(){
+        return axonForward.getCurrentAngle()-axonForward.getHomeAngle()*1.5;
     }
     public double getTarget(){
         return axonForward.getTargetRotation();
