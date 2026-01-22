@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.teamcode.subsystems.RTPAxon;
 
@@ -22,6 +24,17 @@ public class Spindexer {
     public CRServo crServoLeft;
 
     public RTPAxon axonLeft;
+
+    public NormalizedColorSensor intakeColor;
+
+    private double trueRedIntake;
+
+    private double trueBlueIntake;
+
+    private double trueGreenIntake;
+
+    private double sensorAlphaIntake;
+
     
     public void init(HardwareMap hardwareMap){
         forwardEncoder = hardwareMap.get(AnalogInput.class, "encoderForward");
@@ -33,14 +46,48 @@ public class Spindexer {
         rightEncoder = hardwareMap.get(AnalogInput.class, "encoderRight");
         crServoRight = hardwareMap.get(CRServo.class, "axonRight");
         axonRight = new RTPAxon(crServoForward, rightEncoder);
+        intakeColor = hardwareMap.get(NormalizedColorSensor.class, "intakeColor");
+        intakeColor.setGain(1);
     }
     //updates RTPaxon PID and sets power to all three axons
+    //also updates color sensor values
     public void update(){
         axonForward.update();
         double power = axonForward.getPower();
         axonLeft.setPower(power);
         axonRight.setPower(power);
+
+        NormalizedRGBA colorsIntake = intakeColor.getNormalizedColors();
+
+        trueRedIntake = colorsIntake.red;
+        trueBlueIntake = colorsIntake.blue;
+        trueGreenIntake = colorsIntake.green;
+        sensorAlphaIntake = colorsIntake.alpha;
     }
+
+    public boolean ballDetectedIntake(){
+        //value not tuned
+        return sensorAlphaIntake > 0.5;
+    }
+
+    public boolean ballIsGreenIntake(){
+        //not tuned
+        return ballDetectedIntake() &&
+                getNormalizedRedIntake() < 0.3 &&
+                getNormalizedGreenIntake() > 0.5 &&
+                getNormalizedBlueIntake() < 0.2;
+    }
+
+    public boolean ballIsPurpleIntake(){
+        //not tuned
+        return ballDetectedIntake() &&
+                getNormalizedRedIntake() > 0.4 &&
+                getNormalizedGreenIntake() < 0.2 &&
+                getNormalizedBlueIntake() > 0.3;
+    }
+
+
+
 
     public static double findBallValue(int[] order, int ball, double[] weight){
         double value = 0;
@@ -135,4 +182,19 @@ public class Spindexer {
     public double getTarget(){
         return axonForward.getTargetRotation();
     }
+
+    public double getTrueRedIntake(){return  trueRedIntake;}
+
+    public double getTrueBlueIntake(){return  trueBlueIntake;}
+
+    public double getTrueGreenIntake() {return trueGreenIntake;}
+
+    public double getSensorAlphaIntake() {return sensorAlphaIntake;}
+
+    public double getNormalizedRedIntake(){return trueRedIntake/sensorAlphaIntake;}
+
+    public double getNormalizedBlueIntake(){return trueBlueIntake/sensorAlphaIntake;}
+
+    public double getNormalizedGreenIntake(){return trueGreenIntake/sensorAlphaIntake;}
+
 }
