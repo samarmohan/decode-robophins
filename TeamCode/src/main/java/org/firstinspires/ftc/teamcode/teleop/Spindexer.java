@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
-import org.firstinspires.ftc.teamcode.subsystems.RTPAxon;
+import org.firstinspires.ftc.teamcode.axonTest.RTPAxon;
 
 public class Spindexer {
     public AnalogInput forwardEncoder;
@@ -30,36 +30,26 @@ public class Spindexer {
     public NormalizedColorSensor spinColor;
 
     private double trueRedIntake;
-
     private double trueBlueIntake;
-
     private double trueGreenIntake;
-
     private double sensorAlphaIntake;
-
     private double trueRedSpin;
-
     private double trueBlueSpin;
 
     private double trueGreenSpin;
 
     private double sensorAlphaSpin;
 
-
-
-
-
     public void init(HardwareMap hardwareMap){
         forwardEncoder = hardwareMap.get(AnalogInput.class, "encoderForward");
         crServoForward = hardwareMap.get(CRServo.class, "axonForward");
         axonForward = new RTPAxon(crServoForward, forwardEncoder);
-        axonForward.setHomeAngle(0);
         leftEncoder = hardwareMap.get(AnalogInput.class, "encoderLeft");
         crServoLeft = hardwareMap.get(CRServo.class, "axonLeft");
         axonLeft = new RTPAxon(crServoLeft, leftEncoder);
         rightEncoder = hardwareMap.get(AnalogInput.class, "encoderRight");
         crServoRight = hardwareMap.get(CRServo.class, "axonRight");
-        axonRight = new RTPAxon(crServoForward, rightEncoder);
+        axonRight = new RTPAxon(crServoRight, rightEncoder);
         intakeColor = hardwareMap.get(NormalizedColorSensor.class, "intakeColor");
         intakeColor.setGain(10);
         spinColor = hardwareMap.get(NormalizedColorSensor.class, "spinColor");
@@ -113,17 +103,17 @@ public class Spindexer {
     public boolean ballIsGreenSpin(){
         //not tuned
         return ballDetectedSpin() &&
-                getNormalizedRedSpin() < 0.075 &&
-                getNormalizedGreenSpin() > 0.15 &&
-                getNormalizedBlueSpin() > 0.125;
+                getNormalizedRedSpin() < 0.125 &&
+                getNormalizedGreenSpin() > 0.2 &&
+                getNormalizedBlueSpin() > 0.1;
     }
 
     public boolean ballIsPurpleSpin(){
         //not tuned
         return ballDetectedSpin() &&
-                getNormalizedRedSpin() > 0.08 &&
-                getNormalizedGreenSpin() < 0.125 &&
-                getNormalizedBlueSpin() > 0.125;
+                getNormalizedRedSpin() > 0.1 &&
+                getNormalizedGreenSpin() < 0.25 &&
+                getNormalizedBlueSpin() > 0.1;
     }
 
 
@@ -208,16 +198,15 @@ public class Spindexer {
     }
 
     public void setTargetPos(double position){
-        axonForward.setTargetRotation(position/1.5);
-
+        axonForward.setTargetRotation(position);
     }
 
     public double getAngle(){
-        return axonForward.getCurrentAngle()*1.5;
+        return axonForward.getTotalRotation();
     }
 
     public double getRelativeAngle(){
-        return axonForward.getCurrentAngle()-axonForward.getHomeAngle()*1.5;
+        return axonForward.getCurrentAngle()-(axonForward.getHomeAngle());
     }
     public double getTarget(){
         return axonForward.getTargetRotation();

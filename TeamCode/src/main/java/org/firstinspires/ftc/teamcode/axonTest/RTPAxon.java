@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystems;
+package org.firstinspires.ftc.teamcode.axonTest;
 
 import android.annotation.SuppressLint;
 
@@ -103,7 +103,7 @@ public class RTPAxon {
         kD = 0.0025;
         integralSum = 0.0;
         lastError = 0.0;
-        maxIntegralSum = 1000.0;
+        maxIntegralSum = 100.0;
         pidTimer = new ElapsedTime();
         pidTimer.reset();
 
@@ -308,7 +308,7 @@ public class RTPAxon {
         integralSum = Math.max(-maxIntegralSum, Math.min(maxIntegralSum, integralSum));
 
         // Integral wind-down in deadzone
-        final double INTEGRAL_DEADZONE = 0.3;
+        final double INTEGRAL_DEADZONE = 2.0;
         if (Math.abs(error) < INTEGRAL_DEADZONE) {
             integralSum *= 0.95;
         }
@@ -325,7 +325,7 @@ public class RTPAxon {
         double output = pTerm + iTerm + dTerm;
 
         // Deadzone for output
-        final double DEADZONE = 0.1;
+        final double DEADZONE = 0.5;
         if (Math.abs(error) > DEADZONE) {
             double power = Math.min(maxPower, Math.abs(output)) * Math.signum(output);
             setPower(power);

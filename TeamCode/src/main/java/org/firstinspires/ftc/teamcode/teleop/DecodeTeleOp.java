@@ -63,7 +63,7 @@ public class DecodeTeleOp extends LinearOpMode {
 
         limelight.start();
 
-        spindexer.setPIDCoefficients(0.008, 0, 0);
+        spindexer.setPIDCoefficients(0.006, 0, 0);
 
         waitForStart();
         runtime.reset();
@@ -116,6 +116,7 @@ public class DecodeTeleOp extends LinearOpMode {
                     currentGamepad1.right_stick_x,
                     currentGamepad1.left_trigger
             );
+
 
             boolean isOverride = currentGamepad2.left_trigger > OVERRIDE_TRIGGER_THRESHOLD;
             boolean auto = true;
@@ -213,9 +214,10 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Team", isTeamRed ? "RED" : "BLUE");
             telemetry.addData("Pos", "X:%.1f Y:%.1f H:%.1f", xPos, yPos, heading);
             telemetry.addData("Distance", distance);
-            telemetry.addLine("-----------------------------------");
+            telemetry.addLine("---------------------------------------");
 
             //color sensor testing
+            /*
             telemetry.addData("Alpha: ", spindexer.getSensorAlphaSpin());
             telemetry.addData("Red: ", spindexer.getNormalizedRedSpin());
             telemetry.addData("Blue: ", spindexer.getNormalizedBlueSpin());
@@ -232,18 +234,21 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Ball Detected:", spindexer.ballDetectedIntake());
             telemetry.addData("Green Detected:", spindexer.ballIsGreenIntake());
             telemetry.addData("Purple Detected:", spindexer.ballIsPurpleIntake());
+
+             */
             telemetry.addLine("---------------------------------------");
 
             //spindexer testing
             telemetry.addData("Spindexer Target", spindexer.getTarget()*1.5);
             telemetry.addData("Spindexer Pos(Testing PID)", spindexer.getAngle());
             telemetry.addData("Spindexer Relative Position", spindexer.getRelativeAngle());
-            telemetry.addLine("--------------------------------------");
+            telemetry.addData("home angle",spindexer.axonForward.getHomeAngle());
+            telemetry.addLine("---------------------------------------");
 
             telemetry.addData("Limelight", "X:%.1f Y:%.1f", limelight.getLlx(), limelight.getLly());
             telemetry.addData("Intake", intake.getState());
 
-            telemetry.addLine("--------------------------");
+            telemetry.addLine("---------------------------------------");
 
             telemetry.addData("Target RPM", turret.getTargetRPM());
             telemetry.addData("Actual RPM", turret.getFlywheelRPM());
