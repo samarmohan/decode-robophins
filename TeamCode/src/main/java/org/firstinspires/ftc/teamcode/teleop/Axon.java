@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.axonTest;
+package org.firstinspires.ftc.teamcode.teleop;
 
 import android.annotation.SuppressLint;
 
@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-public class RTPAxon {
+public class Axon {
     // Encoder for servo position feedback
     private final AnalogInput servoEncoder;
     // Continuous rotation servo
@@ -55,7 +55,7 @@ public class RTPAxon {
     // region constructors
 
     // Basic constructor, defaults to FORWARD direction
-    public RTPAxon(CRServo servo, AnalogInput encoder) {
+    public Axon(CRServo servo, AnalogInput encoder) {
         rtp = true;
         this.servo = servo;
         servoEncoder = encoder;
@@ -64,7 +64,7 @@ public class RTPAxon {
     }
 
     // Constructor with explicit direction
-    public RTPAxon(CRServo servo, AnalogInput encoder, Direction direction) {
+    public Axon(CRServo servo, AnalogInput encoder, Direction direction) {
         this(servo, encoder);
         this.direction = direction;
         initialize();
@@ -98,9 +98,9 @@ public class RTPAxon {
 
 
         // Default PID coefficients
-        kP = 0.015;
-        kI = 0.0005;
-        kD = 0.0025;
+        kP = 0.006;
+        kI = 0.000;
+        kD = 0.00;
         integralSum = 0.0;
         lastError = 0.0;
         maxIntegralSum = 100.0;
@@ -366,7 +366,7 @@ public class RTPAxon {
             CRServo crservo = hardwareMap.crservo.get("axon");
             AnalogInput encoder = hardwareMap.get(AnalogInput.class, "encoder");
             Gamepad gamepad = new Gamepad();
-            RTPAxon servo = new RTPAxon(crservo, encoder);
+            Axon servo = new Axon(crservo, encoder);
 
             double target = 0;
             servo.setPidCoeffs(0.01, 0.001, 0);

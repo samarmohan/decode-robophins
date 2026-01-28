@@ -111,6 +111,7 @@ public class Turret {
 
     // --- Hardware Interaction ---
 
+    // TODO: change to motor
     public void applyRotationPower() {
 
     }

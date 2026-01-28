@@ -5,61 +5,100 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-
-import org.firstinspires.ftc.teamcode.axonTest.RTPAxon;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Spindexer {
+    public static double GEAR_RATIO = 1.5;
+
     public AnalogInput forwardEncoder;
-
-    public CRServo crServoForward;
-
-    public RTPAxon axonForward;
+    public AnalogInput leftEncoder;
     public AnalogInput rightEncoder;
 
+    public CRServo crServoForward;
+    public CRServo crServoLeft;
     public CRServo crServoRight;
 
-    public RTPAxon axonRight;
-    public AnalogInput leftEncoder;
 
-    public CRServo crServoLeft;
-
-    public RTPAxon axonLeft;
+    public Axon axonForward;
+    public Axon axonLeft;
+    public Axon axonRight;
 
     public NormalizedColorSensor intakeColor;
-
     public NormalizedColorSensor spinColor;
+
+    private double sensorAlphaIntake;
+    private double sensorAlphaSpin;
 
     private double trueRedIntake;
     private double trueBlueIntake;
     private double trueGreenIntake;
-    private double sensorAlphaIntake;
     private double trueRedSpin;
     private double trueBlueSpin;
-
     private double trueGreenSpin;
+    private boolean ballInIntake;
+    private double target = 0;
+    private boolean indexing = false;
 
-    private double sensorAlphaSpin;
+    private int[] order = {0,0,0};
+
+    private int[] correctOrder = {2,1,1};
+    private double[][] weights = generateWeightArray(0.9);
+
+    private ElapsedTime indexTimer;
+    private ElapsedTime alignTimer;
+
+
+    private enum State{
+        INTAKING,
+        INDEXING,
+        ALIGNING,
+        READY_TO_SHOOT,
+        SHOOTING,
+        HOLDING
+    }
+
+    private enum ball{
+        NONE,
+        PURPLE,
+        GREEN
+    }
+
+    private State state= State.ALIGNING;
+    private ball currentBallIntake = ball.NONE;
+    private ball lastBallIntake = ball.NONE;
 
     public void init(HardwareMap hardwareMap){
         forwardEncoder = hardwareMap.get(AnalogInput.class, "encoderForward");
-        crServoForward = hardwareMap.get(CRServo.class, "axonForward");
-        axonForward = new RTPAxon(crServoForward, forwardEncoder);
         leftEncoder = hardwareMap.get(AnalogInput.class, "encoderLeft");
-        crServoLeft = hardwareMap.get(CRServo.class, "axonLeft");
-        axonLeft = new RTPAxon(crServoLeft, leftEncoder);
         rightEncoder = hardwareMap.get(AnalogInput.class, "encoderRight");
+
+        crServoForward = hardwareMap.get(CRServo.class, "axonForward");
+        crServoLeft = hardwareMap.get(CRServo.class, "axonLeft");
         crServoRight = hardwareMap.get(CRServo.class, "axonRight");
-        axonRight = new RTPAxon(crServoRight, rightEncoder);
+
+        axonForward = new Axon(crServoForward, forwardEncoder);
+        axonLeft = new Axon(crServoLeft, leftEncoder);
+        axonRight = new Axon(crServoRight, rightEncoder);
+
         intakeColor = hardwareMap.get(NormalizedColorSensor.class, "intakeColor");
-        intakeColor.setGain(10);
         spinColor = hardwareMap.get(NormalizedColorSensor.class, "spinColor");
+
+        intakeColor.setGain(10);
         spinColor.setGain(10);
+
+        indexTimer = new ElapsedTime();
+        indexTimer.reset();
+        alignTimer = new ElapsedTime();
+        alignTimer.reset();
     }
     //updates RTPaxon PID and sets power to all three axons
     //also updates color sensor values
-    public void update(){
+    public void update(boolean in, boolean out, boolean off, double shoot){
+        axonForward.setTargetRotation(target);
         axonForward.update();
+
         double power = axonForward.getPower();
+
         axonLeft.setPower(power);
         axonRight.setPower(power);
 
@@ -75,7 +114,88 @@ public class Spindexer {
         trueBlueSpin = colorsSpin.blue;
         trueGreenSpin = colorsSpin.green;
         sensorAlphaSpin = colorsSpin.alpha;
+
+        //spindexer logic
+        if (ballDetectedIntake()){
+            ballInIntake = true;
+        }
+        else{
+            ballInIntake = false;
+            currentBallIntake = ball.NONE;
+        }
+        if (ballInIntake && ballIsGreenIntake()){
+            currentBallIntake = ball.GREEN;
+        }
+        else if (ballIsPurpleIntake()){
+            currentBallIntake = ball.PURPLE;
+        }
+
+        switch (state){
+            case INTAKING:
+                if(out){
+                    state=State.ALIGNING;
+                }
+                if ((lastBallIntake == ball.GREEN || lastBallIntake == ball.PURPLE) && currentBallIntake == ball.NONE) {
+                    //ball is now in spindexer
+                    if (lastBallIntake == ball.GREEN) {
+                        order[getSpindexerPosForward()] = 2;
+                        state = State.INDEXING;
+                        indexTimer.reset();
+                    }
+                    if (lastBallIntake == ball.PURPLE) {
+                        order[getSpindexerPosForward()] = 1;
+                        state=State.INDEXING;
+                        indexTimer.reset();
+                    }
+                }
+                break;
+            case INDEXING:
+                if(indexTimer.seconds() > 0.3){
+                    index();
+                    if(indexTimer.seconds() > 0.5) {
+                        if (order[getSpindexerPosForward()] == 0) {
+                            state = State.INTAKING;
+                        }
+                        else{
+                            state=State.ALIGNING;
+                        }
+                    }
+                }
+                break;
+            case ALIGNING:
+                if(alignTimer.seconds() > 0.8){
+                    state = State.READY_TO_SHOOT;
+                }
+                break;
+            case READY_TO_SHOOT:
+                if (shoot > 0.1){
+                    state=State.SHOOTING;
+                }
+                break;
+            case SHOOTING:
+                shoot();
+                state = State.ALIGNING;
+                break;
+        }
+
+        lastBallIntake = currentBallIntake;
     }
+
+    public void index(){
+        target -= 120;
+        shiftArrayLeft(order);
+    }
+    public void align(){
+        int shift = findBestShift(correctOrder, order, weights);
+        for (int i = 0; i >shift; i++){
+            target -= 120;
+        }
+    }
+    public void shoot(){
+        target += 480;
+        order = new int[] {0, 0, 0};
+    }
+
 
     public boolean ballDetectedIntake(){
         return sensorAlphaIntake > 0.2;
@@ -115,9 +235,6 @@ public class Spindexer {
                 getNormalizedGreenSpin() < 0.25 &&
                 getNormalizedBlueSpin() > 0.1;
     }
-
-
-
 
     public static double findBallValue(int[] order, int ball, double[] weight){
         double value = 0;
@@ -193,23 +310,16 @@ public class Spindexer {
         array[0] = oldLast;
     }
 
-    public void setPIDCoefficients(double kp, double ki, double kd){
-        axonForward.setPidCoeffs(kp, ki, kd);
+    public void setTargetAngle(double position){
+        target = position/GEAR_RATIO;
     }
 
-    public void setTargetPos(double position){
-        axonForward.setTargetRotation(position);
+    public double getCurrentAngle(){
+        return (axonForward.getTotalRotation()) * GEAR_RATIO;
     }
 
-    public double getAngle(){
-        return axonForward.getTotalRotation();
-    }
-
-    public double getRelativeAngle(){
-        return axonForward.getCurrentAngle()-(axonForward.getHomeAngle());
-    }
-    public double getTarget(){
-        return axonForward.getTargetRotation();
+    public double getTargetAngle(){
+        return (axonForward.getTargetRotation()) * GEAR_RATIO;
     }
 
     public double getTrueRedIntake(){return  trueRedIntake;}
@@ -234,4 +344,17 @@ public class Spindexer {
 
     public double getNormalizedGreenSpin(){return trueGreenSpin/sensorAlphaSpin;}
 
+    public int getSpindexerPosForward(){
+        double angle = getCurrentAngle() % 360;
+        if (angle < 10 && angle >-10){
+            return 0;
+        }
+        if (angle < 130 && angle > 110){
+            return 1;
+        }
+        if (angle < -110 && angle > -130){
+            return 2;
+        }
+        return -1;
+    }
 }

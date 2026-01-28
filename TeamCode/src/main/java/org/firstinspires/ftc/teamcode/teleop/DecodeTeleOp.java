@@ -18,6 +18,8 @@ public class DecodeTeleOp extends LinearOpMode {
 
     private final Spindexer spindexer = new Spindexer();
 
+    private final Tilt tilt = new Tilt();
+
     // Constants
     private static final double TURRET_MIN_DEG = -135.0;
     private static final double TURRET_MAX_DEG = 135.0;
@@ -44,6 +46,7 @@ public class DecodeTeleOp extends LinearOpMode {
         intake.init(hardwareMap);
         limelight.init(hardwareMap);
         spindexer.init(hardwareMap);
+        tilt.init(hardwareMap);
 
         Gamepad currentGamepad1 = new Gamepad();
         Gamepad currentGamepad2 = new Gamepad();
@@ -55,15 +58,13 @@ public class DecodeTeleOp extends LinearOpMode {
 
         double pitchPosition = 1.0;
         double testingFlywheelTargetRPM = 0.0;
-        double testPos = 0;
+        double spindexerAngle = 0;
 
         double turretRotationTarget = 0.0;
 
         ElapsedTime runtime = new ElapsedTime();
 
         limelight.start();
-
-        spindexer.setPIDCoefficients(0.006, 0, 0);
 
         waitForStart();
         runtime.reset();
@@ -76,8 +77,13 @@ public class DecodeTeleOp extends LinearOpMode {
 
             double currentTime = runtime.seconds();
 
-            spindexer.setTargetPos(testPos);
-            spindexer.update();
+            spindexer.setTargetAngle(spindexerAngle);
+            spindexer.update(
+                    currentGamepad1.cross,          // In
+                    currentGamepad1.square,         // Out
+                    currentGamepad1.triangle,       // Off
+                    currentGamepad1.right_trigger  // Shoot
+            );
 
             drive.odometryUpdate();
             double xPos = drive.getPosX();
@@ -87,10 +93,10 @@ public class DecodeTeleOp extends LinearOpMode {
             limelight.update(heading);
 
             if (currentGamepad2.right_bumper && !previousGamepad2.right_bumper){
-                testPos -= 120;
+                spindexerAngle -= 120;
             }
             if (currentGamepad2.left_bumper && !previousGamepad2.left_bumper){
-                testPos += 120;
+                spindexerAngle += 120;
             }
 
             if (currentGamepad1.dpad_left && currentGamepad1.dpad_up) {
@@ -209,6 +215,13 @@ public class DecodeTeleOp extends LinearOpMode {
                     isFlywheelReady
             );
 
+            if(currentGamepad2.square && !previousGamepad2.square){
+                tilt.moveDown();
+            }
+            if(currentGamepad2.cross && !previousGamepad2.cross){
+                tilt.moveUp();
+            }
+
             telemetry.addData("Mode", turretMode);
             telemetry.addData("Testing?", TESTING);
             telemetry.addData("Team", isTeamRed ? "RED" : "BLUE");
@@ -225,24 +238,21 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Ball Detected:", spindexer.ballDetectedSpin());
             telemetry.addData("Green Detected:", spindexer.ballIsGreenSpin());
             telemetry.addData("Purple Detected:", spindexer.ballIsPurpleSpin());
-
-            telemetry.addLine("Intake Sensor");
+            */
             telemetry.addData("Alpha: ", spindexer.getSensorAlphaIntake());
             telemetry.addData("Red: ", spindexer.getNormalizedRedIntake());
             telemetry.addData("Blue: ", spindexer.getNormalizedBlueIntake());
             telemetry.addData("Green:", spindexer.getNormalizedGreenIntake());
-            telemetry.addData("Ball Detected:", spindexer.ballDetectedIntake());
-            telemetry.addData("Green Detected:", spindexer.ballIsGreenIntake());
-            telemetry.addData("Purple Detected:", spindexer.ballIsPurpleIntake());
+            telemetry.addData("Intake Ball:", spindexer.ballDetectedIntake());
+            telemetry.addData("Intake Green:", spindexer.ballIsGreenIntake());
+            telemetry.addData("Intake Purple:", spindexer.ballIsPurpleIntake());
 
-             */
+
             telemetry.addLine("---------------------------------------");
 
             //spindexer testing
-            telemetry.addData("Spindexer Target", spindexer.getTarget()*1.5);
-            telemetry.addData("Spindexer Pos(Testing PID)", spindexer.getAngle());
-            telemetry.addData("Spindexer Relative Position", spindexer.getRelativeAngle());
-            telemetry.addData("home angle",spindexer.axonForward.getHomeAngle());
+            telemetry.addData("Spindexer Target", spindexer.getTargetAngle());
+            telemetry.addData("Spindexer Pos", spindexer.getCurrentAngle());
             telemetry.addLine("---------------------------------------");
 
             telemetry.addData("Limelight", "X:%.1f Y:%.1f", limelight.getLlx(), limelight.getLly());
