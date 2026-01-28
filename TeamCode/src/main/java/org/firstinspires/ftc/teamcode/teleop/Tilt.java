@@ -3,15 +3,15 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Tilt {
-        private Servo tilt;
+        public Servo tilt;
 
-        private final double UP_POS = 1;
-        private final double DOWN_POS = 0.75;
+        private final double UP_POS = 0.25;
+        private final double DOWN_POS = 0.6;
 
         public void init(HardwareMap hardwareMap){
             tilt = hardwareMap.get(Servo.class, "tilt");
 
-            tilt.setDirection(Servo.Direction.FORWARD);
+            tilt.setDirection(Servo.Direction.REVERSE);
         }
 
         public void moveUp(){

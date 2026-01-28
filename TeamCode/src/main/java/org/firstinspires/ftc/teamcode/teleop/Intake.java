@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Intake {
     private DcMotor frontIntake;
+
 
 
     public enum State {
@@ -19,7 +21,7 @@ public class Intake {
     public void init(HardwareMap hardwareMap) {
         frontIntake = hardwareMap.get(DcMotor.class, "intake");
 
-        frontIntake.setDirection(DcMotor.Direction.REVERSE); // Positive = In
+        frontIntake.setDirection(DcMotor.Direction.FORWARD  ); // Positive = In
     }
 
     /**

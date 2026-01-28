@@ -36,7 +36,8 @@ public class Spindexer {
     private double trueBlueSpin;
     private double trueGreenSpin;
     private boolean ballInIntake;
-    private double target = 0;
+    private boolean ballInSpin;
+    public double target;
     private boolean indexing = false;
 
     private int[] order = {0,0,0};
@@ -57,15 +58,15 @@ public class Spindexer {
         HOLDING
     }
 
-    private enum ball{
+    private enum Ball {
         NONE,
         PURPLE,
         GREEN
     }
 
-    private State state= State.ALIGNING;
-    private ball currentBallIntake = ball.NONE;
-    private ball lastBallIntake = ball.NONE;
+    public State state = State.ALIGNING;
+    public Ball spindexerBall = Ball.NONE;
+    public Ball intakeBall = Ball.NONE;
 
     public void init(HardwareMap hardwareMap){
         forwardEncoder = hardwareMap.get(AnalogInput.class, "encoderForward");
@@ -94,7 +95,7 @@ public class Spindexer {
     //updates RTPaxon PID and sets power to all three axons
     //also updates color sensor values
     public void update(boolean in, boolean out, boolean off, double shoot){
-        axonForward.setTargetRotation(target);
+        axonForward.setTargetRotation(target/GEAR_RATIO);
         axonForward.update();
 
         double power = axonForward.getPower();
@@ -116,34 +117,48 @@ public class Spindexer {
         sensorAlphaSpin = colorsSpin.alpha;
 
         //spindexer logic
-        if (ballDetectedIntake()){
+        if (ballDetectedIntake()) {
             ballInIntake = true;
         }
         else{
             ballInIntake = false;
-            currentBallIntake = ball.NONE;
+            intakeBall = Ball.NONE;
         }
-        if (ballInIntake && ballIsGreenIntake()){
-            currentBallIntake = ball.GREEN;
+        if (ballInIntake && ballIsGreenIntake()) {
+            intakeBall = Ball.GREEN;
         }
-        else if (ballIsPurpleIntake()){
-            currentBallIntake = ball.PURPLE;
+        else if (ballIsPurpleIntake()) {
+            intakeBall = Ball.PURPLE;
+        }
+        if (ballDetectedSpin()) {
+            ballInSpin = true;
+        }
+        else{
+            ballInSpin = false;
+            spindexerBall = Ball.NONE;
+        }
+        if (ballInSpin && ballIsGreenSpin()) {
+            spindexerBall = Ball.GREEN;
+        }
+        else if (ballIsPurpleSpin()) {
+            spindexerBall = Ball.PURPLE;
         }
 
-        switch (state){
+        switch (state) {
             case INTAKING:
-                if(out){
+                if (out) {
                     state=State.ALIGNING;
                 }
-                if ((lastBallIntake == ball.GREEN || lastBallIntake == ball.PURPLE) && currentBallIntake == ball.NONE) {
-                    //ball is now in spindexer
-                    if (lastBallIntake == ball.GREEN) {
-                        order[getSpindexerPosForward()] = 2;
+                if (spindexerBall != Ball.NONE && intakeBall == Ball.NONE) {                    //ball is now in spindexer
+                    if (spindexerBall == Ball.GREEN) {
+                        index();
+                        //order[getSpindexerPosForward()] = 2;
                         state = State.INDEXING;
                         indexTimer.reset();
                     }
-                    if (lastBallIntake == ball.PURPLE) {
-                        order[getSpindexerPosForward()] = 1;
+                    if (spindexerBall == Ball.PURPLE) {
+                        index();
+                        //order[getSpindexerPosForward()] = 1;
                         state=State.INDEXING;
                         indexTimer.reset();
                     }
@@ -151,23 +166,31 @@ public class Spindexer {
                 break;
             case INDEXING:
                 if(indexTimer.seconds() > 0.3){
-                    index();
                     if(indexTimer.seconds() > 0.5) {
-                        if (order[getSpindexerPosForward()] == 0) {
+                        if (false/*order[getSpindexerPosForward()] == 0*?*/) {
                             state = State.INTAKING;
                         }
                         else{
+                            align();
                             state=State.ALIGNING;
+                            alignTimer.reset();
                         }
                     }
                 }
                 break;
             case ALIGNING:
+                if (!isFull() && in){
+                    state = State.INTAKING;
+                }
                 if(alignTimer.seconds() > 0.8){
                     state = State.READY_TO_SHOOT;
                 }
+
                 break;
             case READY_TO_SHOOT:
+                if (!isFull() && in){
+                    state = State.INTAKING;
+                }
                 if (shoot > 0.1){
                     state=State.SHOOTING;
                 }
@@ -177,29 +200,35 @@ public class Spindexer {
                 state = State.ALIGNING;
                 break;
         }
-
-        lastBallIntake = currentBallIntake;
     }
 
     public void index(){
-        target -= 120;
+        //target += 120;[
         shiftArrayLeft(order);
     }
     public void align(){
         int shift = findBestShift(correctOrder, order, weights);
         for (int i = 0; i >shift; i++){
-            target -= 120;
+            target += 120;
         }
     }
     public void shoot(){
-        target += 480;
+        target -= 480;
         order = new int[] {0, 0, 0};
     }
 
-
+    public boolean isFull(){
+        for (int i : order){
+            if (i == 0){
+                return false;
+            }
+        }
+        return true;
+    }
     public boolean ballDetectedIntake(){
         return sensorAlphaIntake > 0.2;
     }
+
 
     public boolean ballIsGreenIntake(){
         return ballDetectedIntake() &&
@@ -223,17 +252,17 @@ public class Spindexer {
     public boolean ballIsGreenSpin(){
         //not tuned
         return ballDetectedSpin() &&
-                getNormalizedRedSpin() < 0.125 &&
-                getNormalizedGreenSpin() > 0.2 &&
-                getNormalizedBlueSpin() > 0.1;
+                getNormalizedRedSpin() < 0.1 &&
+                getNormalizedGreenSpin() > 0.15 &&
+                getNormalizedBlueSpin() > 0.075;
     }
 
     public boolean ballIsPurpleSpin(){
         //not tuned
         return ballDetectedSpin() &&
-                getNormalizedRedSpin() > 0.1 &&
-                getNormalizedGreenSpin() < 0.25 &&
-                getNormalizedBlueSpin() > 0.1;
+                getNormalizedRedSpin() > 0.75 &&
+                getNormalizedGreenSpin() < 0.2 &&
+                getNormalizedBlueSpin() > 0.075;
     }
 
     public static double findBallValue(int[] order, int ball, double[] weight){
@@ -311,7 +340,7 @@ public class Spindexer {
     }
 
     public void setTargetAngle(double position){
-        target = position/GEAR_RATIO;
+        target = position;
     }
 
     public double getCurrentAngle(){
@@ -346,13 +375,13 @@ public class Spindexer {
 
     public int getSpindexerPosForward(){
         double angle = getCurrentAngle() % 360;
-        if (angle < 10 && angle >-10){
+        if (angle <= 60 && angle-360 >=-60){
             return 0;
         }
-        if (angle < 130 && angle > 110){
+        if (angle <= 180 && angle >= 60){
             return 1;
         }
-        if (angle < -110 && angle > -130){
+        if (angle <= 300 && angle >= 180){
             return 2;
         }
         return -1;
