@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -48,7 +49,7 @@ public class Turret {
         flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Used as encoder source
 
         flywheel.setDirection(DcMotor.Direction.REVERSE);
-        flywheel2.setDirection(DcMotor.Direction.REVERSE);
+        flywheel2.setDirection(DcMotor.Direction.FORWARD);
         flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheel2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 

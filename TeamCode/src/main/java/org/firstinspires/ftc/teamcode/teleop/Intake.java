@@ -32,8 +32,8 @@ public class Intake {
     public void update(boolean in, boolean out, boolean off, double shootTrigger, boolean isFlywheelReady) {
 
         // 1. Emergency/Stop Override
-        if (off) {
-            currentState = State.OFF;
+        if (in) {
+            currentState = State.INTAKE;
         }
         // 2. Shooting Logic
         else if (shootTrigger > 0.2) {
@@ -49,11 +49,11 @@ public class Intake {
             currentState = State.INTAKE;
         }
         // 4. Selector Buttons (Latching)
-        else if (in) {
-            currentState = State.INTAKE;
-        }
         else if (out) {
             currentState = State.OUTTAKE;
+        }
+        else{
+            currentState = State.OFF;
         }
 
         // 5. Apply Motor Powers
