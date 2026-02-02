@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -109,6 +110,7 @@ public class Drivetrain {
     public void odometryUpdate() {
         odometry.update();
     }
-    
+
+    public double getRotationVelocity(){return odometry.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES);}
 }
 

@@ -40,14 +40,10 @@ public class Spindexer {
     private boolean ballInIntake;
     private boolean ballInSpin;
     public double target;
-    private boolean indexing = false;
-
+    private boolean powerOverride = false;
     private boolean hasShot;
-
     private boolean hasIndexed;
-
     private int[] order = {0,0,0};
-
     private int[] correctOrder = {2,1,1};
     private double[][] weights = generateWeightArray(0.9);
 
@@ -105,13 +101,15 @@ public class Spindexer {
     //updates RTPaxon PID and sets power to all three axons
     //also updates color sensor values
     public void update(boolean in, boolean out, boolean off, double shoot){
+        if(!powerOverride) {
         axonForward.setTargetRotation(target/GEAR_RATIO);
         axonForward.update();
 
         double power = axonForward.getPower();
 
-        axonLeft.setPower(power);
-        axonRight.setPower(power);
+            axonLeft.setPower(power);
+            axonRight.setPower(power);
+        }
 
         NormalizedRGBA colorsIntake = intakeColor.getNormalizedColors();
         NormalizedRGBA colorsSpin = spinColor.getNormalizedColors();
@@ -212,13 +210,17 @@ public class Spindexer {
                 }
                 break;
             case SHOOTING:
-                if(shootTimer.seconds() > 0.3){
+                if(shootTimer.seconds() > 0.1){
                     if(!hasShot) {
-                        shoot();
+                        maxPower();
+                        powerOverride = true;
                         hasShot = true;
                     }
-                    if(shootTimer.seconds() > 1) {
+                    if(shootTimer.seconds() > 0.7) {
+                        powerOverride = false;
+                        shoot();
                         state = State.ALIGNING;
+                        alignTimer.reset();
                         hasShot = false;
                     }
                 }
@@ -385,7 +387,6 @@ public class Spindexer {
     public double getTargetAngle(){
         return (axonForward.getTargetRotation()) * GEAR_RATIO;
     }
-
     public double getTrueRedIntake(){return  trueRedIntake;}
 
     public double getTrueBlueIntake(){return  trueBlueIntake;}
@@ -423,5 +424,11 @@ public class Spindexer {
     }
     public String getOrder(){
         return Arrays.toString(order);
+    }
+
+    public void maxPower(){
+        axonForward.setPower(-1);
+        axonRight.setPower(-1);
+        axonLeft.setPower(-1);
     }
 }

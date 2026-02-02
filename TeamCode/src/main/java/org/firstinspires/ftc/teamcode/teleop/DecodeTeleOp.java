@@ -77,16 +77,14 @@ public class DecodeTeleOp extends LinearOpMode {
 
             double currentTime = runtime.seconds();
 
-/*
+
             spindexer.update(
                     currentGamepad1.cross,          // In
                     currentGamepad1.square,         // Out
                     currentGamepad1.triangle,       // Off
                     currentGamepad1.right_trigger  // Shoot
             );
-
-
- */
+            
             drive.odometryUpdate();
             double xPos = drive.getPosX();
             double yPos = drive.getPosY();
@@ -103,12 +101,8 @@ public class DecodeTeleOp extends LinearOpMode {
 
             if (currentGamepad1.dpad_left && currentGamepad1.dpad_up) {
                 isTeamRed = false;
-                drive.setOdometryXY(limelight.getLlx(), limelight.getLly());
-                drive.setHeading(limelight.getLlh());
             } else if (currentGamepad1.dpad_right && currentGamepad1.dpad_down) {
                 isTeamRed = true;
-                drive.setOdometryXY(limelight.getLlx(), limelight.getLly());
-                drive.setHeading(limelight.getLlh());
             }
             if (currentGamepad1.touchpad){
                 drive.setOdometryXY(64, isTeamRed ? -63.5 : 63.5);
@@ -151,9 +145,6 @@ public class DecodeTeleOp extends LinearOpMode {
             }
 
             double distance = Math.hypot((66.0) + xPos, (isTeamRed ? 66.0 : -66.0) - yPos);
-
-            double idealAngle = turret.angleToTarget(xPos, yPos, heading, isTeamRed);
-            turretRotationTarget = turret.correctTurretAngle(idealAngle, TURRET_MAX_DEG, TURRET_MIN_DEG);
 
             switch (turretMode) {
                 case FULL_AUTO:
@@ -200,8 +191,13 @@ public class DecodeTeleOp extends LinearOpMode {
             turret.setPitch(pitchPosition);
 
             if (turretMode != TurretMode.OVERRIDE) {
-                turret.updateRotationPID(currentTime);
-                turret.applyRotationPower();
+                turret.updateRotationPID(currentTime, limelight.getTx(), drive.getRotationVelocity());
+                if (limelight.isResultValid()) {
+                    turret.applyRotationPower();
+                }
+                else{
+                    turret.overrideRotationPower(0);
+                }
             }
 
             turret.updateFlywheelPID(currentTime);
@@ -228,6 +224,7 @@ public class DecodeTeleOp extends LinearOpMode {
             }
 
             telemetry.addLine(String.valueOf(tilt.tilt.getPosition()));
+            telemetry.addData("heading velocity ", drive.getRotationVelocity());
             telemetry.addData("Loop Speed (ms)", (currentTime-lastTime)*1000);
             lastTime = currentTime;
             telemetry.addData("Mode", turretMode);
@@ -271,7 +268,7 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Spindexer Index Forward", spindexer.getSpindexerPosForward());
             telemetry.addLine("---------------------------------------");
 
-            telemetry.addData("Limelight", "X:%.1f Y:%.1f", limelight.getLlx(), limelight.getLly());
+            telemetry.addData("Limelight", "X:%.1f Y:%.1f", limelight.getTx(), limelight.getTa());
             telemetry.addData("Intake", intake.getState());
 
             telemetry.addLine("---------------------------------------");
