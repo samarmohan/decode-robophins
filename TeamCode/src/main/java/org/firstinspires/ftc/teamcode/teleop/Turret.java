@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -10,8 +11,10 @@ import com.qualcomm.robotcore.hardware.CRServo;
 @Config
 public class Turret {
     // Hardware
-    public DcMotorEx flywheel;
-    public DcMotorEx flywheel2; // Encoder Port
+    public DcMotorEx flywheel;//the one with encoder
+    public DcMotorEx flywheel2;
+    public DcMotorEx turret;
+
     public Servo pitch;
 
     // Constants
@@ -23,8 +26,11 @@ public class Turret {
     private static final double FLYWHEEL_RPM_MID = 2800.0;
     private static final double FLYWHEEL_RPM_CLOSE = 2200.0;
 
+    private final double ROTATION_MIN_POS = -1500;
+    private final double ROTATION_MAX_POS = 2100;
+
     // PID Coefficients
-    public static double rotation_kP = 0.02, rotation_kI = 0.0, rotation_kD = 0.0, rotation_kF = 0.0;
+    public static double rotation_kP = 0.02, rotation_kI = 0.0, rotation_kD = 0.0, rotation_kF = 0.003;
     public static double flywheel_kP = 0.001, flywheel_kI = 0.0, flywheel_kD = 0.0, flywheel_kF = 0.0002;
 
     // State
@@ -40,6 +46,7 @@ public class Turret {
     public void init(HardwareMap hardwareMap) {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
+        turret = hardwareMap.get(DcMotorEx.class, "turretTurn");
 
         // Flywheel Setup
         flywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -48,7 +55,7 @@ public class Turret {
         flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Used as encoder source
 
         flywheel.setDirection(DcMotor.Direction.REVERSE);
-        flywheel2.setDirection(DcMotor.Direction.REVERSE);
+        flywheel2.setDirection(DcMotor.Direction.FORWARD);
         flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheel2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -56,6 +63,9 @@ public class Turret {
         pitch = hardwareMap.get(Servo.class, "pitch");
 
         pitch.setDirection(Servo.Direction.FORWARD);
+
+        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
     }
 
@@ -75,18 +85,23 @@ public class Turret {
 
     // --- PID Updates ---
 
-    public void updateRotationPID(double currentTimeSeconds) {
+    public void updateRotationPID(double currentTimeSeconds, double tx, double rotationVelocity) {
         double currentAngle = getRotationPosition();
-        double error = targetAngle - currentAngle;
+        double error = tx;
         double dt = Math.max(currentTimeSeconds - rotation_lastTime, 0.001); // Avoid div/0
 
         double derivative = (error - rotation_lastError) / dt;
         rotation_integral += error * dt;
 
-        double feedforward = Math.signum(error) * rotation_kF;
+        double feedforward = rotationVelocity * rotation_kF;
         double output = (rotation_kP * error) + (rotation_kI * rotation_integral) + (rotation_kD * derivative) + feedforward;
         rotationOutput = Math.max(-1.0, Math.min(1.0, output));
-
+        if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
+            rotationOutput = 0;
+        }
+        if (rotationOutput < 0 && getRotationPosition() < ROTATION_MIN_POS) {
+            rotationOutput = 0;
+        }
         rotation_lastError = error;
         rotation_lastTime = currentTimeSeconds;
     }
@@ -110,10 +125,8 @@ public class Turret {
     }
 
     // --- Hardware Interaction ---
-
-    // TODO: change to motor
     public void applyRotationPower() {
-
+        turret.setPower(rotationOutput);
     }
 
     public void overrideRotationPower(double power) {
@@ -133,17 +146,38 @@ public class Turret {
 
     // --- Helpers ---
 
-    public void setTargetAngle(double angle) { this.targetAngle = angle; }
-    public void setTargetRPM(double rpm) { this.targetRPM = rpm; }
-    public void setPitch(double pos) { pitch.setPosition(pos); }
+    public void setTargetAngle(double angle) {
+        this.targetAngle = angle;
+    }
 
-    public double getPitch(){ return pitch.getPosition();}
+    public void setTargetRPM(double rpm) {
+        this.targetRPM = rpm;
+    }
+
+    public void setPitch(double pos) {
+        pitch.setPosition(pos);
+    }
+
+    public double getPitch() {
+        return pitch.getPosition();
+    }
 
 
-    public double getRotationPosition() { return 0; }
-    public double getFlywheelRPM() { return (flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV; }
-    public double getTargetRPM() { return targetRPM; }
-    public double getTargetAngle() { return targetAngle; }
+    public double getRotationPosition() {
+        return turret.getCurrentPosition();
+    }
+
+    public double getFlywheelRPM() {
+        return (flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV;
+    }
+
+    public double getTargetRPM() {
+        return targetRPM;
+    }
+
+    public double getTargetAngle() {
+        return targetAngle;
+    }
 
 
     public double angleToTarget(double xPos, double yPos, double heading, boolean isTeamRed) {
@@ -159,4 +193,5 @@ public class Turret {
         if (desiredAngle < min && desiredAngle + 360 < max) return desiredAngle + 360;
         return Math.min(max, Math.max(desiredAngle, min));
     }
+
 }

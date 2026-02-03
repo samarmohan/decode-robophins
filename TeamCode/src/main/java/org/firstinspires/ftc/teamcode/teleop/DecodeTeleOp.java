@@ -33,6 +33,8 @@ public class DecodeTeleOp extends LinearOpMode {
         OVERRIDE
     }
 
+    private double lastTime;
+
     @Override
     public void runOpMode() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -82,7 +84,7 @@ public class DecodeTeleOp extends LinearOpMode {
                     currentGamepad1.triangle,       // Off
                     currentGamepad1.right_trigger  // Shoot
             );
-
+            
             drive.odometryUpdate();
             double xPos = drive.getPosX();
             double yPos = drive.getPosY();
@@ -91,7 +93,7 @@ public class DecodeTeleOp extends LinearOpMode {
             limelight.update(heading);
 
             if (currentGamepad2.right_bumper && !previousGamepad2.right_bumper){
-                spindexer.index();
+                spindexer.resetTarget();
             }
             if (currentGamepad2.left_bumper && !previousGamepad2.left_bumper){
                 spindexer.shoot();
@@ -99,12 +101,8 @@ public class DecodeTeleOp extends LinearOpMode {
 
             if (currentGamepad1.dpad_left && currentGamepad1.dpad_up) {
                 isTeamRed = false;
-                drive.setOdometryXY(limelight.getLlx(), limelight.getLly());
-                drive.setHeading(limelight.getLlh());
             } else if (currentGamepad1.dpad_right && currentGamepad1.dpad_down) {
                 isTeamRed = true;
-                drive.setOdometryXY(limelight.getLlx(), limelight.getLly());
-                drive.setHeading(limelight.getLlh());
             }
             if (currentGamepad1.touchpad){
                 drive.setOdometryXY(64, isTeamRed ? -63.5 : 63.5);
@@ -147,9 +145,6 @@ public class DecodeTeleOp extends LinearOpMode {
             }
 
             double distance = Math.hypot((66.0) + xPos, (isTeamRed ? 66.0 : -66.0) - yPos);
-
-            double idealAngle = turret.angleToTarget(xPos, yPos, heading, isTeamRed);
-            turretRotationTarget = turret.correctTurretAngle(idealAngle, TURRET_MAX_DEG, TURRET_MIN_DEG);
 
             switch (turretMode) {
                 case FULL_AUTO:
@@ -196,8 +191,13 @@ public class DecodeTeleOp extends LinearOpMode {
             turret.setPitch(pitchPosition);
 
             if (turretMode != TurretMode.OVERRIDE) {
-                turret.updateRotationPID(currentTime);
-                turret.applyRotationPower();
+                turret.updateRotationPID(currentTime, limelight.getTx(), drive.getRotationVelocity());
+                if (limelight.isResultValid()) {
+                    turret.applyRotationPower();
+                }
+                else{
+                    turret.overrideRotationPower(0);
+                }
             }
 
             turret.updateFlywheelPID(currentTime);
@@ -224,6 +224,9 @@ public class DecodeTeleOp extends LinearOpMode {
             }
 
             telemetry.addLine(String.valueOf(tilt.tilt.getPosition()));
+            telemetry.addData("heading velocity ", drive.getRotationVelocity());
+            telemetry.addData("Loop Speed (ms)", (currentTime-lastTime)*1000);
+            lastTime = currentTime;
             telemetry.addData("Mode", turretMode);
             telemetry.addData("Testing?", TESTING);
             telemetry.addData("Team", isTeamRed ? "RED" : "BLUE");
@@ -232,7 +235,7 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addLine("---------------------------------------");
 
             //color sensor testing
-
+            /*
             telemetry.addData("Alpha: ", spindexer.getSensorAlphaSpin());
             telemetry.addData("Red: ", spindexer.getNormalizedRedSpin());
             telemetry.addData("Blue: ", spindexer.getNormalizedBlueSpin());
@@ -246,6 +249,8 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Red: ", spindexer.getNormalizedRedIntake());
             telemetry.addData("Blue: ", spindexer.getNormalizedBlueIntake());
             telemetry.addData("Green:", spindexer.getNormalizedGreenIntake());
+
+             */
             telemetry.addData("intake Ball:", spindexer.intakeBall);
             telemetry.addData("spindexer Ball:", spindexer.spindexerBall);
             telemetry.addData("spindexer state", spindexer.state);
@@ -257,12 +262,13 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addLine("---------------------------------------");
 
             //spindexer testing
+            telemetry.addData("Current Balls", spindexer.getOrder());
             telemetry.addData("Spindexer Target", spindexer.getTargetAngle());
-            telemetry.addData("Target", spindexer.target);
             telemetry.addData("Spindexer Pos", spindexer.getCurrentAngle());
+            telemetry.addData("Spindexer Index Forward", spindexer.getSpindexerPosForward());
             telemetry.addLine("---------------------------------------");
 
-            telemetry.addData("Limelight", "X:%.1f Y:%.1f", limelight.getLlx(), limelight.getLly());
+            telemetry.addData("Limelight", "X:%.1f Y:%.1f", limelight.getTx(), limelight.getTa());
             telemetry.addData("Intake", intake.getState());
 
             telemetry.addLine("---------------------------------------");

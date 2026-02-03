@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.Arrays;
+
 public class Spindexer {
     public static double GEAR_RATIO = 1.5;
 
@@ -38,15 +40,16 @@ public class Spindexer {
     private boolean ballInIntake;
     private boolean ballInSpin;
     public double target;
-    private boolean indexing = false;
-
+    private boolean powerOverride = false;
+    private boolean hasShot;
+    private boolean hasIndexed;
     private int[] order = {0,0,0};
-
     private int[] correctOrder = {2,1,1};
     private double[][] weights = generateWeightArray(0.9);
 
     private ElapsedTime indexTimer;
     private ElapsedTime alignTimer;
+    private ElapsedTime shootTimer;
 
 
     private enum State{
@@ -78,6 +81,7 @@ public class Spindexer {
         crServoRight = hardwareMap.get(CRServo.class, "axonRight");
 
         axonForward = new Axon(crServoForward, forwardEncoder);
+        axonForward.setPidCoeffs(0.004,0,0);
         axonLeft = new Axon(crServoLeft, leftEncoder);
         axonRight = new Axon(crServoRight, rightEncoder);
 
@@ -91,17 +95,21 @@ public class Spindexer {
         indexTimer.reset();
         alignTimer = new ElapsedTime();
         alignTimer.reset();
+        shootTimer = new ElapsedTime();
+        shootTimer.reset();
     }
     //updates RTPaxon PID and sets power to all three axons
     //also updates color sensor values
     public void update(boolean in, boolean out, boolean off, double shoot){
+        if(!powerOverride) {
         axonForward.setTargetRotation(target/GEAR_RATIO);
         axonForward.update();
 
         double power = axonForward.getPower();
 
-        axonLeft.setPower(power);
-        axonRight.setPower(power);
+            axonLeft.setPower(power);
+            axonRight.setPower(power);
+        }
 
         NormalizedRGBA colorsIntake = intakeColor.getNormalizedColors();
         NormalizedRGBA colorsSpin = spinColor.getNormalizedColors();
@@ -146,19 +154,19 @@ public class Spindexer {
 
         switch (state) {
             case INTAKING:
-                if (out) {
+                if (!in) {
                     state=State.ALIGNING;
                 }
-                if (spindexerBall != Ball.NONE && intakeBall == Ball.NONE) {                    //ball is now in spindexer
+                if (spindexerBall != Ball.NONE && intakeBall != spindexerBall) {                    //ball is now in spindexer
                     if (spindexerBall == Ball.GREEN) {
-                        index();
-                        //order[getSpindexerPosForward()] = 2;
+                        hasIndexed = false;
+                        order[0] = 2;
                         state = State.INDEXING;
                         indexTimer.reset();
                     }
                     if (spindexerBall == Ball.PURPLE) {
-                        index();
-                        //order[getSpindexerPosForward()] = 1;
+                        hasIndexed = false;
+                        order[0] = 1;
                         state=State.INDEXING;
                         indexTimer.reset();
                     }
@@ -166,8 +174,12 @@ public class Spindexer {
                 break;
             case INDEXING:
                 if(indexTimer.seconds() > 0.3){
-                    if(indexTimer.seconds() > 0.5) {
-                        if (false/*order[getSpindexerPosForward()] == 0*?*/) {
+                    if(!hasIndexed){
+                        index();
+                        hasIndexed = true;
+                    }
+                    if(indexTimer.seconds() > 0.8) {
+                        if (!isFull() && !(shoot > 0.1)) {
                             state = State.INTAKING;
                         }
                         else{
@@ -179,42 +191,67 @@ public class Spindexer {
                 }
                 break;
             case ALIGNING:
-                if (!isFull() && in){
-                    state = State.INTAKING;
-                }
-                if(alignTimer.seconds() > 0.8){
+                if(alignTimer.seconds() > 1){
                     state = State.READY_TO_SHOOT;
+                    alignToHold();
                 }
 
                 break;
             case READY_TO_SHOOT:
                 if (!isFull() && in){
                     state = State.INTAKING;
+                    alignBack();
                 }
                 if (shoot > 0.1){
                     state=State.SHOOTING;
+                    shootTimer.reset();
+                    hasShot = false;
+                    alignBack();
                 }
                 break;
             case SHOOTING:
-                shoot();
-                state = State.ALIGNING;
+                if(shootTimer.seconds() > 0.1){
+                    if(!hasShot) {
+                        maxPower();
+                        powerOverride = true;
+                        hasShot = true;
+                    }
+                    if(shootTimer.seconds() > 0.7) {
+                        powerOverride = false;
+                        shoot();
+                        state = State.ALIGNING;
+                        alignTimer.reset();
+                        hasShot = false;
+                    }
+                }
                 break;
         }
     }
 
     public void index(){
-        //target += 120;[
-        shiftArrayLeft(order);
+        target += 120;
+        shiftArrayRight(order);
     }
     public void align(){
         int shift = findBestShift(correctOrder, order, weights);
-        for (int i = 0; i >shift; i++){
+        for (int i = 0; i < shift; i++){
             target += 120;
+            shiftArrayRight(order);
         }
     }
     public void shoot(){
         target -= 480;
         order = new int[] {0, 0, 0};
+    }
+    public void alignBack(){
+        target -= 60;
+    }
+    public void alignToHold(){
+        target += 60;
+    }
+
+    public void resetTarget(){
+        target = 0;
     }
 
     public boolean isFull(){
@@ -252,17 +289,17 @@ public class Spindexer {
     public boolean ballIsGreenSpin(){
         //not tuned
         return ballDetectedSpin() &&
-                getNormalizedRedSpin() < 0.1 &&
-                getNormalizedGreenSpin() > 0.15 &&
+                getNormalizedRedSpin() < 0.075 &&
+                getNormalizedGreenSpin() > 0.1 &&
                 getNormalizedBlueSpin() > 0.075;
     }
 
     public boolean ballIsPurpleSpin(){
         //not tuned
         return ballDetectedSpin() &&
-                getNormalizedRedSpin() > 0.75 &&
+                getNormalizedRedSpin() > 0.06 &&
                 getNormalizedGreenSpin() < 0.2 &&
-                getNormalizedBlueSpin() > 0.075;
+                getNormalizedBlueSpin() > 0.1;
     }
 
     public static double findBallValue(int[] order, int ball, double[] weight){
@@ -294,7 +331,7 @@ public class Spindexer {
                 bestShift = i;
                 bestValue = currentValue;
             }
-            shiftArrayLeft(balls);
+            shiftArrayRight(balls);
         }
         return bestShift;
     }
@@ -350,7 +387,6 @@ public class Spindexer {
     public double getTargetAngle(){
         return (axonForward.getTargetRotation()) * GEAR_RATIO;
     }
-
     public double getTrueRedIntake(){return  trueRedIntake;}
 
     public double getTrueBlueIntake(){return  trueBlueIntake;}
@@ -374,8 +410,8 @@ public class Spindexer {
     public double getNormalizedGreenSpin(){return trueGreenSpin/sensorAlphaSpin;}
 
     public int getSpindexerPosForward(){
-        double angle = getCurrentAngle() % 360;
-        if (angle <= 60 && angle-360 >=-60){
+        double angle = Math.floorMod((int)getCurrentAngle(), 360);
+        if ((angle <= 60 && angle >= 0) || ((angle - 360) >=-60 && (angle - 360) <= 0)){
             return 0;
         }
         if (angle <= 180 && angle >= 60){
@@ -384,6 +420,15 @@ public class Spindexer {
         if (angle <= 300 && angle >= 180){
             return 2;
         }
-        return -1;
+        return (int)angle;
+    }
+    public String getOrder(){
+        return Arrays.toString(order);
+    }
+
+    public void maxPower(){
+        axonForward.setPower(-1);
+        axonRight.setPower(-1);
+        axonLeft.setPower(-1);
     }
 }
