@@ -32,6 +32,9 @@ public class Turret {
     // PID Coefficients
     public static double rotation_kP = 0.02, rotation_kI = 0.0, rotation_kD = 0.0, rotation_kF = 0.003;
     public static double flywheel_kP = 0.001, flywheel_kI = 0.0, flywheel_kD = 0.0, flywheel_kF = 0.0002;
+    
+    // General Direction PID Coefficients
+    public static double generalDirection_kP = 0.01, generalDirection_kI = 0.0, generalDirection_kD = 0.0;
 
     // State
     private double targetAngle = 0;
@@ -42,6 +45,7 @@ public class Turret {
     // PID Internal State
     private double rotation_lastError = 0, rotation_lastTime = 0, rotation_integral = 0;
     private double flywheel_lastError = 0, flywheel_lastTime = 0, flywheel_integral = 0;
+    private double generalDirection_lastTime = 0, generalDirection_integral = 0;
 
     public void init(HardwareMap hardwareMap) {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
@@ -104,6 +108,30 @@ public class Turret {
         }
         rotation_lastError = error;
         rotation_lastTime = currentTimeSeconds;
+    }
+
+    public void updateGeneralDirectionPID(double currentTimeSeconds, double rotationVelocity) {
+        double dt = Math.max(currentTimeSeconds - generalDirection_lastTime, 0.001);
+        
+        // The error is the robot's rotational velocity
+        // We want to counter it by rotating the turret in the opposite direction
+        double error = -rotationVelocity;
+        
+        generalDirection_integral += error * dt;
+        
+        // Calculate PID output
+        double output = (generalDirection_kP * error) + (generalDirection_kI * generalDirection_integral);
+        rotationOutput = Math.max(-1.0, Math.min(1.0, output));
+        
+        // Apply position limits
+        if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
+            rotationOutput = 0;
+        }
+        if (rotationOutput < 0 && getRotationPosition() < ROTATION_MIN_POS) {
+            rotationOutput = 0;
+        }
+        
+        generalDirection_lastTime = currentTimeSeconds;
     }
 
     public void updateFlywheelPID(double currentTimeSeconds) {

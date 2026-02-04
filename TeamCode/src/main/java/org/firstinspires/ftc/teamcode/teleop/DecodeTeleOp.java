@@ -191,12 +191,14 @@ public class DecodeTeleOp extends LinearOpMode {
             turret.setPitch(pitchPosition);
 
             if (turretMode != TurretMode.OVERRIDE) {
-                turret.updateRotationPID(currentTime, limelight.getTx(), drive.getRotationVelocity());
                 if (limelight.isResultValid()) {
+                    // Camera PID: Use precise aiming with AprilTag
+                    turret.updateRotationPID(currentTime, limelight.getTx(), drive.getRotationVelocity());
                     turret.applyRotationPower();
-                }
-                else{
-                    turret.overrideRotationPower(0);
+                } else {
+                    // General Direction PID: Compensate for robot rotation to maintain general goal orientation
+                    turret.updateGeneralDirectionPID(currentTime, drive.getRotationVelocity());
+                    turret.applyRotationPower();
                 }
             }
 
