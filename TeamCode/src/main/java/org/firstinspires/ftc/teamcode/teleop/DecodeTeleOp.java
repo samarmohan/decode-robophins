@@ -205,8 +205,8 @@ public class DecodeTeleOp extends LinearOpMode {
                         // Switching from camera to general direction PID
                         turret.resetGeneralDirectionPIDState();
                     }
-                    previousAprilTagVisible = currentAprilTagVisible;
                 }
+                previousAprilTagVisible = currentAprilTagVisible;
                 
                 if (currentAprilTagVisible) {
                     // Camera PID: Use precise aiming with AprilTag

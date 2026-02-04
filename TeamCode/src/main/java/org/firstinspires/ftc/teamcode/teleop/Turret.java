@@ -111,6 +111,11 @@ public class Turret {
     }
 
     public void updateGeneralDirectionPID(double currentTimeSeconds, double rotationVelocity) {
+        // Initialize timing on first call
+        if (generalDirection_lastTime == 0) {
+            generalDirection_lastTime = currentTimeSeconds;
+        }
+        
         double dt = Math.max(currentTimeSeconds - generalDirection_lastTime, 0.001);
         
         // The error is the robot's rotational velocity
