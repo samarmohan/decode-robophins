@@ -45,7 +45,7 @@ public class Turret {
     // PID Internal State
     private double rotation_lastError = 0, rotation_lastTime = 0, rotation_integral = 0;
     private double flywheel_lastError = 0, flywheel_lastTime = 0, flywheel_integral = 0;
-    private double generalDirection_lastTime = 0, generalDirection_integral = 0;
+    private double generalDirection_lastTime = 0, generalDirection_integral = 0, generalDirection_lastError = 0;
 
     public void init(HardwareMap hardwareMap) {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
@@ -119,18 +119,29 @@ public class Turret {
         
         generalDirection_integral += error * dt;
         
+        // Calculate derivative
+        double derivative = (error - generalDirection_lastError) / dt;
+        
         // Calculate PID output
-        double output = (generalDirection_kP * error) + (generalDirection_kI * generalDirection_integral);
+        double output = (generalDirection_kP * error) + (generalDirection_kI * generalDirection_integral) + (generalDirection_kD * derivative);
         rotationOutput = Math.max(-1.0, Math.min(1.0, output));
+        
+        // Anti-windup: Reset integral if output is saturated
+        if (Math.abs(output) > 1.0) {
+            generalDirection_integral -= error * dt;
+        }
         
         // Apply position limits
         if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
             rotationOutput = 0;
+            generalDirection_integral = 0; // Reset integral at limits
         }
         if (rotationOutput < 0 && getRotationPosition() < ROTATION_MIN_POS) {
             rotationOutput = 0;
+            generalDirection_integral = 0; // Reset integral at limits
         }
         
+        generalDirection_lastError = error;
         generalDirection_lastTime = currentTimeSeconds;
     }
 
@@ -220,6 +231,18 @@ public class Turret {
         if (desiredAngle > max && desiredAngle - 360 > min) return desiredAngle - 360;
         if (desiredAngle < min && desiredAngle + 360 < max) return desiredAngle + 360;
         return Math.min(max, Math.max(desiredAngle, min));
+    }
+
+    // Reset PID state for camera PID controller
+    public void resetCameraPIDState() {
+        rotation_lastError = 0;
+        rotation_integral = 0;
+    }
+
+    // Reset PID state for general direction PID controller
+    public void resetGeneralDirectionPIDState() {
+        generalDirection_lastError = 0;
+        generalDirection_integral = 0;
     }
 
 }

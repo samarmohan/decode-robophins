@@ -63,6 +63,9 @@ public class DecodeTeleOp extends LinearOpMode {
 
         TurretMode turretMode = TurretMode.IDLE;
         ElapsedTime runtime = new ElapsedTime();
+        
+        // Track previous AprilTag visibility to detect mode switching
+        boolean previousAprilTagVisible = false;
 
         limelight.start();
 
@@ -191,7 +194,21 @@ public class DecodeTeleOp extends LinearOpMode {
             turret.setPitch(pitchPosition);
 
             if (turretMode != TurretMode.OVERRIDE) {
-                if (limelight.isResultValid()) {
+                boolean currentAprilTagVisible = limelight.isResultValid();
+                
+                // Detect mode switching and reset PID states accordingly
+                if (currentAprilTagVisible != previousAprilTagVisible) {
+                    if (currentAprilTagVisible) {
+                        // Switching from general direction to camera PID
+                        turret.resetCameraPIDState();
+                    } else {
+                        // Switching from camera to general direction PID
+                        turret.resetGeneralDirectionPIDState();
+                    }
+                    previousAprilTagVisible = currentAprilTagVisible;
+                }
+                
+                if (currentAprilTagVisible) {
                     // Camera PID: Use precise aiming with AprilTag
                     turret.updateRotationPID(currentTime, limelight.getTx(), drive.getRotationVelocity());
                     turret.applyRotationPower();
