@@ -81,7 +81,6 @@ public class Spindexer {
         crServoRight = hardwareMap.get(CRServo.class, "axonRight");
 
         axonForward = new Axon(crServoForward, forwardEncoder);
-        axonForward.setPidCoeffs(0.004,0,0);
         axonLeft = new Axon(crServoLeft, leftEncoder);
         axonRight = new Axon(crServoRight, rightEncoder);
 

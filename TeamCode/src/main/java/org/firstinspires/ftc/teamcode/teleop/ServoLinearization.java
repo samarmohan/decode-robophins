@@ -51,8 +51,9 @@ public class ServoLinearization extends LinearOpMode {
         axonLeft = new Axon(crServoLeft, leftEncoder);
         axonRight = new Axon(crServoRight, rightEncoder);
 
-        double servoPower = 0.0;
+        double servoPower = 0.05; // Start at 0.05 to avoid dead zone
         HashMap<Double, Double> powersAndSpeeds = new HashMap<>();
+        double maxSpeed = 0; // Track maximum speed for normalization
 
         waitForStart();
         runtime.reset();
@@ -62,10 +63,23 @@ public class ServoLinearization extends LinearOpMode {
             axonLeft.setRtp(false);
             axonRight.setRtp(false);
 
-            double linearized = linearizeServo(servoPower);
-            axonForward.setPower(linearized);
-            axonLeft.setPower(linearized);
-            axonRight.setPower(linearized);
+            // Apply RAW power (no linearization during data collection!)
+            axonForward.setPower(servoPower);
+            axonLeft.setPower(servoPower);
+            axonRight.setPower(servoPower);
+
+            // Wait for servo to reach steady-state speed
+            double settleStartTime = runtime.seconds();
+            while (opModeIsActive() && (runtime.seconds() - settleStartTime) < 0.5) {
+                axonForward.update();
+                axonLeft.update();
+                axonRight.update();
+
+                telemetry.addData("Current Power", servoPower);
+                telemetry.addData("Settling...", 0.5 - (runtime.seconds() - settleStartTime));
+                telemetry.update();
+                sleep(50);
+            }
 
             double lastRotation = axonForward.getTotalRotation();
             double startTime = runtime.seconds();
@@ -88,6 +102,11 @@ public class ServoLinearization extends LinearOpMode {
             double elapsedTime = runtime.seconds() - startTime;
             double speed = rotationDelta / elapsedTime;
 
+            // Track maximum speed
+            if (speed > maxSpeed) {
+                maxSpeed = speed;
+            }
+
             powersAndSpeeds.put(servoPower, speed);
 
             telemetry.addData("Recorded Power", servoPower);
@@ -99,14 +118,24 @@ public class ServoLinearization extends LinearOpMode {
             servoPower += 0.05;
         }
 
+        // Normalize all speeds to 0-1 range
+        HashMap<Double, Double> normalizedData = new HashMap<>();
+        for (Double power : powersAndSpeeds.keySet()) {
+            double rawSpeed = powersAndSpeeds.get(power);
+            double normalizedSpeed = rawSpeed / maxSpeed;
+            normalizedData.put(power, normalizedSpeed);
+        }
 
-        String csvPath = writeToCsv(powersAndSpeeds);
+        String csvPath = writeToCsv(normalizedData, maxSpeed);
         while (opModeIsActive()) {
             telemetry.addData("Status", "Data collection complete!");
-            telemetry.addData("Total entries", powersAndSpeeds.size());
+            telemetry.addData("Total entries", normalizedData.size());
+            telemetry.addData("Max speed measured", String.format("%.2f deg/sec", maxSpeed));
             telemetry.addData("CSV Path", csvPath);
-            for (Double power : powersAndSpeeds.keySet()) {
-                telemetry.addData("Power " + power, "Speed: " + powersAndSpeeds.get(power));
+            telemetry.addLine();
+            telemetry.addLine("Power -> Normalized Speed (0-1):");
+            for (Double power : normalizedData.keySet()) {
+                telemetry.addData(String.format("%.2f", power), String.format("%.3f", normalizedData.get(power)));
             }
             telemetry.update();
             idle();
@@ -114,7 +143,7 @@ public class ServoLinearization extends LinearOpMode {
     }
 
     // Write HashMap to CSV file on robot storage
-    private String writeToCsv(HashMap<Double, Double> data) {
+    private String writeToCsv(HashMap<Double, Double> data, double maxSpeed) {
         String fileName = "servo_linearization_" + System.currentTimeMillis() + ".csv";
         File directory = new File(Environment.getExternalStorageDirectory(), "FIRST");
         if (!directory.exists()) {
@@ -123,24 +152,15 @@ public class ServoLinearization extends LinearOpMode {
         File file = new File(directory, fileName);
 
         try (FileWriter writer = new FileWriter(file)) {
-            writer.write("Power,Speed\n");
+            // Write header with max speed info
+            writer.write("# Max Speed: " + maxSpeed + " deg/sec\n");
+            writer.write("Normalized_Speed,Power\n");
             for (Double power : data.keySet()) {
-                writer.write(power + "," + data.get(power) + "\n");
+                writer.write(data.get(power) + "," + power + "\n");
             }
             return file.getAbsolutePath();
         } catch (IOException e) {
             return "Error: " + e.getMessage();
         }
-    }
-    private double linearizeServo(double desiredSpeed) {
-        // Clamp desired speed to valid range
-        desiredSpeed = Math.max(0, Math.min(450, desiredSpeed));
-        double power = 0.014534 +
-                2.920752e-03 * desiredSpeed +
-                -1.918508e-05 * Math.pow(desiredSpeed, 2) +
-                3.884573e-08 * Math.pow(desiredSpeed, 3);
-
-        // Clamp output to valid range [0, 1]
-        return Math.max(0, Math.min(1, power));
     }
 }

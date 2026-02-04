@@ -98,9 +98,9 @@ public class Axon {
 
 
         // Default PID coefficients
-        kP = 0.006;
-        kI = 0.000;
-        kD = 0.00;
+        kP = 0.004;
+        kI = 0.00;
+        kD = 0.000001;
         integralSum = 0.0;
         lastError = 0.0;
         maxIntegralSum = 100.0;
@@ -325,11 +325,11 @@ public class Axon {
         double output = pTerm + iTerm + dTerm;
 
         // Deadzone for output
-        final double DEADZONE = 0.5;
+        final double DEADZONE = 5;
         if (Math.abs(error) > DEADZONE) {
-            double linearPower = Math.min(maxPower, Math.abs(output)) * Math.signum(output);
+            double actualPower = Math.min(maxPower, Math.abs(output)) * Math.signum(output);
             // Apply linearization to compensate for servo's non-linear response
-            double actualPower = linearizeServo(Math.abs(linearPower)) * Math.signum(linearPower);
+            double linearPower = linearizeServo(Math.abs(actualPower)) * Math.signum(actualPower);
             setPower(actualPower);
 
         } else {
@@ -337,16 +337,17 @@ public class Axon {
         }
     }
 
-    private double linearizeServo(double desiredSpeed) {
-        // Clamp desired speed to valid range [0, 1]
-        desiredSpeed = Math.max(0, Math.min(1, desiredSpeed));
+    private double linearizeServo(double desiredPower) {
+        // desiredPower is 0-1 from PID (what effective power you want)
+        // In a linear system, 0.5 power should give 0.5 speed
+        // So desiredPower = desiredSpeed for linearization purposes
 
-        double power = -51.5 + 2271 * desiredSpeed +
-                -3324 * Math.pow(desiredSpeed, 2) +
-                1567 * Math.pow(desiredSpeed, 3);
+        desiredPower = Math.max(0, Math.min(1, desiredPower));
 
-        // Clamp output to valid range [0, 1]
-        return Math.max(0, Math.min(1, power));
+        double x = desiredPower;  // Treating desired power as desired speed
+        double actualPower = 0.0158 + 0.0805 * x + 0.57 * x * x;
+
+        return Math.max(0, Math.min(1, actualPower));
     }
 
     // Log current state for telemetry/debug
