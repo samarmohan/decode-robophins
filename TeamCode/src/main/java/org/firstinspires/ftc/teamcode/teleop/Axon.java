@@ -327,11 +327,26 @@ public class Axon {
         // Deadzone for output
         final double DEADZONE = 0.5;
         if (Math.abs(error) > DEADZONE) {
-            double power = Math.min(maxPower, Math.abs(output)) * Math.signum(output);
-            setPower(power);
+            double linearPower = Math.min(maxPower, Math.abs(output)) * Math.signum(output);
+            // Apply linearization to compensate for servo's non-linear response
+            double actualPower = linearizeServo(Math.abs(linearPower)) * Math.signum(linearPower);
+            setPower(actualPower);
+
         } else {
             setPower(0);
         }
+    }
+
+    private double linearizeServo(double desiredSpeed) {
+        // Clamp desired speed to valid range [0, 1]
+        desiredSpeed = Math.max(0, Math.min(1, desiredSpeed));
+
+        double power = -51.5 + 2271 * desiredSpeed +
+                -3324 * Math.pow(desiredSpeed, 2) +
+                1567 * Math.pow(desiredSpeed, 3);
+
+        // Clamp output to valid range [0, 1]
+        return Math.max(0, Math.min(1, power));
     }
 
     // Log current state for telemetry/debug

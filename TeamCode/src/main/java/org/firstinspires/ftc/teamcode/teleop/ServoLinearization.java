@@ -62,9 +62,10 @@ public class ServoLinearization extends LinearOpMode {
             axonLeft.setRtp(false);
             axonRight.setRtp(false);
 
-            axonForward.setPower(servoPower);
-            axonLeft.setPower(servoPower);
-            axonRight.setPower(servoPower);
+            double linearized = linearizeServo(servoPower);
+            axonForward.setPower(linearized);
+            axonLeft.setPower(linearized);
+            axonRight.setPower(linearized);
 
             double lastRotation = axonForward.getTotalRotation();
             double startTime = runtime.seconds();
@@ -130,5 +131,16 @@ public class ServoLinearization extends LinearOpMode {
         } catch (IOException e) {
             return "Error: " + e.getMessage();
         }
+    }
+    private double linearizeServo(double desiredSpeed) {
+        // Clamp desired speed to valid range
+        desiredSpeed = Math.max(0, Math.min(450, desiredSpeed));
+        double power = 0.014534 +
+                2.920752e-03 * desiredSpeed +
+                -1.918508e-05 * Math.pow(desiredSpeed, 2) +
+                3.884573e-08 * Math.pow(desiredSpeed, 3);
+
+        // Clamp output to valid range [0, 1]
+        return Math.max(0, Math.min(1, power));
     }
 }

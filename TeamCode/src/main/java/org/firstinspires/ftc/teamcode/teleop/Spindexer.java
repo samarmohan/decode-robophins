@@ -102,10 +102,10 @@ public class Spindexer {
     //also updates color sensor values
     public void update(boolean in, boolean out, boolean off, double shoot){
         if(!powerOverride) {
-        axonForward.setTargetRotation(target/GEAR_RATIO);
-        axonForward.update();
+            axonForward.setTargetRotation(target/GEAR_RATIO);
+            axonForward.update();
 
-        double power = axonForward.getPower();
+            double power = axonForward.getPower();
 
             axonLeft.setPower(power);
             axonRight.setPower(power);
