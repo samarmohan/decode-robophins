@@ -90,6 +90,11 @@ public class Turret {
     // --- PID Updates ---
 
     public void updateRotationPID(double currentTimeSeconds, double tx, double rotationVelocity) {
+        // Initialize timing on first call
+        if (rotation_lastTime == 0) {
+            rotation_lastTime = currentTimeSeconds;
+        }
+        
         double currentAngle = getRotationPosition();
         double error = tx;
         double dt = Math.max(currentTimeSeconds - rotation_lastTime, 0.001); // Avoid div/0
@@ -242,12 +247,14 @@ public class Turret {
     public void resetCameraPIDState() {
         rotation_lastError = 0;
         rotation_integral = 0;
+        rotation_lastTime = 0; // Reset timing to trigger initialization on next update
     }
 
     // Reset PID state for general direction PID controller
     public void resetGeneralDirectionPIDState() {
         generalDirection_lastError = 0;
         generalDirection_integral = 0;
+        generalDirection_lastTime = 0; // Reset timing to trigger initialization on next update
     }
 
 }
