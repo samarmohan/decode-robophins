@@ -155,6 +155,7 @@ public class Spindexer {
             case INTAKING:
                 if (!in) {
                     state=State.ALIGNING;
+                    alignTimer.reset();
                 }
                 if (spindexerBall != Ball.NONE && intakeBall != spindexerBall) {                    //ball is now in spindexer
                     if (spindexerBall == Ball.GREEN) {
@@ -178,7 +179,7 @@ public class Spindexer {
                         hasIndexed = true;
                     }
                     if(indexTimer.seconds() > 0.8) {
-                        if (!isFull() && !(shoot > 0.1)) {
+                        if (!isFull()) {
                             state = State.INTAKING;
                         }
                         else{
@@ -201,7 +202,7 @@ public class Spindexer {
                     state = State.INTAKING;
                     alignBack();
                 }
-                if (shoot > 0.1){
+                else if (shoot > 0.1){
                     state=State.SHOOTING;
                     shootTimer.reset();
                     hasShot = false;
@@ -217,9 +218,9 @@ public class Spindexer {
                     }
                     if(shootTimer.seconds() > 0.7) {
                         powerOverride = false;
-                        shoot();
-                        state = State.ALIGNING;
-                        alignTimer.reset();
+                        setTargetAngle(getCurrentAngle());
+                        order = new int[] {0, 0, 0};
+                        state = State.INTAKING;
                         hasShot = false;
                     }
                 }
@@ -240,7 +241,6 @@ public class Spindexer {
     }
     public void shoot(){
         target -= 480;
-        order = new int[] {0, 0, 0};
     }
     public void alignBack(){
         target -= 60;
@@ -252,6 +252,7 @@ public class Spindexer {
     public void resetTarget(){
         target = 0;
     }
+
 
     public boolean isFull(){
         for (int i : order){

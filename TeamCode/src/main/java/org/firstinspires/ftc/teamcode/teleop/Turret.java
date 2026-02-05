@@ -28,8 +28,8 @@ public class Turret {
     private final double ROTATION_MAX_POS = 2100;
 
     // PID Coefficients
-    public static double limelightRotation_kP = 0.00, limelightRotation_kI = 0.0, limelightRotation_kD = 0.0, limelightRotation_kF = 0.000;
-    public static double encoderRotation_kP = 0.00, encoderRotation_kI = 0.0, encoderRotation_kD = 0.0, encoderRotation_kF = 0.000;
+    public static double limelightRotation_kP = 0.03, limelightRotation_kI = 0.0, limelightRotation_kD = 0.0, limelightRotation_kF = 0.000;
+    public static double encoderRotation_kP = 0.0, encoderRotation_kI = 0.0, encoderRotation_kD = 0.0, encoderRotation_kF = 0.000;
     public static double flywheel_kP = 0.001, flywheel_kI = 0.0, flywheel_kD = 0.0, flywheel_kF = 0.0002;
 
     // State
@@ -79,8 +79,8 @@ public class Turret {
 
     public double autoPitch(double dist) {
         if (dist < 55) return 0.3;
-        if (dist < 130) return 0.000862069 * dist + 0.637414;
-        return 0.77; // Far pitch
+        if (dist < 225) return 0.000862069 * dist + 0.637414;
+        return 0.8; // Far pitch
     }
 
     // --- PID Updates ---
@@ -226,5 +226,9 @@ public class Turret {
         encoderRotation_lastError = 0;
         encoderRotation_integral = 0;
         encoderRotation_lastTime = 0; // Reset timing to trigger initialization on next update
+    }
+
+    public double getDistance(double ta){
+        return 176.6143*Math.pow(ta, -0.5101461);
     }
 }

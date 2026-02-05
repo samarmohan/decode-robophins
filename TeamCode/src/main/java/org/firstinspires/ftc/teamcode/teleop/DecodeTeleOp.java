@@ -58,7 +58,6 @@ public class DecodeTeleOp extends LinearOpMode {
 
         double pitchPosition = 1.0;
         double testingFlywheelTargetRPM = 0.0;
-        double spindexerAngle = 0;
         boolean previousAprilTagVisible = false;
 
         TurretMode turretMode = TurretMode.IDLE;
@@ -96,7 +95,7 @@ public class DecodeTeleOp extends LinearOpMode {
                 spindexer.resetTarget();
             }
             if (currentGamepad2.left_bumper && !previousGamepad2.left_bumper){
-                spindexer.shoot();
+                spindexer.setTargetAngle(spindexer.getCurrentAngle());
             }
 
             if (currentGamepad1.dpad_left && currentGamepad1.dpad_up) {
@@ -144,7 +143,7 @@ public class DecodeTeleOp extends LinearOpMode {
                 }
             }
 
-            double distance = Math.hypot((66.0) + xPos, (isTeamRed ? 66.0 : -66.0) - yPos);
+            double distance = turret.getDistance(limelight.getTa());
 
             switch (turretMode) {
                 case FULL_AUTO:
@@ -187,6 +186,7 @@ public class DecodeTeleOp extends LinearOpMode {
             if (turretMode != TurretMode.OVERRIDE) {
                 boolean currentAprilTagVisible = limelight.isResultValid();
 
+                /*
                 // Detect mode switching and reset PID states accordingly
                 if (currentAprilTagVisible != previousAprilTagVisible) {
                     if (currentAprilTagVisible) {
@@ -197,7 +197,10 @@ public class DecodeTeleOp extends LinearOpMode {
                         turret.resetEncoderPIDState();
                     }
                 }
+
                 previousAprilTagVisible = currentAprilTagVisible;
+
+                 */
 
                 if (currentAprilTagVisible) {
                     turret.updateLimelightPID(currentTime, limelight.getTx());
@@ -266,6 +269,7 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Actual Angle", turret.getRotationPosition());
             telemetry.addData("Limelight Valid?", limelight.isResultValid());
             telemetry.addData("Limelight Position", limelight.getTx());
+            telemetry.addData("limelight distance", turret.getDistance(limelight.getTa()));
             telemetry.addData("Rotation Power", turret.rotationOutput);
 
             telemetry.addLine("---------------------------------------");
