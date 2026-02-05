@@ -35,6 +35,7 @@ public class Axon {
     private double kP;
     private double kI;
     private double kD;
+    private double kF;
     private double integralSum;
     private double lastError;
     private double maxIntegralSum;
@@ -98,9 +99,10 @@ public class Axon {
 
 
         // Default PID coefficients
-        kP = 0.004;
+        kP = 0.0013;
         kI = 0.00;
-        kD = 0.000001;
+        kD = 0.0000002;
+        kF = 0.07;
         integralSum = 0.0;
         lastError = 0.0;
         maxIntegralSum = 100.0;
@@ -321,8 +323,9 @@ public class Axon {
         double pTerm = kP * error;
         double iTerm = kI * integralSum;
         double dTerm = kD * derivative;
+        double fTerm = kF * Math.signum(error);
 
-        double output = pTerm + iTerm + dTerm;
+        double output = pTerm + iTerm + dTerm + fTerm;
 
         // Deadzone for output
         final double DEADZONE = 5;
