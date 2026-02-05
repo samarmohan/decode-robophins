@@ -3,10 +3,8 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.CRServo;
 
 @Config
 public class Turret {
@@ -31,6 +29,8 @@ public class Turret {
 
     // PID Coefficients
     public static double rotation_kP = 0.02, rotation_kI = 0.0, rotation_kD = 0.0, rotation_kF = 0.003;
+
+
     public static double flywheel_kP = 0.001, flywheel_kI = 0.0, flywheel_kD = 0.0, flywheel_kF = 0.0002;
 
     // State
@@ -85,8 +85,7 @@ public class Turret {
 
     // --- PID Updates ---
 
-    public void updateRotationPID(double currentTimeSeconds, double tx, double rotationVelocity) {
-        double currentAngle = getRotationPosition();
+    public void updateLimelightPID(double currentTimeSeconds, double tx) {
         double error = tx;
         double dt = Math.max(currentTimeSeconds - rotation_lastTime, 0.001); // Avoid div/0
 
@@ -105,6 +104,26 @@ public class Turret {
         rotation_lastError = error;
         rotation_lastTime = currentTimeSeconds;
     }
+
+    public void updateZeroPID(double currentTimeSeconds) {
+        double error = getRotationPosition();
+        double dt = Math.max(currentTimeSeconds - rotation_lastTime, 0.001); // Avoid div/0
+
+        double derivative = (error - rotation_lastError) / dt;
+        rotation_integral += error * dt;
+
+        double output = (rotation_kP * error) + (rotation_kI * rotation_integral) + (rotation_kD * derivative) + feedforward;
+        rotationOutput = Math.max(-1.0, Math.min(1.0, output));
+        if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
+            rotationOutput = 0;
+        }
+        if (rotationOutput < 0 && getRotationPosition() < ROTATION_MIN_POS) {
+            rotationOutput = 0;
+        }
+        rotation_lastError = error;
+        rotation_lastTime = currentTimeSeconds;
+    }
+
 
     public void updateFlywheelPID(double currentTimeSeconds) {
         double currentRPM = getFlywheelRPM();
@@ -194,4 +213,16 @@ public class Turret {
         return Math.min(max, Math.max(desiredAngle, min));
     }
 
+    public void resetCameraPIDState() {
+        rotation_lastError = 0;
+        rotation_integral = 0;
+        rotation_lastTime = 0; // Reset timing to trigger initialization on next update
+    }
+
+    // Reset PID state for general direction PID controller
+    public void resetGeneralDirectionPIDState() {
+        generalDirection_lastError = 0;
+        generalDirection_integral = 0;
+        generalDirection_lastTime = 0; // Reset timing to trigger initialization on next update
+    }
 }

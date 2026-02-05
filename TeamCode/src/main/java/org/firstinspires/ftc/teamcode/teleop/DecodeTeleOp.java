@@ -59,7 +59,7 @@ public class DecodeTeleOp extends LinearOpMode {
         double pitchPosition = 1.0;
         double testingFlywheelTargetRPM = 0.0;
         double spindexerAngle = 0;
-        double turretRotationTarget = 0.0;
+        boolean previousAprilTagVisible = false;
 
         TurretMode turretMode = TurretMode.IDLE;
         ElapsedTime runtime = new ElapsedTime();
@@ -191,12 +191,28 @@ public class DecodeTeleOp extends LinearOpMode {
             turret.setPitch(pitchPosition);
 
             if (turretMode != TurretMode.OVERRIDE) {
-                turret.updateRotationPID(currentTime, limelight.getTx(), drive.getRotationVelocity());
-                if (limelight.isResultValid()) {
-                    turret.applyRotationPower();
+                boolean currentAprilTagVisible = limelight.isResultValid();
+
+                // Detect mode switching and reset PID states accordingly
+                if (currentAprilTagVisible != previousAprilTagVisible) {
+                    if (currentAprilTagVisible) {
+                        // Switching from general direction to camera PID
+                        turret.resetCameraPIDState();
+                    } else {
+                        // Switching from camera to general direction PID
+                        turret.resetGeneralDirectionPIDState();
+                    }
                 }
-                else{
-                    turret.overrideRotationPower(0);
+                previousAprilTagVisible = currentAprilTagVisible;
+
+                if (currentAprilTagVisible) {
+                    // Camera PID: Use precise aiming with AprilTag
+                    turret.updateLimelightPID(currentTime, limelight.getTx());
+                    turret.applyRotationPower();
+                } else {
+                    // General Direction PID: Compensate for robot rotation to maintain general goal orientation
+                    turret.updateGeneralDirectionPID(currentTime);
+                    turret.applyRotationPower();
                 }
             }
 
@@ -224,7 +240,6 @@ public class DecodeTeleOp extends LinearOpMode {
             }
 
             telemetry.addLine(String.valueOf(tilt.tilt.getPosition()));
-            telemetry.addData("heading velocity ", drive.getRotationVelocity());
             telemetry.addData("Loop Speed (ms)", (currentTime-lastTime)*1000);
             lastTime = currentTime;
             telemetry.addData("Mode", turretMode);

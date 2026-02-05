@@ -111,6 +111,5 @@ public class Drivetrain {
         odometry.update();
     }
 
-    public double getRotationVelocity(){return odometry.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES);}
 }
 
