@@ -32,6 +32,9 @@ public class Turret {
     // PID Coefficients
     public static double rotation_kP = 0.02, rotation_kI = 0.0, rotation_kD = 0.0, rotation_kF = 0.003;
     public static double flywheel_kP = 0.001, flywheel_kI = 0.0, flywheel_kD = 0.0, flywheel_kF = 0.0002;
+    
+    // General Direction PID Coefficients
+    public static double generalDirection_kP = 0.01, generalDirection_kI = 0.0, generalDirection_kD = 0.0;
 
     // State
     private double targetAngle = 0;
@@ -42,6 +45,7 @@ public class Turret {
     // PID Internal State
     private double rotation_lastError = 0, rotation_lastTime = 0, rotation_integral = 0;
     private double flywheel_lastError = 0, flywheel_lastTime = 0, flywheel_integral = 0;
+    private double generalDirection_lastTime = 0, generalDirection_integral = 0, generalDirection_lastError = 0;
 
     public void init(HardwareMap hardwareMap) {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
@@ -86,6 +90,11 @@ public class Turret {
     // --- PID Updates ---
 
     public void updateRotationPID(double currentTimeSeconds, double tx, double rotationVelocity) {
+        // Initialize timing on first call
+        if (rotation_lastTime == 0) {
+            rotation_lastTime = currentTimeSeconds;
+        }
+        
         double currentAngle = getRotationPosition();
         double error = tx;
         double dt = Math.max(currentTimeSeconds - rotation_lastTime, 0.001); // Avoid div/0
@@ -104,6 +113,46 @@ public class Turret {
         }
         rotation_lastError = error;
         rotation_lastTime = currentTimeSeconds;
+    }
+
+    public void updateGeneralDirectionPID(double currentTimeSeconds, double rotationVelocity) {
+        // Initialize timing on first call
+        if (generalDirection_lastTime == 0) {
+            generalDirection_lastTime = currentTimeSeconds;
+        }
+        
+        double dt = Math.max(currentTimeSeconds - generalDirection_lastTime, 0.001);
+        
+        // The error is the robot's rotational velocity
+        // We want to counter it by rotating the turret in the opposite direction
+        double error = -rotationVelocity;
+        
+        generalDirection_integral += error * dt;
+        
+        // Calculate derivative
+        double derivative = (error - generalDirection_lastError) / dt;
+        
+        // Calculate PID output
+        double output = (generalDirection_kP * error) + (generalDirection_kI * generalDirection_integral) + (generalDirection_kD * derivative);
+        rotationOutput = Math.max(-1.0, Math.min(1.0, output));
+        
+        // Anti-windup: Reset integral if output is saturated
+        if (Math.abs(output) > 1.0) {
+            generalDirection_integral -= error * dt;
+        }
+        
+        // Apply position limits
+        if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
+            rotationOutput = 0;
+            generalDirection_integral = 0; // Reset integral at limits
+        }
+        if (rotationOutput < 0 && getRotationPosition() < ROTATION_MIN_POS) {
+            rotationOutput = 0;
+            generalDirection_integral = 0; // Reset integral at limits
+        }
+        
+        generalDirection_lastError = error;
+        generalDirection_lastTime = currentTimeSeconds;
     }
 
     public void updateFlywheelPID(double currentTimeSeconds) {
@@ -192,6 +241,20 @@ public class Turret {
         if (desiredAngle > max && desiredAngle - 360 > min) return desiredAngle - 360;
         if (desiredAngle < min && desiredAngle + 360 < max) return desiredAngle + 360;
         return Math.min(max, Math.max(desiredAngle, min));
+    }
+
+    // Reset PID state for camera PID controller
+    public void resetCameraPIDState() {
+        rotation_lastError = 0;
+        rotation_integral = 0;
+        rotation_lastTime = 0; // Reset timing to trigger initialization on next update
+    }
+
+    // Reset PID state for general direction PID controller
+    public void resetGeneralDirectionPIDState() {
+        generalDirection_lastError = 0;
+        generalDirection_integral = 0;
+        generalDirection_lastTime = 0; // Reset timing to trigger initialization on next update
     }
 
 }
