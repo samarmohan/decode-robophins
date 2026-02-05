@@ -148,9 +148,6 @@ public class DecodeTeleOp extends LinearOpMode {
 
             switch (turretMode) {
                 case FULL_AUTO:
-                    // Auto Aim
-                    turret.setTargetAngle(turretRotationTarget);
-
                     // Auto Pitch
                     pitchPosition = turret.autoPitch(distance);
 
@@ -160,9 +157,6 @@ public class DecodeTeleOp extends LinearOpMode {
                     break;
 
                 case IDLE:
-                    // Auto Aim
-                    turret.setTargetAngle(turretRotationTarget);
-
                     turret.setTargetRPM(0);
                     break;
 
@@ -197,21 +191,19 @@ public class DecodeTeleOp extends LinearOpMode {
                 if (currentAprilTagVisible != previousAprilTagVisible) {
                     if (currentAprilTagVisible) {
                         // Switching from general direction to camera PID
-                        turret.resetCameraPIDState();
+                        turret.resetLimelightPIDState();
                     } else {
                         // Switching from camera to general direction PID
-                        turret.resetGeneralDirectionPIDState();
+                        turret.resetEncoderPIDState();
                     }
                 }
                 previousAprilTagVisible = currentAprilTagVisible;
 
                 if (currentAprilTagVisible) {
-                    // Camera PID: Use precise aiming with AprilTag
                     turret.updateLimelightPID(currentTime, limelight.getTx());
                     turret.applyRotationPower();
                 } else {
-                    // General Direction PID: Compensate for robot rotation to maintain general goal orientation
-                    turret.updateGeneralDirectionPID(currentTime);
+                    turret.updateEncoderPID(currentTime, 0);
                     turret.applyRotationPower();
                 }
             }
@@ -239,15 +231,12 @@ public class DecodeTeleOp extends LinearOpMode {
                 tilt.moveUp();
             }
 
-            telemetry.addLine(String.valueOf(tilt.tilt.getPosition()));
             telemetry.addData("Loop Speed (ms)", (currentTime-lastTime)*1000);
             lastTime = currentTime;
             telemetry.addData("Mode", turretMode);
             telemetry.addData("Testing?", TESTING);
             telemetry.addData("Team", isTeamRed ? "RED" : "BLUE");
             telemetry.addData("Pos", "X:%.1f Y:%.1f H:%.1f", xPos, yPos, heading);
-            telemetry.addData("Distance", distance);
-            telemetry.addLine("---------------------------------------");
 
             //color sensor testing
             /*
@@ -266,34 +255,29 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Green:", spindexer.getNormalizedGreenIntake());
 
              */
+
+            telemetry.addLine("---------------------------------------");
+            telemetry.addData("Target RPM", turret.getTargetRPM());
+            telemetry.addData("Actual RPM", turret.getFlywheelRPM());
+            telemetry.addLine("---------------------------------------");
+            telemetry.addData("Turret Pitch", turret.getPitch());
+            telemetry.addLine("---------------------------------------");
+
+            telemetry.addData("Actual Angle", turret.getRotationPosition());
+            telemetry.addData("Limelight Valid?", limelight.isResultValid());
+            telemetry.addData("Limelight Position", limelight.getTx());
+            telemetry.addData("Rotation Power", turret.rotationOutput);
+
+            telemetry.addLine("---------------------------------------");
+            telemetry.addData("Intake", intake.getState());
             telemetry.addData("intake Ball:", spindexer.intakeBall);
             telemetry.addData("spindexer Ball:", spindexer.spindexerBall);
             telemetry.addData("spindexer state", spindexer.state);
             telemetry.addData("spindexer is full?", spindexer.isFull());
-
-
-
-
-            telemetry.addLine("---------------------------------------");
-
-            //spindexer testing
             telemetry.addData("Current Balls", spindexer.getOrder());
             telemetry.addData("Spindexer Target", spindexer.getTargetAngle());
             telemetry.addData("Spindexer Pos", spindexer.getCurrentAngle());
             telemetry.addData("Spindexer Index Forward", spindexer.getSpindexerPosForward());
-            telemetry.addLine("---------------------------------------");
-
-            telemetry.addData("Limelight", "X:%.1f Y:%.1f", limelight.getTx(), limelight.getTa());
-            telemetry.addData("Intake", intake.getState());
-
-            telemetry.addLine("---------------------------------------");
-
-            telemetry.addData("Target RPM", turret.getTargetRPM());
-            telemetry.addData("Actual RPM", turret.getFlywheelRPM());
-            telemetry.addData("Target Angle", turret.getTargetAngle());
-            telemetry.addData("Actual Angle", turret.getRotationPosition());
-            telemetry.addData("Turret Pitch", turret.getPitch());
-            telemetry.addData("Rotation Power", turret.rotationOutput);
             telemetry.update();
         }
         limelight.stop();

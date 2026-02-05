@@ -28,19 +28,19 @@ public class Turret {
     private final double ROTATION_MAX_POS = 2100;
 
     // PID Coefficients
-    public static double rotation_kP = 0.02, rotation_kI = 0.0, rotation_kD = 0.0, rotation_kF = 0.003;
-
-
+    public static double limelightRotation_kP = 0.00, limelightRotation_kI = 0.0, limelightRotation_kD = 0.0, limelightRotation_kF = 0.000;
+    public static double encoderRotation_kP = 0.00, encoderRotation_kI = 0.0, encoderRotation_kD = 0.0, encoderRotation_kF = 0.000;
     public static double flywheel_kP = 0.001, flywheel_kI = 0.0, flywheel_kD = 0.0, flywheel_kF = 0.0002;
 
     // State
-    private double targetAngle = 0;
     private double targetRPM = 0;
     public double rotationOutput = 0;
     private double flywheelOutput = 0;
 
     // PID Internal State
-    private double rotation_lastError = 0, rotation_lastTime = 0, rotation_integral = 0;
+    private double limelightRotation_lastError = 0, limelightRotation_lastTime = 0, limelightRotation_integral = 0;
+    private double encoderRotation_lastError = 0, encoderRotation_lastTime = 0, encoderRotation_integral = 0;
+
     private double flywheel_lastError = 0, flywheel_lastTime = 0, flywheel_integral = 0;
 
     public void init(HardwareMap hardwareMap) {
@@ -86,42 +86,53 @@ public class Turret {
     // --- PID Updates ---
 
     public void updateLimelightPID(double currentTimeSeconds, double tx) {
+        if (limelightRotation_lastTime == 0) {
+            limelightRotation_lastTime = currentTimeSeconds;
+        }
+
         double error = tx;
-        double dt = Math.max(currentTimeSeconds - rotation_lastTime, 0.001); // Avoid div/0
+        double dt = Math.max(currentTimeSeconds - limelightRotation_lastTime, 0.001); // Avoid div/0
 
-        double derivative = (error - rotation_lastError) / dt;
-        rotation_integral += error * dt;
+        double derivative = (error - limelightRotation_lastError) / dt;
+        limelightRotation_integral += error * dt;
 
-        double feedforward = rotationVelocity * rotation_kF;
-        double output = (rotation_kP * error) + (rotation_kI * rotation_integral) + (rotation_kD * derivative) + feedforward;
+        double output = (limelightRotation_kP * error) + (limelightRotation_kI * limelightRotation_integral) + (limelightRotation_kD * derivative);
         rotationOutput = Math.max(-1.0, Math.min(1.0, output));
         if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
             rotationOutput = 0;
+            limelightRotation_integral = 0;
         }
         if (rotationOutput < 0 && getRotationPosition() < ROTATION_MIN_POS) {
             rotationOutput = 0;
+            limelightRotation_integral = 0;
         }
-        rotation_lastError = error;
-        rotation_lastTime = currentTimeSeconds;
+        limelightRotation_lastError = error;
+        limelightRotation_lastTime = currentTimeSeconds;
     }
 
-    public void updateZeroPID(double currentTimeSeconds) {
-        double error = getRotationPosition();
-        double dt = Math.max(currentTimeSeconds - rotation_lastTime, 0.001); // Avoid div/0
+    public void updateEncoderPID(double currentTimeSeconds, double encoderTarget) {
+        if (encoderRotation_lastTime == 0) {
+            encoderRotation_lastTime = currentTimeSeconds;
+        }
 
-        double derivative = (error - rotation_lastError) / dt;
-        rotation_integral += error * dt;
+        double error = encoderTarget - getRotationPosition();
+        double dt = Math.max(currentTimeSeconds - encoderRotation_lastTime, 0.001); // Avoid div/0
 
-        double output = (rotation_kP * error) + (rotation_kI * rotation_integral) + (rotation_kD * derivative) + feedforward;
+        double derivative = (error - encoderRotation_lastError) / dt;
+        encoderRotation_integral += error * dt;
+
+        double output = (encoderRotation_kP * error) + (encoderRotation_kI * encoderRotation_integral) + (encoderRotation_kD * derivative);
         rotationOutput = Math.max(-1.0, Math.min(1.0, output));
         if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
             rotationOutput = 0;
+            encoderRotation_integral = 0;
         }
         if (rotationOutput < 0 && getRotationPosition() < ROTATION_MIN_POS) {
             rotationOutput = 0;
+            encoderRotation_integral = 0;
         }
-        rotation_lastError = error;
-        rotation_lastTime = currentTimeSeconds;
+        encoderRotation_lastError = error;
+        encoderRotation_lastTime = currentTimeSeconds;
     }
 
 
@@ -165,10 +176,6 @@ public class Turret {
 
     // --- Helpers ---
 
-    public void setTargetAngle(double angle) {
-        this.targetAngle = angle;
-    }
-
     public void setTargetRPM(double rpm) {
         this.targetRPM = rpm;
     }
@@ -194,11 +201,6 @@ public class Turret {
         return targetRPM;
     }
 
-    public double getTargetAngle() {
-        return targetAngle;
-    }
-
-
     public double angleToTarget(double xPos, double yPos, double heading, boolean isTeamRed) {
         double goalX = -69.0;
         double goalY = isTeamRed ? 64.0 : -64.0;
@@ -213,16 +215,16 @@ public class Turret {
         return Math.min(max, Math.max(desiredAngle, min));
     }
 
-    public void resetCameraPIDState() {
-        rotation_lastError = 0;
-        rotation_integral = 0;
-        rotation_lastTime = 0; // Reset timing to trigger initialization on next update
+    public void resetLimelightPIDState() {
+        limelightRotation_lastError = 0;
+        limelightRotation_integral = 0;
+        limelightRotation_lastTime = 0; // Reset timing to trigger initialization on next update
     }
 
     // Reset PID state for general direction PID controller
-    public void resetGeneralDirectionPIDState() {
-        generalDirection_lastError = 0;
-        generalDirection_integral = 0;
-        generalDirection_lastTime = 0; // Reset timing to trigger initialization on next update
+    public void resetEncoderPIDState() {
+        encoderRotation_lastError = 0;
+        encoderRotation_integral = 0;
+        encoderRotation_lastTime = 0; // Reset timing to trigger initialization on next update
     }
 }
