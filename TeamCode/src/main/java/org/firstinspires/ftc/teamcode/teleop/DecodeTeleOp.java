@@ -76,13 +76,27 @@ public class DecodeTeleOp extends LinearOpMode {
 
             double currentTime = runtime.seconds();
 
+            boolean isFlywheelReady = turret.getFlywheelRPM() > RPM_MINIMUM_FOR_SHOOTING;
+
 
             spindexer.update(
                     currentGamepad1.cross,          // In
-                    currentGamepad1.square,         // Out
-                    currentGamepad1.triangle,       // Off
-                    currentGamepad1.right_trigger  // Shoot
+                    currentGamepad1.right_trigger,  // Shoot
+                    isFlywheelReady
             );
+
+            Spindexer.IntakeCommand intakeCmd = spindexer.getIntakeCommand();
+            switch (intakeCmd) {
+                case INTAKE:
+                    intake.setState(Intake.State.INTAKE);
+                    break;
+                case OUTTAKE:
+                    intake.setState(Intake.State.OUTTAKE);
+                    break;
+                case OFF:
+                    intake.setState(Intake.State.OFF);
+                    break;
+            }
             
             drive.odometryUpdate();
             double xPos = drive.getPosX();
@@ -98,10 +112,12 @@ public class DecodeTeleOp extends LinearOpMode {
                 spindexer.setTargetAngle(spindexer.getCurrentAngle());
             }
 
-            if (currentGamepad1.dpad_left && currentGamepad1.dpad_up) {
+            if (currentGamepad2.dpad_left && currentGamepad2.dpad_up) {
                 isTeamRed = false;
-            } else if (currentGamepad1.dpad_right && currentGamepad1.dpad_down) {
+                limelight.setPipeline(0);
+            } else if (currentGamepad2.dpad_right && currentGamepad2.dpad_down) {
                 isTeamRed = true;
+                limelight.setPipeline(1);
             }
             if (currentGamepad1.touchpad){
                 drive.setOdometryXY(64, isTeamRed ? -63.5 : 63.5);
@@ -214,16 +230,6 @@ public class DecodeTeleOp extends LinearOpMode {
             turret.updateFlywheelPID(currentTime);
             turret.applyFlywheelPower();
 
-            boolean isFlywheelReady = turret.getFlywheelRPM() > RPM_MINIMUM_FOR_SHOOTING;
-
-            intake.update(
-                    currentGamepad1.cross,          // In
-                    currentGamepad1.square,         // Out
-                    currentGamepad1.triangle,       // Off
-                    currentGamepad1.right_trigger,  // Shoot
-                    isFlywheelReady
-            );
-
             if (currentGamepad2.square && !previousGamepad2.square) {
                 shouldTilt = !shouldTilt;
             }
@@ -273,15 +279,12 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Rotation Power", turret.rotationOutput);
 
             telemetry.addLine("---------------------------------------");
-            telemetry.addData("Intake", intake.getState());
-            telemetry.addData("intake Ball:", spindexer.intakeBall);
-            telemetry.addData("spindexer Ball:", spindexer.spindexerBall);
-            telemetry.addData("spindexer state", spindexer.state);
-            telemetry.addData("spindexer is full?", spindexer.isFull());
-            telemetry.addData("Current Balls", spindexer.getOrder());
-            telemetry.addData("Spindexer Target", spindexer.getTargetAngle());
-            telemetry.addData("Spindexer Pos", spindexer.getCurrentAngle());
-            telemetry.addData("Spindexer Index Forward", spindexer.getSpindexerPosForward());
+            telemetry.addData("Spindexer State", spindexer.getState());
+            telemetry.addData("Intake Command", spindexer.getIntakeCommand());
+            telemetry.addData("Intake State", intake.getState());
+            telemetry.addData("Ball in Spindexer", spindexer.getSpindexerBall());
+            telemetry.addData("Ball Count", spindexer.isFull() ? "3 (FULL)" : spindexer.hasBalls() ? "1-2" : "0");
+            telemetry.addData("Current Order", spindexer.getOrder());
             telemetry.update();
         }
         limelight.stop();

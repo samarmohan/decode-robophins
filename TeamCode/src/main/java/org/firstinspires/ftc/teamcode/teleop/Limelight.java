@@ -85,4 +85,8 @@ public class Limelight {
     public boolean isResultValid(){
         return valid;
     }
+
+    public void setPipeline(int pipeline){
+        limelight.pipelineSwitch(pipeline);
+    }
 }

@@ -25,24 +25,33 @@ public class Spindexer {
     public Axon axonLeft;
     public Axon axonRight;
 
-    public NormalizedColorSensor intakeColor;
     public NormalizedColorSensor spinColor;
 
+    // DEPRECATED INTAKE SENSOR
     private double sensorAlphaIntake;
-    private double sensorAlphaSpin;
-
     private double trueRedIntake;
     private double trueBlueIntake;
     private double trueGreenIntake;
+    private boolean ballInIntake;
+
+
+    private double sensorAlphaSpin;
     private double trueRedSpin;
     private double trueBlueSpin;
     private double trueGreenSpin;
-    private boolean ballInIntake;
-    private boolean ballInSpin;
+
+
     public double target;
     private boolean powerOverride = false;
+
+
     private boolean hasShot;
     private boolean hasIndexed;
+    private boolean hasAligned;
+
+    private boolean hasEnteredIntaking = false;
+    private boolean hasEnteredReadyToShoot = false;
+
     private int[] order = {0,0,0};
     private int[] correctOrder = {2,1,1};
     private double[][] weights = generateWeightArray(0.9);
@@ -51,14 +60,13 @@ public class Spindexer {
     private ElapsedTime alignTimer;
     private ElapsedTime shootTimer;
 
-
-    private enum State{
+    private enum State {
         INTAKING,
         INDEXING,
         ALIGNING,
         READY_TO_SHOOT,
         SHOOTING,
-        HOLDING
+
     }
 
     private enum Ball {
@@ -67,9 +75,14 @@ public class Spindexer {
         GREEN
     }
 
-    public State state = State.ALIGNING;
+    public enum IntakeCommand {
+        INTAKE,
+        OUTTAKE,
+        OFF
+    }
+
+    public State state = State.READY_TO_SHOOT;
     public Ball spindexerBall = Ball.NONE;
-    public Ball intakeBall = Ball.NONE;
 
     public void init(HardwareMap hardwareMap){
         forwardEncoder = hardwareMap.get(AnalogInput.class, "encoderForward");
@@ -84,10 +97,7 @@ public class Spindexer {
         axonLeft = new Axon(crServoLeft, leftEncoder);
         axonRight = new Axon(crServoRight, rightEncoder);
 
-        intakeColor = hardwareMap.get(NormalizedColorSensor.class, "intakeColor");
         spinColor = hardwareMap.get(NormalizedColorSensor.class, "spinColor");
-
-        intakeColor.setGain(10);
         spinColor.setGain(10);
 
         indexTimer = new ElapsedTime();
@@ -97,163 +107,167 @@ public class Spindexer {
         shootTimer = new ElapsedTime();
         shootTimer.reset();
     }
-    //updates RTPaxon PID and sets power to all three axons
-    //also updates color sensor values
-    public void update(boolean in, boolean out, boolean off, double shoot){
-        if(!powerOverride) {
+
+    /**
+     * Main update loop - handles all spindexer logic and state transitions
+     *
+     * @param inButton - true when driver holds the "in" button
+     * @param shootTrigger - value of shoot trigger (>0.1 = shooting)
+     * @param isFlywheelReady - true when flywheel is at speed and ready to shoot
+     */
+    public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady) {
+        if (!powerOverride) {
             axonForward.setTargetRotation(target/GEAR_RATIO);
             axonForward.update();
 
             double power = axonForward.getPower();
-
             axonLeft.setPower(power);
             axonRight.setPower(power);
         }
 
-        NormalizedRGBA colorsIntake = intakeColor.getNormalizedColors();
         NormalizedRGBA colorsSpin = spinColor.getNormalizedColors();
-
-        trueRedIntake = colorsIntake.red;
-        trueBlueIntake = colorsIntake.blue;
-        trueGreenIntake = colorsIntake.green;
-        sensorAlphaIntake = colorsIntake.alpha;
 
         trueRedSpin = colorsSpin.red;
         trueBlueSpin = colorsSpin.blue;
         trueGreenSpin = colorsSpin.green;
         sensorAlphaSpin = colorsSpin.alpha;
 
-        //spindexer logic
-        if (ballDetectedIntake()) {
-            ballInIntake = true;
-        }
-        else{
-            ballInIntake = false;
-            intakeBall = Ball.NONE;
-        }
-        if (ballInIntake && ballIsGreenIntake()) {
-            intakeBall = Ball.GREEN;
-        }
-        else if (ballIsPurpleIntake()) {
-            intakeBall = Ball.PURPLE;
-        }
         if (ballDetectedSpin()) {
-            ballInSpin = true;
-        }
-        else{
-            ballInSpin = false;
+            if (ballIsGreenSpin()) {
+                spindexerBall = Ball.GREEN;
+            } else if (ballIsPurpleSpin()) {
+                spindexerBall = Ball.PURPLE;
+            }
+        } else {
             spindexerBall = Ball.NONE;
-        }
-        if (ballInSpin && ballIsGreenSpin()) {
-            spindexerBall = Ball.GREEN;
-        }
-        else if (ballIsPurpleSpin()) {
-            spindexerBall = Ball.PURPLE;
         }
 
         switch (state) {
             case INTAKING:
-                if (!in) {
-                    state=State.ALIGNING;
-                    alignTimer.reset();
+                if (!hasEnteredIntaking) {
+                    alignBack();
+                    hasEnteredIntaking = true;
                 }
-                if (spindexerBall != Ball.NONE && intakeBall != spindexerBall) {                    //ball is now in spindexer
+
+                if (spindexerBall != Ball.NONE) {
                     if (spindexerBall == Ball.GREEN) {
-                        hasIndexed = false;
                         order[0] = 2;
-                        state = State.INDEXING;
-                        indexTimer.reset();
-                    }
-                    if (spindexerBall == Ball.PURPLE) {
-                        hasIndexed = false;
+                    } else if (spindexerBall == Ball.PURPLE) {
                         order[0] = 1;
-                        state=State.INDEXING;
-                        indexTimer.reset();
                     }
+                    indexTimer.reset();
+                    hasIndexed = false;
+                    hasEnteredIntaking = false;
+                    state = State.INDEXING;
+                } else if (!inButton) {
+                    hasEnteredIntaking = false;
+                    state = State.READY_TO_SHOOT;
                 }
                 break;
             case INDEXING:
-                if(indexTimer.seconds() > 0.3){
-                    if(!hasIndexed){
-                        index();
-                        hasIndexed = true;
-                    }
-                    if(indexTimer.seconds() > 0.8) {
-                        if (!isFull()) {
-                            state = State.INTAKING;
-                        }
-                        else{
-                            align();
-                            state=State.ALIGNING;
-                            alignTimer.reset();
-                        }
+                if (!hasIndexed) {
+                    index();
+                    hasIndexed = true;
+                }
+                if (indexTimer.seconds() > 0.5) {
+                    if (isFull()) {
+                        alignTimer.reset();
+                        hasAligned = false;
+                        state = State.ALIGNING;
+                    } else if (inButton) {
+                        hasEnteredIntaking = true;
+                        state = State.INTAKING;
+                    } else {
+                        hasEnteredReadyToShoot = false;
+                        state = State.READY_TO_SHOOT;
                     }
                 }
                 break;
             case ALIGNING:
-                if(alignTimer.seconds() > 1){
-                    state = State.READY_TO_SHOOT;
-                    alignToHold();
+                if (!hasAligned) {
+                    align();
+                    hasAligned = true;
                 }
-
+                if (alignTimer.seconds() > 1) {
+                    hasEnteredReadyToShoot = false;
+                    state = State.READY_TO_SHOOT;
+                }
                 break;
             case READY_TO_SHOOT:
-                if (!isFull() && in){
-                    state = State.INTAKING;
-                    alignBack();
+                if (!hasEnteredReadyToShoot) {
+                    alignToHold();
+                    hasEnteredReadyToShoot = true;
                 }
-                else if (shoot > 0.1){
-                    state=State.SHOOTING;
+                if (inButton && !isFull()) {
+                    hasEnteredReadyToShoot = false;
+                    state = State.INTAKING;
+                } else if (shootTrigger > 0.2 && isFlywheelReady) {
                     shootTimer.reset();
                     hasShot = false;
-                    alignBack();
+                    hasEnteredReadyToShoot = false;
+                    state = State.SHOOTING;
                 }
                 break;
             case SHOOTING:
-                if(shootTimer.seconds() > 0.1){
-                    if(!hasShot) {
-                        maxPower();
-                        powerOverride = true;
-                        hasShot = true;
-                    }
-                    if(shootTimer.seconds() > 0.7) {
-                        powerOverride = false;
-                        setTargetAngle(getCurrentAngle());
-                        order = new int[] {0, 0, 0};
-                        state = State.INTAKING;
-                        hasShot = false;
-                    }
+                if (!hasShot) {
+                    maxPower();
+                    powerOverride = true;
+                    hasShot = true;
+                }
+                if (shootTimer.seconds() > 1.2) {
+                    powerOverride = false;
+                   // setTargetAngle(getCurrentAngle());
+                    order = new int[] {0, 0, 0};
+                    hasShot = false;
+                    hasEnteredReadyToShoot = false;
+                    state = State.READY_TO_SHOOT;
                 }
                 break;
         }
     }
 
-    public void index(){
+    public IntakeCommand getIntakeCommand() {
+        switch (state) {
+            case INTAKING:
+            case INDEXING:
+                return IntakeCommand.INTAKE;
+
+            case ALIGNING:
+            case SHOOTING:
+            case READY_TO_SHOOT:
+            default:
+                return IntakeCommand.OUTTAKE;
+        }
+    }
+    public void index() {
         target += 120;
         shiftArrayRight(order);
     }
-    public void align(){
+    public void align() {
         int shift = findBestShift(correctOrder, order, weights);
         for (int i = 0; i < shift; i++){
             target += 120;
             shiftArrayRight(order);
         }
     }
-    public void shoot(){
-        target -= 480;
-    }
-    public void alignBack(){
+    public void alignBack() {
         target -= 60;
     }
-    public void alignToHold(){
+    public void alignToHold() {
         target += 60;
     }
 
-    public void resetTarget(){
+    public void resetTarget() {
         target = 0;
     }
-
-
+    public boolean hasBalls() {
+        for (int i : order) {
+            if (i != 0) {
+                return true;
+            }
+        }
+        return false;
+    }
     public boolean isFull(){
         for (int i : order){
             if (i == 0){
@@ -262,25 +276,6 @@ public class Spindexer {
         }
         return true;
     }
-    public boolean ballDetectedIntake(){
-        return sensorAlphaIntake > 0.2;
-    }
-
-
-    public boolean ballIsGreenIntake(){
-        return ballDetectedIntake() &&
-                getNormalizedRedIntake() < 0.06 &&
-                getNormalizedGreenIntake() > 0.1 &&
-                getNormalizedBlueIntake() > 0.075;
-    }
-
-    public boolean ballIsPurpleIntake(){
-        return ballDetectedIntake() &&
-                getNormalizedRedIntake() > 0.06 &&
-                getNormalizedGreenIntake() < 0.125 &&
-                getNormalizedBlueIntake() > 0.1;
-    }
-
     public boolean ballDetectedSpin(){
         //value not tuned
         return sensorAlphaSpin > 0.4;
@@ -358,7 +353,7 @@ public class Spindexer {
         return array;
     }
     //shifts array 1 index to the left ([a,b,c] -> [b,c,a])
-    public static void shiftArrayLeft (int array[]) {
+    public static void shiftArrayLeft(int[] array) {
         int lastIndex = array.length - 1;
         int oldFirst = array[0];
         for (int i = 0; i < lastIndex; i++) {
@@ -367,7 +362,7 @@ public class Spindexer {
         array[lastIndex] = oldFirst;
     }
     //shifts array 1 index to the right ([a,b,c]->[c,a,b])
-    public static void shiftArrayRight (int array[]) {
+    public static void shiftArrayRight(int[] array) {
         int lastIndex = array.length - 1;
         int oldLast = array[lastIndex];
         for (int i = lastIndex; i > 0; i--) {
@@ -376,7 +371,7 @@ public class Spindexer {
         array[0] = oldLast;
     }
 
-    public void setTargetAngle(double position){
+    public void setTargetAngle(double position) {
         target = position;
     }
 
@@ -387,19 +382,6 @@ public class Spindexer {
     public double getTargetAngle(){
         return (axonForward.getTargetRotation()) * GEAR_RATIO;
     }
-    public double getTrueRedIntake(){return  trueRedIntake;}
-
-    public double getTrueBlueIntake(){return  trueBlueIntake;}
-
-    public double getTrueGreenIntake() {return trueGreenIntake;}
-
-    public double getSensorAlphaIntake() {return sensorAlphaIntake;}
-
-    public double getNormalizedRedIntake(){return trueRedIntake/sensorAlphaIntake;}
-
-    public double getNormalizedBlueIntake(){return trueBlueIntake/sensorAlphaIntake;}
-
-    public double getNormalizedGreenIntake(){return trueGreenIntake/sensorAlphaIntake;}
 
     public double getSensorAlphaSpin() {return sensorAlphaSpin;}
 
@@ -431,4 +413,52 @@ public class Spindexer {
         axonRight.setPower(-1);
         axonLeft.setPower(-1);
     }
+
+    public State getState() {
+        return state;
+    }
+
+    public Ball getSpindexerBall() {
+        return spindexerBall;
+    }
+
+    public void setCorrectOrder(int[] correctOrder) {
+        this.correctOrder = correctOrder;
+    }
+
+    public int[] getOrderArray() {
+        return order.clone();
+    }
+
+    // USELESS
+    public boolean ballDetectedIntake(){
+        return sensorAlphaIntake > 0.2;
+    }
+
+    public boolean ballIsGreenIntake() {
+        return ballDetectedIntake() &&
+                getNormalizedRedIntake() < 0.06 &&
+                getNormalizedGreenIntake() > 0.1 &&
+                getNormalizedBlueIntake() > 0.075;
+    }
+    public boolean ballIsPurpleIntake() {
+        return ballDetectedIntake() &&
+                getNormalizedRedIntake() > 0.06 &&
+                getNormalizedGreenIntake() < 0.125 &&
+                getNormalizedBlueIntake() > 0.1;
+    }
+
+    public double getTrueRedIntake(){return  trueRedIntake;}
+
+    public double getTrueBlueIntake(){return  trueBlueIntake;}
+
+    public double getTrueGreenIntake() {return trueGreenIntake;}
+
+    public double getSensorAlphaIntake() {return sensorAlphaIntake;}
+
+    public double getNormalizedRedIntake(){return trueRedIntake/sensorAlphaIntake;}
+
+    public double getNormalizedBlueIntake(){return trueBlueIntake/sensorAlphaIntake;}
+
+    public double getNormalizedGreenIntake(){return trueGreenIntake/sensorAlphaIntake;}
 }
