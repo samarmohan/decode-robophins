@@ -1,19 +1,18 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Intake {
     private DcMotor intake;
 
-    public enum State {
+    public enum IntakeState {
         INTAKE,
         OUTTAKE,
         OFF
     }
 
-    private State currentState = State.OFF;
+    private IntakeState currentIntakeState = IntakeState.OFF;
 
     public void init(HardwareMap hardwareMap) {
         intake = hardwareMap.get(DcMotor.class, "intake");
@@ -21,10 +20,10 @@ public class Intake {
         intake.setDirection(DcMotor.Direction.FORWARD);
     }
 
-    public void setState(State state) {
-        currentState = state;
+    public void setState(IntakeState intakeState) {
+        currentIntakeState = intakeState;
 
-        switch (currentState) {
+        switch (currentIntakeState) {
             case INTAKE:
                 intake.setPower(1.0);
                 break;
@@ -37,7 +36,7 @@ public class Intake {
         }
     }
 
-    public State getState() {
-        return currentState;
+    public IntakeState getState() {
+        return currentIntakeState;
     }
 }

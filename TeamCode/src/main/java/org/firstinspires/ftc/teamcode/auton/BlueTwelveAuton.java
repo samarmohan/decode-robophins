@@ -1,11 +1,10 @@
 package org.firstinspires.ftc.teamcode.auton;
 
 
-import static org.firstinspires.ftc.teamcode.auton.parts.Constants.COLLECT_WAIT_TIME;
-import static org.firstinspires.ftc.teamcode.auton.parts.Constants.FLYWHEEL_RPM;
-import static org.firstinspires.ftc.teamcode.auton.parts.Constants.GATE_OPEN_TIME;
-import static org.firstinspires.ftc.teamcode.auton.parts.Constants.PITCH_POSITION;
-import static org.firstinspires.ftc.teamcode.auton.parts.Constants.SHOOT_WAIT_TIME;
+import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.COLLECT_WAIT_TIME;
+import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.FLYWHEEL_RPM;
+import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.PITCH_POSITION;
+import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.SHOOT_WAIT_TIME;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
@@ -14,15 +13,18 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.auton.parts.Intake;
-import org.firstinspires.ftc.teamcode.auton.parts.Turret;
+import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
 
 @Autonomous(name = "BLUE - 12 - NO Gate Auton")
 public class BlueTwelveAuton extends LinearOpMode {
     @Override
     public void runOpMode() {
+        ElapsedTime runtime = new ElapsedTime();
+
         final double BLUE_SHOOT_ROTATION = Math.toRadians(-135);
         final double BLUE_COLLECT_ROTATION = Math.toRadians(-90);
 
@@ -36,7 +38,7 @@ public class BlueTwelveAuton extends LinearOpMode {
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Intake intake = new Intake(hardwareMap);
-        Turret turret = new Turret(hardwareMap);
+        AutonTurret turret = new AutonTurret(hardwareMap);
 
         // TODO run on init
         //Actions.runBlocking(new SequentialAction(claw.clawClose()));
@@ -44,7 +46,7 @@ public class BlueTwelveAuton extends LinearOpMode {
         Action action = new ParallelAction(
                 intake.intakeHold(),
                 turret.setPitchPosition(PITCH_POSITION),
-                turret.setFlywheelRPM(FLYWHEEL_RPM),
+                turret.setFlywheelRPM(FLYWHEEL_RPM, runtime.seconds()),
                 drive.actionBuilder(initialPose)
                         // shoot preset balls
                         .waitSeconds(1.5)
@@ -55,7 +57,7 @@ public class BlueTwelveAuton extends LinearOpMode {
 
                         // collect first spike and shoot
                         .turnTo(BLUE_COLLECT_ROTATION)
-                        .stopAndAdd(turret.setFlywheelRPM(FLYWHEEL_RPM))
+                        .stopAndAdd(turret.setFlywheelRPM(FLYWHEEL_RPM, runtime.seconds()))
                         .afterTime(0, intake.intakeHold())
                         .strafeTo(collectFirstSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
@@ -87,7 +89,7 @@ public class BlueTwelveAuton extends LinearOpMode {
                         // reset
                         .strafeToSplineHeading(collectFirstSet, BLUE_COLLECT_ROTATION)
                         .afterTime(0, intake.intakeOff())
-                        .afterTime(0, turret.setFlywheelRPM(0))
+                        .afterTime(0, turret.setFlywheelRPM(0, runtime.seconds()))
                         .afterTime(0, turret.setPitchPosition(0))
 
                         .build()

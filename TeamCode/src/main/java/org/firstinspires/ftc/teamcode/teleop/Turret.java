@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import static org.firstinspires.ftc.teamcode.PIDConstants.*;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -27,11 +29,6 @@ public class Turret {
     private final double ROTATION_MIN_POS = -1500;
     private final double ROTATION_MAX_POS = 2100;
 
-    // PID Coefficients
-    public static double limelightRotation_kP = 0.03, limelightRotation_kI = 0.0, limelightRotation_kD = 0.0, limelightRotation_kF = 0.000;
-    public static double encoderRotation_kP = 0.0, encoderRotation_kI = 0.0, encoderRotation_kD = 0.0, encoderRotation_kF = 0.000;
-    public static double flywheel_kP = 0.001, flywheel_kI = 0.0, flywheel_kD = 0.0, flywheel_kF = 0.0002;
-
     // State
     private double targetRPM = 0;
     public double rotationOutput = 0;
@@ -52,7 +49,7 @@ public class Turret {
         flywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flywheel2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Used as encoder source
+        flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         flywheel.setDirection(DcMotor.Direction.REVERSE);
         flywheel2.setDirection(DcMotor.Direction.FORWARD);
@@ -96,7 +93,7 @@ public class Turret {
         double derivative = (error - limelightRotation_lastError) / dt;
         limelightRotation_integral += error * dt;
 
-        double output = (limelightRotation_kP * error) + (limelightRotation_kI * limelightRotation_integral) + (limelightRotation_kD * derivative);
+        double output = (LIMELIGHT_ROTATION_kP * error) + (LIMELIGHT_ROTATION_kI * limelightRotation_integral) + (LIMELIGHT_ROTATION_kD * derivative);
         rotationOutput = Math.max(-1.0, Math.min(1.0, output));
         if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
             rotationOutput = 0;
@@ -121,7 +118,7 @@ public class Turret {
         double derivative = (error - encoderRotation_lastError) / dt;
         encoderRotation_integral += error * dt;
 
-        double output = (encoderRotation_kP * error) + (encoderRotation_kI * encoderRotation_integral) + (encoderRotation_kD * derivative);
+        double output = (ENCODER_ROTATION_kP * error) + (ENCODER_ROTATION_kI * encoderRotation_integral) + (ENCODER_ROTATION_kD * derivative);
         rotationOutput = Math.max(-1.0, Math.min(1.0, output));
         if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
             rotationOutput = 0;
@@ -144,8 +141,8 @@ public class Turret {
         double derivative = (error - flywheel_lastError) / dt;
         flywheel_integral += error * dt;
 
-        double feedforward = targetRPM * flywheel_kF;
-        double output = (flywheel_kP * error) + (flywheel_kI * flywheel_integral) + (flywheel_kD * derivative) + feedforward;
+        double feedforward = targetRPM * FLYWHEEL_kF;
+        double output = (FLYWHEEL_kP * error) + (FLYWHEEL_kI * flywheel_integral) + (FLYWHEEL_kD * derivative) + feedforward;
 
         if (error < 0.3) flywheelOutput = 0;
         flywheelOutput = Math.max(-1.0, Math.min(1.0, output));
@@ -180,6 +177,14 @@ public class Turret {
         this.targetRPM = rpm;
     }
 
+    public double getFlywheelRPM() {
+        return (flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV;
+    }
+
+    public double getTargetRPM() {
+        return targetRPM;
+    }
+
     public void setPitch(double pos) {
         pitch.setPosition(pos);
     }
@@ -193,13 +198,6 @@ public class Turret {
         return turret.getCurrentPosition();
     }
 
-    public double getFlywheelRPM() {
-        return (flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV;
-    }
-
-    public double getTargetRPM() {
-        return targetRPM;
-    }
 
     public double angleToTarget(double xPos, double yPos, double heading, boolean isTeamRed) {
         double goalX = -69.0;

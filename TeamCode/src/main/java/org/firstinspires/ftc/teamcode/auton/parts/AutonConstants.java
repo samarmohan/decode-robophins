@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.auton.parts;
 
-public final class Constants {
+public final class AutonConstants {
     public static final double FLYWHEEL_RPM = 2700.0;
 
     public static final double PITCH_POSITION = 0.67;

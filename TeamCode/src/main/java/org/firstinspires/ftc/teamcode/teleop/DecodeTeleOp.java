@@ -45,7 +45,7 @@ public class DecodeTeleOp extends LinearOpMode {
         drive.init(hardwareMap);
         intake.init(hardwareMap);
         limelight.init(hardwareMap);
-        spindexer.init(hardwareMap);
+        spindexer.init(hardwareMap, intake);
         tilt.init(hardwareMap);
 
         Gamepad currentGamepad1 = new Gamepad();
@@ -85,19 +85,6 @@ public class DecodeTeleOp extends LinearOpMode {
                     isFlywheelReady
             );
 
-            Spindexer.IntakeCommand intakeCmd = spindexer.getIntakeCommand();
-            switch (intakeCmd) {
-                case INTAKE:
-                    intake.setState(Intake.State.INTAKE);
-                    break;
-                case OUTTAKE:
-                    intake.setState(Intake.State.OUTTAKE);
-                    break;
-                case OFF:
-                    intake.setState(Intake.State.OFF);
-                    break;
-            }
-            
             drive.odometryUpdate();
             double xPos = drive.getPosX();
             double yPos = drive.getPosY();

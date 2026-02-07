@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode.auton;
 
 
-import static org.firstinspires.ftc.teamcode.auton.parts.Constants.COLLECT_WAIT_TIME;
-import static org.firstinspires.ftc.teamcode.auton.parts.Constants.FLYWHEEL_RPM;
-import static org.firstinspires.ftc.teamcode.auton.parts.Constants.GATE_OPEN_TIME;
-import static org.firstinspires.ftc.teamcode.auton.parts.Constants.PITCH_POSITION;
-import static org.firstinspires.ftc.teamcode.auton.parts.Constants.SHOOT_WAIT_TIME;
+import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.COLLECT_WAIT_TIME;
+import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.FLYWHEEL_RPM;
+import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.GATE_OPEN_TIME;
+import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.PITCH_POSITION;
+import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.SHOOT_WAIT_TIME;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
@@ -17,7 +17,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.auton.parts.Intake;
-import org.firstinspires.ftc.teamcode.auton.parts.Turret;
+import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
 
 @Autonomous(name = "RED - 12 - GATE Auton")
 public class RedTwelveGateAuton extends LinearOpMode {
@@ -39,7 +39,7 @@ public class RedTwelveGateAuton extends LinearOpMode {
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Intake intake = new Intake(hardwareMap);
-        Turret turret = new Turret(hardwareMap);
+        AutonTurret turret = new AutonTurret(hardwareMap);
 
         // TODO run on init
         //Actions.runBlocking(new SequentialAction(claw.clawClose()));

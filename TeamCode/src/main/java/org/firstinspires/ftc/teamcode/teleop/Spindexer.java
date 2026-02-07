@@ -12,6 +12,8 @@ import java.util.Arrays;
 public class Spindexer {
     public static double GEAR_RATIO = 1.5;
 
+    private Intake intake;
+
     public AnalogInput forwardEncoder;
     public AnalogInput leftEncoder;
     public AnalogInput rightEncoder;
@@ -60,7 +62,7 @@ public class Spindexer {
     private ElapsedTime alignTimer;
     private ElapsedTime shootTimer;
 
-    private enum State {
+    public enum SpindexerState {
         INTAKING,
         INDEXING,
         ALIGNING,
@@ -74,17 +76,14 @@ public class Spindexer {
         PURPLE,
         GREEN
     }
+    private SpindexerState spindexerState = SpindexerState.READY_TO_SHOOT;
+    private Ball spindexerBall = Ball.NONE;
 
-    public enum IntakeCommand {
-        INTAKE,
-        OUTTAKE,
-        OFF
-    }
+    private Intake.IntakeState intakeState = Intake.IntakeState.OFF;
 
-    public State state = State.READY_TO_SHOOT;
-    public Ball spindexerBall = Ball.NONE;
+    public void init(HardwareMap hardwareMap, Intake intake) {
+        this.intake = intake;
 
-    public void init(HardwareMap hardwareMap){
         forwardEncoder = hardwareMap.get(AnalogInput.class, "encoderForward");
         leftEncoder = hardwareMap.get(AnalogInput.class, "encoderLeft");
         rightEncoder = hardwareMap.get(AnalogInput.class, "encoderRight");
@@ -142,8 +141,9 @@ public class Spindexer {
             spindexerBall = Ball.NONE;
         }
 
-        switch (state) {
+        switch (spindexerState) {
             case INTAKING:
+                intakeState = Intake.IntakeState.INTAKE;
                 if (!hasEnteredIntaking) {
                     alignBack();
                     hasEnteredIntaking = true;
@@ -158,13 +158,14 @@ public class Spindexer {
                     indexTimer.reset();
                     hasIndexed = false;
                     hasEnteredIntaking = false;
-                    state = State.INDEXING;
+                    spindexerState = SpindexerState.INDEXING;
                 } else if (!inButton) {
                     hasEnteredIntaking = false;
-                    state = State.READY_TO_SHOOT;
+                    spindexerState = SpindexerState.READY_TO_SHOOT;
                 }
                 break;
             case INDEXING:
+                intakeState = Intake.IntakeState.INTAKE;
                 if (!hasIndexed) {
                     index();
                     hasIndexed = true;
@@ -173,42 +174,45 @@ public class Spindexer {
                     if (isFull()) {
                         alignTimer.reset();
                         hasAligned = false;
-                        state = State.ALIGNING;
+                        spindexerState = SpindexerState.ALIGNING;
                     } else if (inButton) {
                         hasEnteredIntaking = true;
-                        state = State.INTAKING;
+                        spindexerState = SpindexerState.INTAKING;
                     } else {
                         hasEnteredReadyToShoot = false;
-                        state = State.READY_TO_SHOOT;
+                        spindexerState = SpindexerState.READY_TO_SHOOT;
                     }
                 }
                 break;
             case ALIGNING:
+                intakeState = Intake.IntakeState.OUTTAKE;
                 if (!hasAligned) {
                     align();
                     hasAligned = true;
                 }
                 if (alignTimer.seconds() > 1) {
                     hasEnteredReadyToShoot = false;
-                    state = State.READY_TO_SHOOT;
+                    spindexerState = SpindexerState.READY_TO_SHOOT;
                 }
                 break;
             case READY_TO_SHOOT:
+                intakeState = Intake.IntakeState.OUTTAKE;
                 if (!hasEnteredReadyToShoot) {
                     alignToHold();
                     hasEnteredReadyToShoot = true;
                 }
                 if (inButton && !isFull()) {
                     hasEnteredReadyToShoot = false;
-                    state = State.INTAKING;
+                    spindexerState = SpindexerState.INTAKING;
                 } else if (shootTrigger > 0.2 && isFlywheelReady) {
                     shootTimer.reset();
                     hasShot = false;
                     hasEnteredReadyToShoot = false;
-                    state = State.SHOOTING;
+                    spindexerState = SpindexerState.SHOOTING;
                 }
                 break;
             case SHOOTING:
+                intakeState = Intake.IntakeState.OUTTAKE;
                 if (!hasShot) {
                     maxPower();
                     powerOverride = true;
@@ -220,24 +224,15 @@ public class Spindexer {
                     order = new int[] {0, 0, 0};
                     hasShot = false;
                     hasEnteredReadyToShoot = false;
-                    state = State.READY_TO_SHOOT;
+                    spindexerState = SpindexerState.READY_TO_SHOOT;
                 }
                 break;
         }
+        intake.setState(intakeState);
     }
 
-    public IntakeCommand getIntakeCommand() {
-        switch (state) {
-            case INTAKING:
-            case INDEXING:
-                return IntakeCommand.INTAKE;
-
-            case ALIGNING:
-            case SHOOTING:
-            case READY_TO_SHOOT:
-            default:
-                return IntakeCommand.OUTTAKE;
-        }
+    public Intake.IntakeState getIntakeCommand() {
+        return intakeState;
     }
     public void index() {
         target += 120;
@@ -414,8 +409,12 @@ public class Spindexer {
         axonLeft.setPower(-1);
     }
 
-    public State getState() {
-        return state;
+    public SpindexerState getState() {
+        return spindexerState;
+    }
+
+    public void setState(SpindexerState spindexerState) {
+        this.spindexerState = spindexerState;
     }
 
     public Ball getSpindexerBall() {
