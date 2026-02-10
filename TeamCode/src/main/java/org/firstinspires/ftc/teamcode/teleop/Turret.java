@@ -22,7 +22,7 @@ public class Turret {
     private static final double DEGREES_PER_TICK = 90.0 / 5850.0;
 
     // Tuning
-    private static final double FLYWHEEL_RPM_FAR = 3400.0;
+    private static final double FLYWHEEL_RPM_FAR = 3200.0;
     private static final double FLYWHEEL_RPM_MID = 2800.0;
     private static final double FLYWHEEL_RPM_CLOSE = 2200.0;
 
@@ -69,20 +69,20 @@ public class Turret {
     // --- Auto Calculations ---
 
     public double autoRPM(double dist) {
-        if (dist < 55) return FLYWHEEL_RPM_CLOSE;
-        if (dist < 100) return FLYWHEEL_RPM_MID;
+        if (dist < 30) return FLYWHEEL_RPM_CLOSE;
+        if (dist < 225) return 4 * dist + 2020;
         return FLYWHEEL_RPM_FAR;
     }
 
     public double autoPitch(double dist) {
-        if (dist < 55) return 0.3;
-        if (dist < 225) return 0.000862069 * dist + 0.637414;
-        return 0.8; // Far pitch
+        if (dist < 30) return 0.3;
+        if (dist < 225) return 0.655;
+        return 0.75; // Far pitch
     }
 
     // --- PID Updates ---
 
-    public void updateLimelightPID(double currentTimeSeconds, double tx) {
+    public void updateLimelightPID(double currentTimeSeconds, double tx, boolean isTeamRed) {
         if (limelightRotation_lastTime == 0) {
             limelightRotation_lastTime = currentTimeSeconds;
         }

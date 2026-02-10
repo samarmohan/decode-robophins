@@ -14,6 +14,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.auton.parts.Intake;
@@ -41,13 +42,15 @@ public class RedTwelveGateAuton extends LinearOpMode {
         Intake intake = new Intake(hardwareMap);
         AutonTurret turret = new AutonTurret(hardwareMap);
 
+        ElapsedTime runtime = new ElapsedTime();
+
         // TODO run on init
         //Actions.runBlocking(new SequentialAction(claw.clawClose()));
 
         Action action = new ParallelAction(
                 intake.intakeHold(),
                 turret.setPitchPosition(PITCH_POSITION),
-                turret.setFlywheelRPM(FLYWHEEL_RPM),
+                turret.setFlywheelRPM(FLYWHEEL_RPM, runtime.seconds()),
                 drive.actionBuilder(initialPose)
                         // shoot preset balls
                         .waitSeconds(1.5)
@@ -58,7 +61,7 @@ public class RedTwelveGateAuton extends LinearOpMode {
 
                         // collect first spike
                         .turnTo(RED_COLLECT_ROTATION)
-                        .stopAndAdd(turret.setFlywheelRPM(FLYWHEEL_RPM))
+                        .stopAndAdd(turret.setFlywheelRPM(FLYWHEEL_RPM, runtime.seconds()))
                         .afterTime(0, intake.intakeHold())
                         .strafeTo(collectFirstSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
@@ -95,7 +98,7 @@ public class RedTwelveGateAuton extends LinearOpMode {
                         // reset
                         .strafeToSplineHeading(collectFirstSet, RED_COLLECT_ROTATION)
                         .afterTime(0, intake.intakeOff())
-                        .afterTime(0, turret.setFlywheelRPM(0))
+                        .afterTime(0, turret.setFlywheelRPM(0, runtime.seconds()))
                         .afterTime(0, turret.setPitchPosition(0))
 
                         .build()

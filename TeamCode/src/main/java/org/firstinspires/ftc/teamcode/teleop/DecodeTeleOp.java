@@ -163,9 +163,10 @@ public class DecodeTeleOp extends LinearOpMode {
                     break;
 
                 case OVERRIDE:
-                    turret.setTargetRPM(turret.autoRPM(distance));
-                    pitchPosition = turret.autoPitch(distance);
+                    //turret.setTargetRPM(turret.autoRPM(distance));
+                    //pitchPosition = turret.autoPitch(distance);
 
+                    /*
                     double rotationStick = -currentGamepad2.right_stick_x;
                     double manualPower = rotationStick * 0.5; // Half speed
 
@@ -176,6 +177,8 @@ public class DecodeTeleOp extends LinearOpMode {
                         turret.overrideRotationPower(0);
                     }
 
+
+                     */
                     if (currentGamepad2.left_stick_y > 0.1 && pitchPosition <= 1.0) {
                         pitchPosition += 0.005;
                     } else if (currentGamepad2.left_stick_y < -0.1 && pitchPosition >= 0.0) {
@@ -206,7 +209,7 @@ public class DecodeTeleOp extends LinearOpMode {
                  */
 
                 if (currentAprilTagVisible) {
-                    turret.updateLimelightPID(currentTime, limelight.getTx());
+                    turret.updateLimelightPID(currentTime, limelight.getTx(), isTeamRed);
                     turret.applyRotationPower();
                 } else {
                     turret.updateEncoderPID(currentTime, 0);
@@ -267,11 +270,12 @@ public class DecodeTeleOp extends LinearOpMode {
 
             telemetry.addLine("---------------------------------------");
             telemetry.addData("Spindexer State", spindexer.getState());
-            telemetry.addData("Intake Command", spindexer.getIntakeCommand());
             telemetry.addData("Intake State", intake.getState());
             telemetry.addData("Ball in Spindexer", spindexer.getSpindexerBall());
             telemetry.addData("Ball Count", spindexer.isFull() ? "3 (FULL)" : spindexer.hasBalls() ? "1-2" : "0");
             telemetry.addData("Current Order", spindexer.getOrder());
+            telemetry.addData("Spindexer Target", spindexer.target);
+            telemetry.addData("Spindexer Angle", spindexer.getCurrentAngle());
             telemetry.update();
         }
         limelight.stop();

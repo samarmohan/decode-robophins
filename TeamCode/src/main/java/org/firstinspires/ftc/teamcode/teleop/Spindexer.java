@@ -203,6 +203,7 @@ public class Spindexer {
                 }
                 if (inButton && !isFull()) {
                     hasEnteredReadyToShoot = false;
+                    hasEnteredIntaking = false;
                     spindexerState = SpindexerState.INTAKING;
                 } else if (shootTrigger > 0.2 && isFlywheelReady) {
                     shootTimer.reset();
