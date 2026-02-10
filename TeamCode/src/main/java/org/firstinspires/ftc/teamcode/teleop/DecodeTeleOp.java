@@ -93,7 +93,7 @@ public class DecodeTeleOp extends LinearOpMode {
             limelight.update(heading);
 
             if (currentGamepad2.right_bumper && !previousGamepad2.right_bumper){
-                spindexer.resetTarget();
+                spindexer.setTargetAngle(spindexer.getCurrentAngle()+60);
             }
             if (currentGamepad2.left_bumper && !previousGamepad2.left_bumper){
                 spindexer.setTargetAngle(spindexer.getCurrentAngle());
@@ -276,6 +276,8 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Current Order", spindexer.getOrder());
             telemetry.addData("Spindexer Target", spindexer.target);
             telemetry.addData("Spindexer Angle", spindexer.getCurrentAngle());
+            telemetry.addData("Has Entered Intake", spindexer.hasEnteredIntaking);
+            telemetry.addData("Has Entered Ready To Shoot", spindexer.hasEnteredReadyToShoot);
             telemetry.update();
         }
         limelight.stop();

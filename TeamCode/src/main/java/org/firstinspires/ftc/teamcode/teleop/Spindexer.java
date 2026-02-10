@@ -51,8 +51,8 @@ public class Spindexer {
     private boolean hasIndexed;
     private boolean hasAligned;
 
-    private boolean hasEnteredIntaking = false;
-    private boolean hasEnteredReadyToShoot = false;
+    public boolean hasEnteredIntaking = false;
+    public boolean hasEnteredReadyToShoot = false;
 
     private int[] order = {0,0,0};
     private int[] correctOrder = {2,1,1};
