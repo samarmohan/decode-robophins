@@ -94,6 +94,9 @@ public class Turret {
         limelightRotation_integral += error * dt;
 
         double output = (LIMELIGHT_ROTATION_kP * error) + (LIMELIGHT_ROTATION_kI * limelightRotation_integral) + (LIMELIGHT_ROTATION_kD * derivative);
+        if (Math.abs(error) > LIMELIGHT_FF_DEADZONE) {
+            output += LIMELIGHT_ROTATION_kF * Math.signum(error);
+        }
         rotationOutput = Math.max(-1.0, Math.min(1.0, output));
         if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
             rotationOutput = 0;
