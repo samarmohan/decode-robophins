@@ -9,6 +9,7 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 
 
 public class Drivetrain {
@@ -19,6 +20,8 @@ public class Drivetrain {
     public IMU imu;
     public GoBildaPinpointDriver odometry;
 
+    public Servo lights;
+
     public void init(HardwareMap hardwareMap) {
         // drive
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
@@ -26,6 +29,7 @@ public class Drivetrain {
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
         odometry = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        lights = hardwareMap.get(Servo.class, "LEDs");
 
         // Directions & modes
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -111,5 +115,20 @@ public class Drivetrain {
         odometry.update();
     }
 
+    public void setLightPWM(double pwm){
+        //0.0 off
+        //0.277 red
+        //0.333 orange
+        //0.388 yellow
+        //0.5 green
+        //0.611 blue
+        //0.722 violet
+        //1.0 white
+        lights.setPosition(pwm);
+    }
+    public void autoLight(boolean full){
+        if (full){setLightPWM(0.5);}
+        else{setLightPWM(0.277);}
+    }
 }
 
