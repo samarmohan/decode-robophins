@@ -126,9 +126,10 @@ public class Drivetrain {
         //1.0 white
         lights.setPosition(pwm);
     }
-    public void autoLight(boolean full){
+    public void autoLight(boolean full, boolean empty){
         if (full){setLightPWM(0.5);}
-        else{setLightPWM(0.277);}
+        else if(empty){setLightPWM(0.28);}
+        else{setLightPWM(0.33);}
     }
 }
 

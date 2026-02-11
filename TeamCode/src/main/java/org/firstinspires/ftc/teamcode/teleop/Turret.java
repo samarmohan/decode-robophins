@@ -89,7 +89,7 @@ public class Turret {
             limelightRotation_lastTime = currentTimeSeconds;
         }
 
-        double error = tx;
+        double error = (isTeamRed) ? tx + 0.5 : tx -0.5;
         double dt = Math.max(currentTimeSeconds - limelightRotation_lastTime, 0.001); // Avoid div/0
 
         double derivative = (error - limelightRotation_lastError) / dt;

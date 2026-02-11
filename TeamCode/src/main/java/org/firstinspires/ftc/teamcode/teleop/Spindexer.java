@@ -461,4 +461,5 @@ public class Spindexer {
     public double getNormalizedBlueIntake(){return trueBlueIntake/sensorAlphaIntake;}
 
     public double getNormalizedGreenIntake(){return trueGreenIntake/sensorAlphaIntake;}
+
 }
