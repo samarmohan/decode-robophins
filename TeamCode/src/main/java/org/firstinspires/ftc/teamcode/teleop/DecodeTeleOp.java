@@ -85,6 +85,8 @@ public class DecodeTeleOp extends LinearOpMode {
                     isFlywheelReady
             );
 
+            drive.autoLight(spindexer.isFull());
+
             drive.odometryUpdate();
             double xPos = drive.getPosX();
             double yPos = drive.getPosY();
