@@ -13,11 +13,11 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.auton.parts.Intake;
 import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
 
 @Autonomous(name = "BLUE - 12 - GATE Auton")
@@ -41,28 +41,26 @@ public class BlueTwelveGateAuton extends LinearOpMode {
         Vector2d openGate = new Vector2d(-3, -53);
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
-        Intake intake = new Intake(hardwareMap);
         AutonTurret turret = new AutonTurret(hardwareMap);
 
         // TODO run on init
         //Actions.runBlocking(new SequentialAction(claw.clawClose()));
 
         Action action = new ParallelAction(
-                intake.intakeHold(),
+fakeAction(),
                 turret.setPitchPosition(PITCH_POSITION),
-                turret.setFlywheelRPM(FLYWHEEL_RPM, runtime.seconds()),
+                turret.setFlywheelRPM(FLYWHEEL_RPM),
                 drive.actionBuilder(initialPose)
                         // shoot preset balls
                         .waitSeconds(1.5)
                         .setReversed(true)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION + Math.toRadians(3))
-                        .afterTime(0, intake.intakeShoot())
+                        .afterTime(0, fakeAction())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect first spike
                         .turnTo(BLUE_COLLECT_ROTATION)
-                        .stopAndAdd(turret.setFlywheelRPM(FLYWHEEL_RPM, runtime.seconds()))
-                        .afterTime(0, intake.intakeHold())
+                        .afterTime(0, fakeAction())
                         .strafeTo(collectFirstSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
 
@@ -71,34 +69,34 @@ public class BlueTwelveGateAuton extends LinearOpMode {
                         .strafeTo(openGate)
                         .waitSeconds(GATE_OPEN_TIME)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
-                        .afterTime(0, intake.intakeShoot())
+                        .afterTime(0, fakeAction())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect second spike and shoot
                         .setReversed(true)
                         .splineToSplineHeading(new Pose2d(lineUpSecondSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
-                        .afterTime(0, intake.intakeHold())
+                        .afterTime(0, fakeAction())
                         .strafeTo(collectSecondSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
                         .setReversed(true)
                         .splineToSplineHeading(new Pose2d(shooting, BLUE_SHOOT_ROTATION), -BLUE_SHOOT_ROTATION)
-                        .afterTime(0, intake.intakeShoot())
+                        .afterTime(0, fakeAction())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect third spike and shoot
                         .strafeToSplineHeading(lineUpThirdSet, BLUE_COLLECT_ROTATION)
-                        .afterTime(0, intake.intakeHold())
+                        .afterTime(0, fakeAction())
                         .waitSeconds(0.3)
                         .strafeTo(collectThirdSet)
                         .waitSeconds(COLLECT_WAIT_TIME)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
-                        .afterTime(0, intake.intakeShoot())
+                        .afterTime(0, fakeAction())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
                         // reset
                         .strafeToSplineHeading(collectFirstSet, BLUE_COLLECT_ROTATION)
-                        .afterTime(0, intake.intakeOff())
-                        .afterTime(0, turret.setFlywheelRPM(0, runtime.seconds()))
+                        .afterTime(0, fakeAction())
+                        .afterTime(0, turret.setFlywheelRPM(0))
                         .afterTime(0, turret.setPitchPosition(0))
 
                         .build()
@@ -108,6 +106,15 @@ public class BlueTwelveGateAuton extends LinearOpMode {
         telemetry.update();
 
         if (isStopRequested()) return;
+        telemetry.addData("Runtime", runtime.seconds());
+        telemetry.addData("Actual Turret RPM", turret.getFlywheelRPM());
+        telemetry.addData("Target Turret RPM", turret.getTargetRPM());
         Actions.runBlocking(action);
+    }
+    public Action fakeAction() {
+        return packet -> {
+            // do nothing
+            return false;
+        };
     }
 }

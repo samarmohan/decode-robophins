@@ -16,8 +16,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.auton.parts.Intake;
+import org.firstinspires.ftc.teamcode.auton.parts.AutonSpindexer;
 import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
+import org.firstinspires.ftc.teamcode.teleop.Intake;
 
 @Autonomous(name = "BLUE - 12 - NO Gate Auton")
 public class BlueTwelveAuton extends LinearOpMode {
@@ -37,68 +38,77 @@ public class BlueTwelveAuton extends LinearOpMode {
         Vector2d collectThirdSet = new Vector2d(36, -57);
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
-        Intake intake = new Intake(hardwareMap);
         AutonTurret turret = new AutonTurret(hardwareMap);
+        Intake intake = new Intake();
+        intake.init(hardwareMap);
+        AutonSpindexer spindexer = new AutonSpindexer(hardwareMap, intake);
 
         // TODO run on init
         //Actions.runBlocking(new SequentialAction(claw.clawClose()));
 
         Action action = new ParallelAction(
-                intake.intakeHold(),
+                spindexer.updateServos(),
                 turret.setPitchPosition(PITCH_POSITION),
-                turret.setFlywheelRPM(FLYWHEEL_RPM, runtime.seconds()),
+                turret.setFlywheelRPM(FLYWHEEL_RPM),
                 drive.actionBuilder(initialPose)
                         // shoot preset balls
+                        .stopAndAdd(spindexer.startIntaking() )
                         .waitSeconds(1.5)
                         .setReversed(true)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION + Math.toRadians(3))
-                        .afterTime(0, intake.intakeShoot())
+                        //.stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
                         // collect first spike and shoot
                         .turnTo(BLUE_COLLECT_ROTATION)
-                        .stopAndAdd(turret.setFlywheelRPM(FLYWHEEL_RPM, runtime.seconds()))
-                        .afterTime(0, intake.intakeHold())
+                        //.stopAndAdd(spindexer.startIntaking())
                         .strafeTo(collectFirstSet)
+                       // .stopAndAdd(spindexer.indexBall())
                         .waitSeconds(COLLECT_WAIT_TIME)
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
-                        .afterTime(0, intake.intakeShoot())
+                        //.stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
-                        // collect second spike and shoot
-                        .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(lineUpSecondSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
-                        .afterTime(0, intake.intakeHold())
-                        .strafeTo(collectSecondSet)
-                        .waitSeconds(COLLECT_WAIT_TIME)
-                        .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(shooting, BLUE_SHOOT_ROTATION), -BLUE_SHOOT_ROTATION)
-                        .afterTime(0, intake.intakeShoot())
-                        .waitSeconds(SHOOT_WAIT_TIME)
-
-                        // collect third spike and shoot
-                        .strafeToSplineHeading(lineUpThirdSet, BLUE_COLLECT_ROTATION)
-                        .afterTime(0, intake.intakeHold())
-                        .waitSeconds(0.3)
-                        .strafeTo(collectThirdSet)
-                        .waitSeconds(COLLECT_WAIT_TIME)
-                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
-                        .afterTime(0, intake.intakeShoot())
-                        .waitSeconds(SHOOT_WAIT_TIME)
-
-                        // reset
-                        .strafeToSplineHeading(collectFirstSet, BLUE_COLLECT_ROTATION)
-                        .afterTime(0, intake.intakeOff())
-                        .afterTime(0, turret.setFlywheelRPM(0, runtime.seconds()))
-                        .afterTime(0, turret.setPitchPosition(0))
+//                        // collect second spike and shoot
+//                        .setReversed(true)
+//                        .splineToSplineHeading(new Pose2d(lineUpSecondSet, BLUE_COLLECT_ROTATION), BLUE_COLLECT_ROTATION)
+//                        .afterTime(0, spindexer.intake())
+//                        .strafeTo(collectSecondSet)
+//                        .waitSeconds(COLLECT_WAIT_TIME)
+//                        .setReversed(true)
+//                        .splineToSplineHeading(new Pose2d(shooting, BLUE_SHOOT_ROTATION), -BLUE_SHOOT_ROTATION)
+//                        .afterTime(0, spindexer.shoot())
+//                        .waitSeconds(SHOOT_WAIT_TIME)
+//
+//                        // collect third spike and shoot
+//                        .strafeToSplineHeading(lineUpThirdSet, BLUE_COLLECT_ROTATION)
+//                        .afterTime(0, spindexer.intake())
+//                        .waitSeconds(0.3)
+//                        .strafeTo(collectThirdSet)
+//                        .waitSeconds(COLLECT_WAIT_TIME)
+//                        .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
+//                        .afterTime(0, spindexer.shoot())
+//                        .waitSeconds(SHOOT_WAIT_TIME)
+//
+//                        // reset
+//                        .strafeToSplineHeading(collectFirstSet, BLUE_COLLECT_ROTATION)
+//                        .afterTime(0, spindexer.hold())
+//                        .afterTime(0, turret.setFlywheelRPM(0))
+//                        .afterTime(0, turret.setPitchPosition(0))
 
                         .build()
         );
 
         waitForStart();
-        telemetry.update();
 
         if (isStopRequested()) return;
         Actions.runBlocking(action);
+    }
+
+    public Action fakeAction() {
+        return packet -> {
+            // do nothing
+            return false;
+        };
     }
 }
