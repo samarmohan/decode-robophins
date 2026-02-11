@@ -38,7 +38,7 @@ public class DecodeTeleOp extends LinearOpMode {
     @Override
     public void runOpMode() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        telemetry.addData("Status", "Initialized");
+        telemetry.addData("Status", "DEAD");
         telemetry.update();
 
         turret.init(hardwareMap);

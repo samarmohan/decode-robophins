@@ -12,7 +12,7 @@ import java.util.Arrays;
 public class Spindexer {
     public static double GEAR_RATIO = 1.5;
 
-    private Intake intake;
+    public Intake intake;
 
     public AnalogInput forwardEncoder;
     public AnalogInput leftEncoder;
@@ -54,9 +54,9 @@ public class Spindexer {
     public boolean hasEnteredIntaking = false;
     public boolean hasEnteredReadyToShoot = false;
 
-    private int[] order = {0,0,0};
-    private int[] correctOrder = {2,1,1};
-    private double[][] weights = generateWeightArray(0.9);
+    public int[] order = {0,0,0};
+    public int[] correctOrder = {2,1,1};
+    public double[][] weights = generateWeightArray(0.9);
 
     private ElapsedTime indexTimer;
     private ElapsedTime alignTimer;

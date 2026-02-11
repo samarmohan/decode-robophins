@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.teamcode.PIDConstants.*;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -26,8 +27,8 @@ public class Turret {
     private static final double FLYWHEEL_RPM_MID = 2800.0;
     private static final double FLYWHEEL_RPM_CLOSE = 2200.0;
 
-    private final double ROTATION_MIN_POS = -1500;
-    private final double ROTATION_MAX_POS = 2100;
+    private final double ROTATION_MIN_POS = -1120;
+    private final double ROTATION_MAX_POS = 950;
 
     // State
     private double targetRPM = 0;
@@ -51,8 +52,9 @@ public class Turret {
         flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        flywheel.setDirection(DcMotor.Direction.REVERSE);
-        flywheel2.setDirection(DcMotor.Direction.FORWARD);
+        flywheel.setDirection(DcMotor.Direction.FORWARD);
+        flywheel2.setDirection(DcMotor.Direction.REVERSE);
+
         flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheel2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -181,7 +183,7 @@ public class Turret {
     }
 
     public double getFlywheelRPM() {
-        return (flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV;
+        return -(flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV;
     }
 
     public double getTargetRPM() {
