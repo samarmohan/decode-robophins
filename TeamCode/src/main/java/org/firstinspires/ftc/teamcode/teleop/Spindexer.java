@@ -46,6 +46,8 @@ public class Spindexer {
     public double target;
     private boolean powerOverride = false;
 
+    public int isWithinTolerance;
+
 
     private boolean hasShot;
     private boolean hasIndexed;
@@ -131,16 +133,6 @@ public class Spindexer {
         trueGreenSpin = colorsSpin.green;
         sensorAlphaSpin = colorsSpin.alpha;
 
-        if (ballDetectedSpin()) {
-            if (ballIsGreenSpin()) {
-                spindexerBall = Ball.GREEN;
-            } else if (ballIsPurpleSpin()) {
-                spindexerBall = Ball.PURPLE;
-            }
-        } else {
-            spindexerBall = Ball.NONE;
-        }
-
         switch (spindexerState) {
             case INTAKING:
                 intakeState = Intake.IntakeState.INTAKE;
@@ -149,17 +141,17 @@ public class Spindexer {
                     hasEnteredIntaking = true;
                 }
 
-                if (spindexerBall != Ball.NONE) {
-                    if (spindexerBall == Ball.GREEN) {
+                if (ballDetectedSpin()) {
+                    if (ballIsGreenSpin()) {
                         order[0] = 2;
-                    } else if (spindexerBall == Ball.PURPLE) {
+                    } else {
                         order[0] = 1;
                     }
-                    indexTimer.reset();
                     hasIndexed = false;
                     hasEnteredIntaking = false;
+                    indexTimer.reset();
                     spindexerState = SpindexerState.INDEXING;
-                } else if (!inButton) {
+                } else {
                     hasEnteredIntaking = false;
                     spindexerState = SpindexerState.READY_TO_SHOOT;
                 }
@@ -170,7 +162,7 @@ public class Spindexer {
                     index();
                     hasIndexed = true;
                 }
-                if (indexTimer.seconds() > 0.5) {
+                if (isWithinTolerance(getCurrentAngle(), getTargetAngle()) || indexTimer.seconds() > 1) {
                     if (isFull()) {
                         alignTimer.reset();
                         hasAligned = false;
@@ -190,7 +182,7 @@ public class Spindexer {
                     align();
                     hasAligned = true;
                 }
-                if (alignTimer.seconds() > 1) {
+                if (isWithinTolerance(getCurrentAngle(), getTargetAngle()) || alignTimer.seconds() > 1) {
                     hasEnteredReadyToShoot = false;
                     spindexerState = SpindexerState.READY_TO_SHOOT;
                 }
@@ -215,14 +207,10 @@ public class Spindexer {
             case SHOOTING:
                 intakeState = Intake.IntakeState.OUTTAKE;
                 if (!hasShot) {
-                    maxPower();
-                    powerOverride = true;
+                    shoot();
                     hasShot = true;
                 }
-                if (shootTimer.seconds() > 1.2) {
-                    powerOverride = false;
-                   // setTargetAngle(getCurrentAngle());
-                    order = new int[] {0, 0, 0};
+                if (isWithinTolerance(getCurrentAngle(), getTargetAngle()) || shootTimer.seconds() > 1) {
                     hasShot = false;
                     hasEnteredReadyToShoot = false;
                     spindexerState = SpindexerState.READY_TO_SHOOT;
@@ -235,9 +223,17 @@ public class Spindexer {
     public Intake.IntakeState getIntakeCommand() {
         return intakeState;
     }
+
+    public boolean isWithinTolerance(double current, double target) {
+        return Math.abs(current-target) < 10;
+    }
     public void index() {
         target += 120;
         shiftArrayRight(order);
+    }
+    public void shoot() {
+        target -= 780;
+        order = new int[]{0, 0, 0};
     }
     public void align() {
         int shift = findBestShift(correctOrder, order, weights);
@@ -272,9 +268,14 @@ public class Spindexer {
         }
         return true;
     }
+
     public boolean ballDetectedSpin(){
+        isWithinTolerance = Math.floorMod((int)getCurrentAngle(), 120);
         //value not tuned
-        return sensorAlphaSpin > 0.4;
+        if ((isWithinTolerance > 110 || isWithinTolerance < 10) && sensorAlphaSpin > 0.2) {
+            return true;
+        }
+        return false;
     }
 
     public boolean ballIsGreenSpin(){

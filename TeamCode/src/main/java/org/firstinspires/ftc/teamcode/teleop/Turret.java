@@ -52,8 +52,8 @@ public class Turret {
         flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        flywheel.setDirection(DcMotor.Direction.FORWARD);
-        flywheel2.setDirection(DcMotor.Direction.REVERSE);
+        flywheel.setDirection(DcMotor.Direction.REVERSE);
+        flywheel2.setDirection(DcMotor.Direction.FORWARD);
 
         flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheel2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -183,7 +183,7 @@ public class Turret {
     }
 
     public double getFlywheelRPM() {
-        return -(flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV;
+        return (flywheel.getVelocity() * 60.0) / ENCODER_TICKS_PER_REV;
     }
 
     public double getTargetRPM() {

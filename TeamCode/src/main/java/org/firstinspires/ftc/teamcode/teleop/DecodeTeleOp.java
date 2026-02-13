@@ -53,7 +53,7 @@ public class DecodeTeleOp extends LinearOpMode {
         Gamepad previousGamepad1 = new Gamepad();
         Gamepad previousGamepad2 = new Gamepad();
 
-        boolean isTeamRed = true;
+        boolean isTeamRed = false;
         boolean shouldTilt = false;
 
         double pitchPosition = 1.0;
@@ -108,10 +108,10 @@ public class DecodeTeleOp extends LinearOpMode {
                 isTeamRed = true;
                 limelight.setPipeline(1);
             }
-            if (currentGamepad1.touchpad){
-                drive.setOdometryXY(64, isTeamRed ? -63.5 : 63.5);
-                drive.setHeading(isTeamRed? -90: 90);
-            }
+//            if (currentGamepad1.touchpad){
+//                drive.setOdometryXY(64, isTeamRed ? -63.5 : 63.5);
+//                drive.setHeading(isTeamRed? -90: 90);
+//            }
 
             if (currentGamepad1.options) {
                 drive.resetFieldCentric();
@@ -267,19 +267,19 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Actual Angle", turret.getRotationPosition());
             telemetry.addData("Limelight Valid?", limelight.isResultValid());
             telemetry.addData("Limelight Position", limelight.getTx());
-            telemetry.addData("limelight distance", turret.getDistance(limelight.getTa()));
             telemetry.addData("Rotation Power", turret.rotationOutput);
 
             telemetry.addLine("---------------------------------------");
             telemetry.addData("Spindexer State", spindexer.getState());
             telemetry.addData("Intake State", intake.getState());
             telemetry.addData("Ball in Spindexer", spindexer.getSpindexerBall());
+            telemetry.addData("Ball in Spindexer? BOOLEAN", spindexer.ballDetectedSpin());
+            telemetry.addData("Spindexer Alpha", spindexer.getSensorAlphaSpin());
             telemetry.addData("Ball Count", spindexer.isFull() ? "3 (FULL)" : spindexer.hasBalls() ? "1-2" : "0");
             telemetry.addData("Current Order", spindexer.getOrder());
             telemetry.addData("Spindexer Target", spindexer.target);
             telemetry.addData("Spindexer Angle", spindexer.getCurrentAngle());
-            telemetry.addData("Has Entered Intake", spindexer.hasEnteredIntaking);
-            telemetry.addData("Has Entered Ready To Shoot", spindexer.hasEnteredReadyToShoot);
+            telemetry.addData("D", spindexer.isWithinTolerance);
             telemetry.update();
         }
         limelight.stop();
