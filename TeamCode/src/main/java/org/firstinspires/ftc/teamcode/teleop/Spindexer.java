@@ -53,8 +53,8 @@ public class Spindexer {
     private boolean hasIndexed;
     private boolean hasAligned;
 
-    public boolean hasEnteredIntaking = false;
-    public boolean hasEnteredReadyToShoot = false;
+//    public boolean hasEnteredIntaking = false;
+//    public boolean hasEnteredReadyToShoot = false;
 
     public int[] order = {0,0,0};
     public int[] correctOrder = {2,1,1};
@@ -63,6 +63,7 @@ public class Spindexer {
     private ElapsedTime indexTimer;
     private ElapsedTime alignTimer;
     private ElapsedTime shootTimer;
+    private ElapsedTime intakeTimer;
 
     public enum SpindexerState {
         INTAKING,
@@ -107,6 +108,10 @@ public class Spindexer {
         alignTimer.reset();
         shootTimer = new ElapsedTime();
         shootTimer.reset();
+        intakeTimer = new ElapsedTime();
+        indexTimer.reset();
+
+        alignToHold();
     }
 
     /**
@@ -116,7 +121,7 @@ public class Spindexer {
      * @param shootTrigger - value of shoot trigger (>0.1 = shooting)
      * @param isFlywheelReady - true when flywheel is at speed and ready to shoot
      */
-    public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady) {
+    public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady, boolean indexOverride) {
         if (!powerOverride) {
             axonForward.setTargetRotation(target/GEAR_RATIO);
             axonForward.update();
@@ -136,31 +141,26 @@ public class Spindexer {
         switch (spindexerState) {
             case INTAKING:
                 intakeState = Intake.IntakeState.INTAKE;
-                if (!hasEnteredIntaking) {
-                    alignBack();
-                    hasEnteredIntaking = true;
-                }
-
-                if (ballDetectedSpin()) {
+                if (ballDetectedSpin() && indexTimer.seconds() > 0.5 || indexOverride) {
                     if (ballIsGreenSpin()) {
                         order[0] = 2;
                     } else {
                         order[0] = 1;
                     }
                     hasIndexed = false;
-                    hasEnteredIntaking = false;
                     indexTimer.reset();
                     spindexerState = SpindexerState.INDEXING;
-                } else {
-                    hasEnteredIntaking = false;
+                }
+                if (!inButton) {
+                    alignToHold();
                     spindexerState = SpindexerState.READY_TO_SHOOT;
                 }
                 break;
             case INDEXING:
                 intakeState = Intake.IntakeState.INTAKE;
                 if (!hasIndexed) {
-                    index();
                     hasIndexed = true;
+                    index();
                 }
                 if (isWithinTolerance(getCurrentAngle(), getTargetAngle()) || indexTimer.seconds() > 1) {
                     if (isFull()) {
@@ -168,10 +168,10 @@ public class Spindexer {
                         hasAligned = false;
                         spindexerState = SpindexerState.ALIGNING;
                     } else if (inButton) {
-                        hasEnteredIntaking = true;
+                        intakeTimer.reset();
                         spindexerState = SpindexerState.INTAKING;
                     } else {
-                        hasEnteredReadyToShoot = false;
+                        alignToHold();
                         spindexerState = SpindexerState.READY_TO_SHOOT;
                     }
                 }
@@ -183,24 +183,19 @@ public class Spindexer {
                     hasAligned = true;
                 }
                 if (isWithinTolerance(getCurrentAngle(), getTargetAngle()) || alignTimer.seconds() > 1) {
-                    hasEnteredReadyToShoot = false;
+                    alignToHold();
                     spindexerState = SpindexerState.READY_TO_SHOOT;
                 }
                 break;
             case READY_TO_SHOOT:
                 intakeState = Intake.IntakeState.OUTTAKE;
-                if (!hasEnteredReadyToShoot) {
-                    alignToHold();
-                    hasEnteredReadyToShoot = true;
-                }
                 if (inButton && !isFull()) {
-                    hasEnteredReadyToShoot = false;
-                    hasEnteredIntaking = false;
+                    alignBack();
+                    intakeTimer.reset();
                     spindexerState = SpindexerState.INTAKING;
                 } else if (shootTrigger > 0.2 && isFlywheelReady) {
                     shootTimer.reset();
                     hasShot = false;
-                    hasEnteredReadyToShoot = false;
                     spindexerState = SpindexerState.SHOOTING;
                 }
                 break;
@@ -212,7 +207,6 @@ public class Spindexer {
                 }
                 if (isWithinTolerance(getCurrentAngle(), getTargetAngle()) || shootTimer.seconds() > 1) {
                     hasShot = false;
-                    hasEnteredReadyToShoot = false;
                     spindexerState = SpindexerState.READY_TO_SHOOT;
                 }
                 break;
@@ -232,7 +226,7 @@ public class Spindexer {
         shiftArrayRight(order);
     }
     public void shoot() {
-        target -= 780;
+        target -= 720;
         order = new int[]{0, 0, 0};
     }
     public void align() {
@@ -272,7 +266,7 @@ public class Spindexer {
     public boolean ballDetectedSpin(){
         isWithinTolerance = Math.floorMod((int)getCurrentAngle(), 120);
         //value not tuned
-        if ((isWithinTolerance > 110 || isWithinTolerance < 10) && sensorAlphaSpin > 0.2) {
+        if ((isWithinTolerance > 115 || isWithinTolerance < 5) && sensorAlphaSpin > 0.2) {
             return true;
         }
         return false;

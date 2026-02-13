@@ -82,7 +82,8 @@ public class DecodeTeleOp extends LinearOpMode {
             spindexer.update(
                     currentGamepad1.cross,          // In
                     currentGamepad1.right_trigger,  // Shoot
-                    isFlywheelReady
+                    isFlywheelReady,
+                    currentGamepad2.circle        // Manual Index
             );
 
             drive.autoLight(spindexer.isFull(),!spindexer.hasBalls());
@@ -108,6 +109,17 @@ public class DecodeTeleOp extends LinearOpMode {
                 isTeamRed = true;
                 limelight.setPipeline(1);
             }
+
+            //setting order
+            if (currentGamepad2.triangle){
+                spindexer.setCorrectOrder(new int[]{2,1,1});
+            } else if (currentGamepad2.circle){
+                spindexer.setCorrectOrder(new int[]{1,2,1});
+            } else if (currentGamepad2.cross){
+                spindexer.setCorrectOrder(new int[]{1,1,2});
+            }
+
+
 //            if (currentGamepad1.touchpad){
 //                drive.setOdometryXY(64, isTeamRed ? -63.5 : 63.5);
 //                drive.setHeading(isTeamRed? -90: 90);
@@ -165,10 +177,10 @@ public class DecodeTeleOp extends LinearOpMode {
                     break;
 
                 case OVERRIDE:
-                    //turret.setTargetRPM(turret.autoRPM(distance));
-                    //pitchPosition = turret.autoPitch(distance);
+                    turret.setTargetRPM(turret.autoRPM(distance));
+                    pitchPosition = turret.autoPitch(distance);
 
-                    /*
+
                     double rotationStick = -currentGamepad2.right_stick_x;
                     double manualPower = rotationStick * 0.5; // Half speed
 
@@ -180,7 +192,7 @@ public class DecodeTeleOp extends LinearOpMode {
                     }
 
 
-                     */
+
                     if (currentGamepad2.left_stick_y > 0.1 && pitchPosition <= 1.0) {
                         pitchPosition += 0.005;
                     } else if (currentGamepad2.left_stick_y < -0.1 && pitchPosition >= 0.0) {
@@ -240,11 +252,12 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Pos", "X:%.1f Y:%.1f H:%.1f", xPos, yPos, heading);
 
             //color sensor testing
-            /*
+
             telemetry.addData("Alpha: ", spindexer.getSensorAlphaSpin());
             telemetry.addData("Red: ", spindexer.getNormalizedRedSpin());
             telemetry.addData("Blue: ", spindexer.getNormalizedBlueSpin());
             telemetry.addData("Green:", spindexer.getNormalizedGreenSpin());
+            /*
             telemetry.addData("Ball Detected:", spindexer.ballDetectedSpin());
             telemetry.addData("Green Detected:", spindexer.ballIsGreenSpin());
             telemetry.addData("Purple Detected:", spindexer.ballIsPurpleSpin());
