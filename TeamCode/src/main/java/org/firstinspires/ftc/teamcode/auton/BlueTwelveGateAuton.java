@@ -107,8 +107,6 @@ fakeAction(),
 
         if (isStopRequested()) return;
         telemetry.addData("Runtime", runtime.seconds());
-        telemetry.addData("Actual Turret RPM", turret.getFlywheelRPM());
-        telemetry.addData("Target Turret RPM", turret.getTargetRPM());
         Actions.runBlocking(action);
     }
     public Action fakeAction() {

@@ -25,6 +25,8 @@ public class MeepMeepFull {
 
         final double BLUE_SHOOT_ROTATION = Math.toRadians(-135);
         final double BLUE_COLLECT_ROTATION = Math.toRadians(-90);
+        final double BLUE_OBELISK_ROTATION = Math.toRadians(-180);
+
 
         Pose2d initialPose = new Pose2d(-40, -52, BLUE_COLLECT_ROTATION);
         Vector2d shooting = new Vector2d(-14, -14);
@@ -42,7 +44,7 @@ public class MeepMeepFull {
         myBot.runAction(myBot.getDrive().actionBuilder(initialPose)
                 // shoot preset balls
                 .setReversed(true)
-                .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION)
+                .strafeToSplineHeading(shooting, BLUE_OBELISK_ROTATION)
                 .afterTime(0, action())
                 .waitSeconds(SHOOT_WAIT_TIME)
 
