@@ -121,7 +121,7 @@ public class Spindexer {
      * @param shootTrigger - value of shoot trigger (>0.1 = shooting)
      * @param isFlywheelReady - true when flywheel is at speed and ready to shoot
      */
-    public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady, boolean indexOverride) {
+    public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady, boolean indexOverride, boolean isOffset) {
         if (!powerOverride) {
             axonForward.setTargetRotation(target/GEAR_RATIO);
             axonForward.update();
@@ -141,7 +141,9 @@ public class Spindexer {
         switch (spindexerState) {
             case INTAKING:
                 intakeState = Intake.IntakeState.INTAKE;
-                if (ballDetectedSpin() && indexTimer.seconds() > 0.5 || indexOverride) {
+                if (ballDetectedSpin() && intakeTimer
+
+                        .seconds() > 0.5 || indexOverride) {
                     if (ballIsGreenSpin()) {
                         order[0] = 2;
                     } else {
@@ -162,7 +164,7 @@ public class Spindexer {
                     hasIndexed = true;
                     index();
                 }
-                if (isWithinTolerance(getCurrentAngle(), getTargetAngle()) || indexTimer.seconds() > 1) {
+                if (isWithinTolerance(isOffset? getCurrentAngle()-60: getCurrentAngle(), getTargetAngle()) || indexTimer.seconds() > 1) {
                     if (isFull()) {
                         alignTimer.reset();
                         hasAligned = false;
@@ -266,7 +268,7 @@ public class Spindexer {
     public boolean ballDetectedSpin(){
         isWithinTolerance = Math.floorMod((int)getCurrentAngle(), 120);
         //value not tuned
-        if ((isWithinTolerance > 115 || isWithinTolerance < 5) && sensorAlphaSpin > 0.2) {
+        if ((isWithinTolerance > 110 || isWithinTolerance < 10) && sensorAlphaSpin > 0.2) {
             return true;
         }
         return false;

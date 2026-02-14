@@ -23,7 +23,7 @@ public class Turret {
     private static final double DEGREES_PER_TICK = 90.0 / 5850.0;
 
     // Tuning
-    private static final double FLYWHEEL_RPM_FAR = 3200.0;
+    private static final double FLYWHEEL_RPM_FAR = 3150.0;
     private static final double FLYWHEEL_RPM_MID = 2800.0;
     private static final double FLYWHEEL_RPM_CLOSE = 2200.0;
 
@@ -72,14 +72,14 @@ public class Turret {
 
     public double autoRPM(double dist) {
         if (dist < 30) return FLYWHEEL_RPM_CLOSE;
-        if (dist < 225) return 4 * dist + 2020;
+        if (dist < 225) return 4 * dist + 1970;
         return FLYWHEEL_RPM_FAR;
     }
 
     public double autoPitch(double dist) {
         if (dist < 30) return 0.3;
         if (dist < 225) return 0.655;
-        return 0.75; // Far pitch
+        return 0.55; // Far pitch
     }
 
     // --- PID Updates ---
@@ -124,7 +124,7 @@ public class Turret {
         encoderRotation_integral += error * dt;
 
         double output = (ENCODER_ROTATION_kP * error) + (ENCODER_ROTATION_kI * encoderRotation_integral) + (ENCODER_ROTATION_kD * derivative);
-        rotationOutput = Math.max(-1.0, Math.min(1.0, output));
+        rotationOutput = -Math.max(-1.0, Math.min(1.0, output));
         if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
             rotationOutput = 0;
             encoderRotation_integral = 0;

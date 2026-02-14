@@ -26,6 +26,8 @@ public class DecodeTeleOp extends LinearOpMode {
 
     private static final boolean TESTING = false;
 
+    private boolean isOffset = false;
+
     // Enums for State Management
     private enum TurretMode {
         FULL_AUTO,
@@ -83,7 +85,8 @@ public class DecodeTeleOp extends LinearOpMode {
                     currentGamepad1.cross,          // In
                     currentGamepad1.right_trigger,  // Shoot
                     isFlywheelReady,
-                    currentGamepad2.circle        // Manual Index
+                    currentGamepad2.right_trigger > 0.1,        // Manual Index
+                    isOffset
             );
 
             drive.autoLight(spindexer.isFull(),!spindexer.hasBalls());
@@ -96,10 +99,11 @@ public class DecodeTeleOp extends LinearOpMode {
             limelight.update(heading);
 
             if (currentGamepad2.right_bumper && !previousGamepad2.right_bumper){
-                spindexer.setTargetAngle(spindexer.getCurrentAngle()+60);
+                spindexer.setTargetAngle(spindexer.getTargetAngle()+60);
+                isOffset = !isOffset;
             }
             if (currentGamepad2.left_bumper && !previousGamepad2.left_bumper){
-                spindexer.setTargetAngle(spindexer.getCurrentAngle());
+                spindexer.setTargetAngle(0);
             }
 
             if (currentGamepad2.dpad_left && currentGamepad2.dpad_up) {
@@ -118,6 +122,13 @@ public class DecodeTeleOp extends LinearOpMode {
             } else if (currentGamepad2.cross){
                 spindexer.setCorrectOrder(new int[]{1,1,2});
             }
+            if (currentGamepad2.options){
+                spindexer.setTargetAngle(spindexer.getTargetAngle()+120);
+            }
+            else if (currentGamepad2.share){
+                spindexer.setTargetAngle(spindexer.getTargetAngle()+240);
+            }
+
 
 
 //            if (currentGamepad1.touchpad){
@@ -182,7 +193,7 @@ public class DecodeTeleOp extends LinearOpMode {
 
 
                     double rotationStick = -currentGamepad2.right_stick_x;
-                    double manualPower = rotationStick * 0.5; // Half speed
+                    double manualPower = -rotationStick * 0.5; // Half speed
 
                     if ((rotationStick > 0.1 && turret.getRotationPosition() < TURRET_MAX_DEG) ||
                             (rotationStick < -0.1 && turret.getRotationPosition() > TURRET_MIN_DEG)) {
@@ -206,7 +217,7 @@ public class DecodeTeleOp extends LinearOpMode {
             if (turretMode != TurretMode.OVERRIDE) {
                 boolean currentAprilTagVisible = limelight.isResultValid();
 
-                /*
+
                 // Detect mode switching and reset PID states accordingly
                 if (currentAprilTagVisible != previousAprilTagVisible) {
                     if (currentAprilTagVisible) {
@@ -220,7 +231,7 @@ public class DecodeTeleOp extends LinearOpMode {
 
                 previousAprilTagVisible = currentAprilTagVisible;
 
-                 */
+
 
                 if (currentAprilTagVisible) {
                     turret.updateLimelightPID(currentTime, limelight.getTx(), isTeamRed);
