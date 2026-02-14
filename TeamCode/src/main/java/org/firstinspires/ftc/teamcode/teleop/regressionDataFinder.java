@@ -65,7 +65,9 @@ public class regressionDataFinder extends LinearOpMode{
             spindexer.update(
                     currentGamepad1.cross,          // In
                     currentGamepad1.right_trigger,  // Shoot
-                    isFlywheelReady
+                    isFlywheelReady,
+                    false,
+                    false
             );
 
             drive.odometryUpdate();
