@@ -26,13 +26,13 @@ public class RedTwelveAuton extends LinearOpMode {
     public void runOpMode() {
         ElapsedTime runtime = new ElapsedTime();
 
-        final double RED_SHOOT_ROTATION = Math.toRadians(140);
+        final double RED_SHOOT_ROTATION = Math.toRadians(135);
         final double RED_COLLECT_ROTATION = Math.toRadians(90);
-        final double RED_OBELISK_ROTATION = Math.toRadians(210);
+        final double RED_OBELISK_ROTATION = Math.toRadians(180);
 
         Pose2d initialPose = new Pose2d(-40, 52, RED_COLLECT_ROTATION);
-        Vector2d shooting = new Vector2d(-10, 14);
-        Vector2d collectFirstSet = new Vector2d(-10, 50);
+        Vector2d shooting = new Vector2d(-12, 12);
+        Vector2d collectFirstSet = new Vector2d(-8, 50);
         Vector2d lineUpSecondSet = new Vector2d(14, 22);
         Vector2d collectSecondSet = new Vector2d(14, 60);
         Vector2d lineUpThirdSet = new Vector2d(40, 20);
@@ -59,7 +59,7 @@ public class RedTwelveAuton extends LinearOpMode {
                         .strafeToSplineHeading(shooting, RED_OBELISK_ROTATION)
                         .stopAndAdd(spindexer.getObelisk())
                         .waitSeconds(0.5)
-                        .turnTo(RED_SHOOT_ROTATION)
+                        .turnTo(RED_SHOOT_ROTATION-Math.toRadians(5))
                         .stopAndAdd(spindexer.alignForShooting())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
@@ -73,7 +73,7 @@ public class RedTwelveAuton extends LinearOpMode {
                         .stopAndAdd(spindexer.indexBall(1))
                         .waitSeconds(COLLECT_WAIT_TIME)
                         .stopAndAdd(spindexer.indexBall(2))
-                        .strafeToSplineHeading(shooting, RED_SHOOT_ROTATION)
+                        .strafeToSplineHeading(shooting, RED_SHOOT_ROTATION-Math.toRadians(5))
                         .stopAndAdd(spindexer.alignForShooting())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
@@ -84,6 +84,7 @@ public class RedTwelveAuton extends LinearOpMode {
                         .setReversed(true)
                         //.splineToSplineHeading(new Pose2d(lineUpSecondSet, RED_COLLECT_ROTATION), RED_COLLECT_ROTATION)
                         .strafeTo(lineUpSecondSet)
+                        .waitSeconds(0.3)
                         .strafeTo(collectSecondSet)
                         .stopAndAdd(spindexer.indexBall(1))
                         .waitSeconds(COLLECT_WAIT_TIME)
@@ -91,7 +92,7 @@ public class RedTwelveAuton extends LinearOpMode {
                         .waitSeconds(COLLECT_WAIT_TIME)
                         .stopAndAdd(spindexer.indexBall(1))
                         .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(shooting, RED_SHOOT_ROTATION), -RED_SHOOT_ROTATION)
+                        .splineToSplineHeading(new Pose2d(shooting, RED_SHOOT_ROTATION-Math.toRadians(2)), -RED_SHOOT_ROTATION)
                         .stopAndAdd(spindexer.alignForShooting())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())

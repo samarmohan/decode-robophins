@@ -20,6 +20,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
 
+@Disabled
 @Autonomous(name = "BLUE - 12 - GATE Auton")
 public class BlueTwelveGateAuton extends LinearOpMode {
     @Override

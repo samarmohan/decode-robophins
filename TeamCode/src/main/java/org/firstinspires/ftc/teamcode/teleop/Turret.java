@@ -72,7 +72,7 @@ public class Turret {
 
     public double autoRPM(double dist) {
         if (dist < 30) return FLYWHEEL_RPM_CLOSE;
-        if (dist < 225) return 4 * dist + 1970;
+        if (dist < 225) return 4 * dist + 1920;
         return FLYWHEEL_RPM_FAR;
     }
 

@@ -141,10 +141,10 @@ public class Spindexer {
         switch (spindexerState) {
             case INTAKING:
                 intakeState = Intake.IntakeState.INTAKE;
-                if (ballDetectedSpin() && intakeTimer
+                if (ballDetectedSpin(isOffset) && intakeTimer
 
                         .seconds() > 0.5 || indexOverride) {
-                    if (ballIsGreenSpin()) {
+                    if (ballIsGreenSpin(isOffset)) {
                         order[0] = 2;
                     } else {
                         order[0] = 1;
@@ -164,7 +164,7 @@ public class Spindexer {
                     hasIndexed = true;
                     index();
                 }
-                if (isWithinTolerance(isOffset? getCurrentAngle()-60: getCurrentAngle(), getTargetAngle()) || indexTimer.seconds() > 1) {
+                if (isWithinTolerance(getCurrentAngle(), getTargetAngle()) || indexTimer.seconds() > 1) {
                     if (isFull()) {
                         alignTimer.reset();
                         hasAligned = false;
@@ -265,8 +265,8 @@ public class Spindexer {
         return true;
     }
 
-    public boolean ballDetectedSpin(){
-        isWithinTolerance = Math.floorMod((int)getCurrentAngle(), 120);
+    public boolean ballDetectedSpin(boolean isOffset){
+        isWithinTolerance = Math.floorMod(isOffset? (int)getCurrentAngle() - 60 : (int)getCurrentAngle(), 120);
         //value not tuned
         if ((isWithinTolerance > 110 || isWithinTolerance < 10) && sensorAlphaSpin > 0.2) {
             return true;
@@ -274,17 +274,17 @@ public class Spindexer {
         return false;
     }
 
-    public boolean ballIsGreenSpin(){
+    public boolean ballIsGreenSpin(boolean isOffset){
         //not tuned
-        return ballDetectedSpin() &&
+        return ballDetectedSpin(isOffset) &&
                 getNormalizedRedSpin() < 0.075 &&
                 getNormalizedGreenSpin() > 0.1 &&
                 getNormalizedBlueSpin() > 0.075;
     }
 
-    public boolean ballIsPurpleSpin(){
+    public boolean ballIsPurpleSpin(boolean isOffset){
         //not tuned
-        return ballDetectedSpin() &&
+        return ballDetectedSpin(isOffset) &&
                 getNormalizedRedSpin() > 0.06 &&
                 getNormalizedGreenSpin() < 0.2 &&
                 getNormalizedBlueSpin() > 0.1;

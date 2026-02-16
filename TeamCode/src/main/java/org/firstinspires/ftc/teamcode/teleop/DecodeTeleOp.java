@@ -26,8 +26,6 @@ public class DecodeTeleOp extends LinearOpMode {
 
     private static final boolean TESTING = false;
 
-    private boolean isOffset = false;
-
     // Enums for State Management
     private enum TurretMode {
         FULL_AUTO,
@@ -57,6 +55,7 @@ public class DecodeTeleOp extends LinearOpMode {
 
         boolean isTeamRed = false;
         boolean shouldTilt = false;
+        boolean isOffset = false;
 
         double pitchPosition = 1.0;
         double testingFlywheelTargetRPM = 0.0;
@@ -297,7 +296,7 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Spindexer State", spindexer.getState());
             telemetry.addData("Intake State", intake.getState());
             telemetry.addData("Ball in Spindexer", spindexer.getSpindexerBall());
-            telemetry.addData("Ball in Spindexer? BOOLEAN", spindexer.ballDetectedSpin());
+            telemetry.addData("Ball in Spindexer? BOOLEAN", spindexer.ballDetectedSpin(isOffset));
             telemetry.addData("Spindexer Alpha", spindexer.getSensorAlphaSpin());
             telemetry.addData("Ball Count", spindexer.isFull() ? "3 (FULL)" : spindexer.hasBalls() ? "1-2" : "0");
             telemetry.addData("Current Order", spindexer.getOrder());
