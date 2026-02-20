@@ -121,7 +121,7 @@ public class Spindexer {
      * @param shootTrigger - value of shoot trigger (>0.1 = shooting)
      * @param isFlywheelReady - true when flywheel is at speed and ready to shoot
      */
-    public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady, boolean indexOverride, boolean isOffset) {
+    public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady, boolean shouldSort, boolean indexOverride, boolean isOffset) {
         if (!powerOverride) {
             axonForward.setTargetRotation(target/GEAR_RATIO);
             axonForward.update();

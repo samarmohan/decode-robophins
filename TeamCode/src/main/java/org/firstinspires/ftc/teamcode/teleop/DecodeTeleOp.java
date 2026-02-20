@@ -57,6 +57,7 @@ public class DecodeTeleOp extends LinearOpMode {
         boolean isTeamRed = false;
         boolean shouldTilt = false;
         boolean isOffset = false;
+        boolean shouldSort = true;
 
         double pitchPosition = 1.0;
         double testingFlywheelTargetRPM = 0.0;
@@ -86,7 +87,7 @@ public class DecodeTeleOp extends LinearOpMode {
                     currentGamepad1.right_trigger,  // Shoot
                     isFlywheelReady,
                     currentGamepad2.right_trigger > 0.1,        // Manual Index
-                    isOffset
+                    shouldSort
             );
 
             drive.autoLight(spindexer.isFull(),!spindexer.hasBalls());
@@ -296,7 +297,7 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addLine("---------------------------------------");
             telemetry.addData("Spindexer State", spindexer.getState());
             telemetry.addData("Intake State", intake.getState());
-            telemetry.addData("Ball in Spindexer? BOOLEAN", spindexer.ballDetectedSpin(isOffset));
+            telemetry.addData("Ball in Spindexer? BOOLEAN", spindexer.ballDetectedSpin());
             telemetry.addData("Spindexer Alpha", spindexer.getSensorAlphaSpin());
             telemetry.addData("Ball Count", spindexer.isFull() ? "3 (FULL)" : spindexer.hasBalls() ? "1-2" : "0");
             telemetry.addData("Current Order", spindexer.getOrder());
