@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -7,11 +8,13 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.Arrays;
 
 public class ServoSpindexer {
-    public static double GEAR_RATIO = 1.5;
+    public static double GEAR_RATIO = 48.0 / 20.0;
 
     public Intake intake;
 
@@ -28,7 +31,11 @@ public class ServoSpindexer {
     public Servo leftServo;
     public Servo rightServo;
 
-    public NormalizedColorSensor spinColor;
+    public RevColorSensorV3 spinColor;
+
+    public RevColorSensorV3 spinColor2;
+
+    public RevColorSensorV3 backColor;
 
     private double sensorAlphaSpin;
     private double trueRedSpin;
@@ -77,8 +84,15 @@ public class ServoSpindexer {
         rightServo = hardwareMap.get(Servo.class, "axonRight");
 
         //color sensor
-        spinColor = hardwareMap.get(NormalizedColorSensor.class, "spinColor");
+        spinColor = hardwareMap.get(RevColorSensorV3.class, "spinColor");
         spinColor.setGain(10);
+
+        spinColor2 = hardwareMap.get(RevColorSensorV3.class, "spinColor2");
+        spinColor2.setGain(10);
+
+        backColor = hardwareMap.get(RevColorSensorV3.class, "backColor");
+        backColor.setGain(10);
+         
 
         //timers
         indexTimer = new ElapsedTime();
@@ -112,6 +126,7 @@ public class ServoSpindexer {
         currentAngle = positionToAngle(currentPosition);
 
         NormalizedRGBA colorsSpin = spinColor.getNormalizedColors();
+        double distanceSpin = spinColor.getDistance(DistanceUnit.CM);
 
         trueRedSpin = colorsSpin.red;
         trueBlueSpin = colorsSpin.blue;
@@ -206,6 +221,7 @@ public class ServoSpindexer {
                 }
                 //once done goes back to ready to shoot(defualt state)
                 if (isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 1) {
+                    alignToStart();
                     hasShot = false;
                     spindexerState = SpindexerState.READY_TO_SHOOT;
                 }
@@ -234,12 +250,12 @@ public class ServoSpindexer {
     }
 
     public double angleToPosition(double angle) {
-        double newPosition = angle / (315 * (48.0 / 20.0));
+        double newPosition = angle / (315 * (GEAR_RATIO));
         return Math.min(1.0, Math.max(0.0, newPosition));
     }
 
     public double positionToAngle(double position) {
-        return position * (315 * (48.0 / 20.0));
+        return position * (315 * (GEAR_RATIO));
     }
 
     public double getVoltage() {
@@ -258,7 +274,7 @@ public class ServoSpindexer {
         shiftArrayRight(order);
     }
     public void shoot() {
-        targetAngle -= 720;
+        targetAngle = 0;
         order = new int[]{0, 0, 0};
     }
     public void align() {
@@ -273,6 +289,9 @@ public class ServoSpindexer {
     }
     public void alignToHold() {
         targetAngle += 60;
+    }
+    public void alignToStart(){
+        targetAngle = 240;
     }
 
     public void resetTarget() {
@@ -397,11 +416,17 @@ public class ServoSpindexer {
 
     public double getSensorAlphaSpin() {return sensorAlphaSpin;}
 
-    public double getNormalizedRedSpin(){return trueRedSpin/sensorAlphaSpin;}
+    public double getNormalizedRedSpin() {
+        return (sensorAlphaSpin > 0.001) ? (trueRedSpin / sensorAlphaSpin) : 0.0;
+    }
 
-    public double getNormalizedBlueSpin(){return trueBlueSpin/sensorAlphaSpin;}
+    public double getNormalizedBlueSpin() {
+        return (sensorAlphaSpin > 0.001) ? (trueBlueSpin / sensorAlphaSpin) : 0.0;
+    }
 
-    public double getNormalizedGreenSpin(){return trueGreenSpin/sensorAlphaSpin;}
+    public double getNormalizedGreenSpin() {
+        return (sensorAlphaSpin > 0.001) ? (trueGreenSpin / sensorAlphaSpin) : 0.0;
+    }
 
     public String getOrder(){
         return Arrays.toString(order);

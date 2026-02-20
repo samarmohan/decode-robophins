@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.hardware.lynx.LynxModule;
+import java.util.List;
 
 @TeleOp(name = "Decode TeleOp", group = "Competition")
 public class DecodeTeleOp extends LinearOpMode {
@@ -38,6 +40,12 @@ public class DecodeTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        //bulk reading
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetry.addData("Status", "DEAD");
         telemetry.update();
@@ -72,6 +80,11 @@ public class DecodeTeleOp extends LinearOpMode {
         runtime.reset();
 
         while (opModeIsActive()) {
+            //clear old sensor data
+            for (LynxModule hub : allHubs) {
+                hub.clearBulkCache();
+            }
+
             previousGamepad1.copy(currentGamepad1);
             previousGamepad2.copy(currentGamepad2);
             currentGamepad1.copy(gamepad1);

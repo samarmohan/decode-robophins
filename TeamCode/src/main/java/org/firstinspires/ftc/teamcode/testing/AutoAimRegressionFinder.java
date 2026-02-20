@@ -73,6 +73,7 @@ public class AutoAimRegressionFinder extends LinearOpMode{
                     currentGamepad1.right_trigger,  // Shoot
                     isFlywheelReady,
                     false,
+                    false,
                     false
             );
 

@@ -89,6 +89,8 @@ public class Turret {
             limelightRotation_lastTime = currentTimeSeconds;
         }
 
+        double rotationPos = getRotationPosition();
+
         double error = (isTeamRed) ? tx + 0.5 : tx -0.5;
         double dt = Math.max(currentTimeSeconds - limelightRotation_lastTime, 0.001); // Avoid div/0
 
@@ -100,11 +102,11 @@ public class Turret {
             output += LIMELIGHT_ROTATION_kF * Math.signum(error);
         }
         rotationOutput = Math.max(-1.0, Math.min(1.0, output));
-        if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
+        if (rotationOutput > 0 && rotationPos > ROTATION_MAX_POS) {
             rotationOutput = 0;
             limelightRotation_integral = 0;
         }
-        if (rotationOutput < 0 && getRotationPosition() < ROTATION_MIN_POS) {
+        if (rotationOutput < 0 && rotationPos < ROTATION_MIN_POS) {
             rotationOutput = 0;
             limelightRotation_integral = 0;
         }
@@ -117,7 +119,9 @@ public class Turret {
             encoderRotation_lastTime = currentTimeSeconds;
         }
 
-        double error = encoderTarget - getRotationPosition();
+        double rotationPos = getRotationPosition();
+
+        double error = encoderTarget - rotationPos;
         double dt = Math.max(currentTimeSeconds - encoderRotation_lastTime, 0.001); // Avoid div/0
 
         double derivative = (error - encoderRotation_lastError) / dt;
@@ -125,11 +129,11 @@ public class Turret {
 
         double output = (ENCODER_ROTATION_kP * error) + (ENCODER_ROTATION_kI * encoderRotation_integral) + (ENCODER_ROTATION_kD * derivative);
         rotationOutput = -Math.max(-1.0, Math.min(1.0, output));
-        if (rotationOutput > 0 && getRotationPosition() > ROTATION_MAX_POS) {
+        if (rotationOutput > 0 && rotationPos > ROTATION_MAX_POS) {
             rotationOutput = 0;
             encoderRotation_integral = 0;
         }
-        if (rotationOutput < 0 && getRotationPosition() < ROTATION_MIN_POS) {
+        if (rotationOutput < 0 && rotationPos < ROTATION_MIN_POS) {
             rotationOutput = 0;
             encoderRotation_integral = 0;
         }
