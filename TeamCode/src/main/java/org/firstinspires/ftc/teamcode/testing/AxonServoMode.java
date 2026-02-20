@@ -23,6 +23,11 @@ public class AxonServoMode extends LinearOpMode {
     public Axon axonLeft;
     public Axon axonRight;
 
+    public double targetAngle;
+    public double targetPosition;
+    public double currentAngle;
+    public double currentPosition;
+
 
     @Override
     public void runOpMode() {
@@ -34,27 +39,28 @@ public class AxonServoMode extends LinearOpMode {
         servoLeft = hardwareMap.get(Servo.class, "axonLeft");
         servoRight = hardwareMap.get(Servo.class, "axonRight");
 
-        double angle = 0.0;
-
         waitForStart();
 
         while (opModeIsActive()) {
+            targetPosition = angleToServoPosition(targetAngle);
+            currentPosition = getCurrentServoPosition(forwardEncoder.getVoltage());
+            currentAngle = positionToAngle(currentPosition);
+
             if (gamepad1.squareWasPressed()) {
-                angle += 90.0;
+                targetAngle += 60.0;
             } else if (gamepad1.triangleWasPressed()) {
-                angle = 0.0;
+                targetAngle = 0.0;
             }
 
-            double servoPosition = angleToServoPosition(angle);
-            servoForward.setPosition(servoPosition);
-            servoLeft.setPosition(servoPosition);
-            servoRight.setPosition(servoPosition);
+            servoForward.setPosition(targetPosition);
+            servoLeft.setPosition(targetPosition);
+            servoRight.setPosition(targetPosition);
 
-            telemetry.addData("Target Position", servoForward.getPosition());
-            telemetry.addData("Current Position", getCurrentServoPosition(forwardEncoder.getVoltage()));
+            telemetry.addData("Target Position", targetAngle);
+            telemetry.addData("Current Position", currentPosition);
             telemetry.addLine("------------------------------");
-            telemetry.addData("Target Angle", servoPositionToAngle(servoForward.getPosition()));
-            telemetry.addData("Current Angle", servoPositionToAngle(getCurrentServoPosition(forwardEncoder.getVoltage())));
+            telemetry.addData("Target Angle", targetAngle);
+            telemetry.addData("Current Angle", currentAngle);
             telemetry.update();
         }
     }
@@ -62,6 +68,10 @@ public class AxonServoMode extends LinearOpMode {
     public double angleToServoPosition(double angle) {
         double newPosition = angle / (315 * (48.0 / 20.0));
         return Math.min(1.0, Math.max(0.0, newPosition));
+    }
+
+    public double positionToAngle(double position) {
+        return position * (315 * (48.0 / 20.0));
     }
 
     public double servoPositionToAngle(double position) {

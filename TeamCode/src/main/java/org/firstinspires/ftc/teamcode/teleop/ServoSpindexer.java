@@ -92,7 +92,7 @@ public class ServoSpindexer {
 
         backColor = hardwareMap.get(RevColorSensorV3.class, "backColor");
         backColor.setGain(10);
-         
+
 
         //timers
         indexTimer = new ElapsedTime();
@@ -267,7 +267,7 @@ public class ServoSpindexer {
     }
 
     public boolean isWithinTolerance(double current, double target) {
-        return Math.abs(current-target) < 10;
+        return Math.abs(current-target) < 1;
     }
     public void index() {
         targetAngle += 120;
@@ -315,7 +315,7 @@ public class ServoSpindexer {
     }
 
     public boolean ballDetectedSpin(){
-        isWithinTolerance = Math.floorMod((int)currentAngle, 120);
+        isWithinTolerance = Math.floorMod((int)currentAngle-180, 120);
         //value not tuned
         if ((isWithinTolerance > 110 || isWithinTolerance < 10) && sensorAlphaSpin > 0.2) {
             return true;
