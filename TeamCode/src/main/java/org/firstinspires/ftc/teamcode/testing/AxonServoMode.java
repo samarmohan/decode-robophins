@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.testing;
 
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.teleop.Axon;
 
 @TeleOp
@@ -23,6 +25,12 @@ public class AxonServoMode extends LinearOpMode {
     public Axon axonLeft;
     public Axon axonRight;
 
+    public RevColorSensorV3 spinColor;
+
+    public RevColorSensorV3 spinColor2;
+
+    public RevColorSensorV3 backColor;
+
     public double targetAngle;
     public double targetPosition;
     public double currentAngle;
@@ -38,6 +46,15 @@ public class AxonServoMode extends LinearOpMode {
         servoForward = hardwareMap.get(Servo.class, "axonForward");
         servoLeft = hardwareMap.get(Servo.class, "axonLeft");
         servoRight = hardwareMap.get(Servo.class, "axonRight");
+
+        spinColor = hardwareMap.get(RevColorSensorV3.class, "spinColor");
+        spinColor.setGain(10);
+
+        spinColor2 = hardwareMap.get(RevColorSensorV3.class, "spinColor2");
+        spinColor2.setGain(10);
+
+        backColor = hardwareMap.get(RevColorSensorV3.class, "backColor");
+        backColor.setGain(10);
 
         waitForStart();
 
@@ -61,6 +78,9 @@ public class AxonServoMode extends LinearOpMode {
             telemetry.addLine("------------------------------");
             telemetry.addData("Target Angle", targetAngle);
             telemetry.addData("Current Angle", currentAngle);
+            telemetry.addData("back distance", backColor.getDistance(DistanceUnit.CM));
+            telemetry.addData("spin distance", spinColor.getDistance(DistanceUnit.CM));
+            telemetry.addData("2nd spin distance", spinColor2.getDistance(DistanceUnit.CM));
             telemetry.update();
         }
     }

@@ -47,7 +47,7 @@ public class ServoSpindexer {
     private boolean hasShot;
     private boolean hasIndexed;
     private boolean hasAligned;
-
+    
     public int[] order = {0,0,0};
     public int[] correctOrder = {2,1,1};
     public double[][] weights = generateWeightArray(0.9);
@@ -126,7 +126,7 @@ public class ServoSpindexer {
         currentAngle = positionToAngle(currentPosition);
 
         NormalizedRGBA colorsSpin = spinColor.getNormalizedColors();
-        double distanceSpin = spinColor.getDistance(DistanceUnit.CM);
+        double distanceSpin = getSpinDistance();
 
         trueRedSpin = colorsSpin.red;
         trueBlueSpin = colorsSpin.blue;
@@ -145,9 +145,20 @@ public class ServoSpindexer {
                         order[0] = 1;
                     }
                     //switching state to indexing
-                    hasIndexed = false;
-                    indexTimer.reset();
-                    spindexerState = SpindexerState.INDEXING;
+                    if(!isFull()) {
+                        hasIndexed = false;
+                        indexTimer.reset();
+                        spindexerState = SpindexerState.INDEXING;
+                    }
+                    else if(shouldSort){
+                        //if full starts to align
+                        alignTimer.reset();
+                        hasAligned = false;
+                        spindexerState = SpindexerState.ALIGNING;
+                    }else{
+                        alignToHold();
+                        spindexerState = SpindexerState.READY_TO_SHOOT;
+                    }
                 }
                 if (!inButton) {
                     //moves out of intaking if stop pressing to intake
@@ -165,12 +176,7 @@ public class ServoSpindexer {
                 }
                 //once indexing is done
                 if (isWithinTolerance(currentAngle, targetAngle) || indexTimer.seconds() > 1) {
-                    if (isFull() && shouldSort) {
-                        //if full starts to align
-                        alignTimer.reset();
-                        hasAligned = false;
-                        spindexerState = SpindexerState.ALIGNING;
-                    } else if (inButton) {
+                    if (inButton) {
                         //if holding in, goes back to intaking
                         intakeTimer.reset();
                         spindexerState = SpindexerState.INTAKING;
@@ -315,12 +321,19 @@ public class ServoSpindexer {
     }
 
     public boolean ballDetectedSpin(){
+        if((getBackDistance() < 4 || getSpinDistance() < 2 || getSpinDistance2() < 2) && (getSpinDistance() > 1)){
+            return true;
+        }
+        return false;
+        //old code
+        /*
         isWithinTolerance = Math.floorMod((int)currentAngle-180, 120);
         //value not tuned
         if ((isWithinTolerance > 110 || isWithinTolerance < 10) && sensorAlphaSpin > 0.2) {
             return true;
         }
         return false;
+         */
     }
 
     public boolean ballIsGreenSpin(){
@@ -441,6 +454,16 @@ public class ServoSpindexer {
 
     public void setCorrectOrder(int[] correctOrder) {
         this.correctOrder = correctOrder;
+    }
+
+    public double getBackDistance(){
+        return backColor.getDistance(DistanceUnit.CM);
+    }
+    public double getSpinDistance(){
+        return spinColor.getDistance(DistanceUnit.CM);
+    }
+    public double getSpinDistance2(){
+        return spinColor2.getDistance(DistanceUnit.CM);
     }
 
 }
