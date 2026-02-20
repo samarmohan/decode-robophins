@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.testing;
 
 import android.os.Environment;
 
@@ -10,6 +10,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.teleop.Drivetrain;
+import org.firstinspires.ftc.teamcode.teleop.Intake;
+import org.firstinspires.ftc.teamcode.teleop.Limelight;
+import org.firstinspires.ftc.teamcode.teleop.Spindexer;
+import org.firstinspires.ftc.teamcode.teleop.Turret;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,7 +23,7 @@ import java.util.HashMap;
 
 @Disabled
 @TeleOp(name = "Turret Regression Finder")
-public class regressionDataFinder extends LinearOpMode{
+public class AutoAimRegressionFinder extends LinearOpMode{
     private final Turret turret = new Turret();
     private final Drivetrain drive = new Drivetrain();
     private final Limelight limelight = new Limelight();

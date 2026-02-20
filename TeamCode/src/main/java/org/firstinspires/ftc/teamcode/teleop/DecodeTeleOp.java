@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name = "Decode TeleOp", group = "Competition")
@@ -15,7 +16,7 @@ public class DecodeTeleOp extends LinearOpMode {
     private final Drivetrain drive = new Drivetrain();
     private final Limelight limelight = new Limelight();
     private final Intake intake = new Intake();
-    private final Spindexer spindexer = new Spindexer();
+    private final ServoSpindexer spindexer = new ServoSpindexer();
     private final Tilt tilt = new Tilt();
 
     // Constants
@@ -295,13 +296,12 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addLine("---------------------------------------");
             telemetry.addData("Spindexer State", spindexer.getState());
             telemetry.addData("Intake State", intake.getState());
-            telemetry.addData("Ball in Spindexer", spindexer.getSpindexerBall());
             telemetry.addData("Ball in Spindexer? BOOLEAN", spindexer.ballDetectedSpin(isOffset));
             telemetry.addData("Spindexer Alpha", spindexer.getSensorAlphaSpin());
             telemetry.addData("Ball Count", spindexer.isFull() ? "3 (FULL)" : spindexer.hasBalls() ? "1-2" : "0");
             telemetry.addData("Current Order", spindexer.getOrder());
-            telemetry.addData("Spindexer Target", spindexer.target);
-            telemetry.addData("Spindexer Angle", spindexer.getCurrentAngle());
+            telemetry.addData("Spindexer Target", spindexer.targetAngle);
+            telemetry.addData("Spindexer Angle", spindexer.currentAngle);
             telemetry.addData("D", spindexer.isWithinTolerance);
             telemetry.update();
         }
