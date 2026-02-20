@@ -47,7 +47,7 @@ public class ServoSpindexer {
     private boolean hasShot;
     private boolean hasIndexed;
     private boolean hasAligned;
-    
+
     public int[] order = {0,0,0};
     public int[] correctOrder = {2,1,1};
     public double[][] weights = generateWeightArray(0.9);
@@ -242,9 +242,10 @@ public class ServoSpindexer {
     }
 
     public void setServoPositions(double position) {
-        forwardServo.setPosition(position);
-        leftServo.setPosition(position);
-        rightServo.setPosition(position);
+        double correctedPos = Math.min(1,Math.max(0,position));
+        forwardServo.setPosition(correctedPos);
+        leftServo.setPosition(correctedPos);
+        rightServo.setPosition(correctedPos);
     }
 
     public void setTargetAngle(double angle) {
