@@ -105,10 +105,7 @@ public class ServoSpindexer {
         intakeTimer.reset();
 
         //default servo position
-        targetAngle = 240;
-        targetPosition = angleToPosition(targetAngle);
-        currentAngle = positionToAngle(getCurrentPosition(getVoltage()));
-        setServoPositions(targetPosition);
+        setTargetAngle(240);
     }
 
     /**
@@ -119,11 +116,6 @@ public class ServoSpindexer {
      * @param isFlywheelReady - true when flywheel is at speed and ready to shoot
      */
     public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady, boolean indexOverride, boolean shouldSort) {
-
-        targetPosition = angleToPosition(targetAngle);
-
-        currentPosition = getCurrentPosition(getVoltage());
-        currentAngle = positionToAngle(currentPosition);
 
         NormalizedRGBA colorsSpin = spinColor.getNormalizedColors();
         double distanceSpin = getSpinDistance();
@@ -234,7 +226,7 @@ public class ServoSpindexer {
                 break;
         }
         intake.setState(intakeState);
-        setServoPositions(targetPosition);
+        updateCurrentValues();
     }
 
     public Intake.IntakeState getIntakeCommand() {
@@ -250,12 +242,14 @@ public class ServoSpindexer {
 
     public void setTargetAngle(double angle) {
         targetAngle = angle;
+        targetPosition = angleToPosition(targetAngle);
+        setServoPositions(targetPosition);
     }
 
-    public double getTargetAngle() {
-        return targetAngle;
+    public void updateCurrentValues() {
+        currentPosition = voltageToPosition(getVoltage());
+        currentAngle = positionToAngle(currentPosition);
     }
-
     public double angleToPosition(double angle) {
         double newPosition = angle / (315 * (GEAR_RATIO));
         return Math.min(1.0, Math.max(0.0, newPosition));
@@ -265,41 +259,55 @@ public class ServoSpindexer {
         return position * (315 * (GEAR_RATIO));
     }
 
+    public double voltageToPosition(double voltage) {
+        return (voltage * 0.355892) - 0.0790679;
+    }
+
     public double getVoltage() {
         return forwardEncoder.getVoltage();
     }
-
-    public double getCurrentPosition(double voltage) {
-        return (voltage * 0.355892) - 0.0790679;
+    // getters for target angle, target position, current position, current angle
+    public double getTargetAngle() {
+        return targetAngle;
+    }
+    public double getTargetPosition() {
+        return targetPosition;
+    }
+    public double getCurrentPosition() {
+        return currentPosition;
+    }
+    public double getCurrentAngle() {
+        return currentAngle;
     }
 
     public boolean isWithinTolerance(double current, double target) {
         return Math.abs(current-target) < 1;
     }
     public void index() {
-        targetAngle += 120;
+        setTargetAngle(targetAngle + 120);
         shiftArrayRight(order);
     }
     public void shoot() {
-        targetAngle = 0;
+        setTargetAngle(0);
         order = new int[]{0, 0, 0};
     }
     public void align() {
         int shift = findBestShift(correctOrder, order, weights);
         for (int i = 0; i < shift; i++){
-            targetAngle += 120;
+            setTargetAngle(targetAngle + 120);
             shiftArrayRight(order);
         }
     }
     public void alignBack() {
-        targetAngle -= 60;
+        setTargetAngle(targetAngle - 60);
     }
     public void alignToHold() {
-        targetAngle += 60;
+        setTargetAngle(targetAngle + 60);
     }
     public void alignToStart(){
-        targetAngle = 240;
+        setTargetAngle(240);
     }
+
 
     public void resetTarget() {
         targetAngle = 0;
