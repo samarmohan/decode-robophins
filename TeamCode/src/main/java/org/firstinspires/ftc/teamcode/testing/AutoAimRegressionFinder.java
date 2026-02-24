@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.teleop.Drivetrain;
 import org.firstinspires.ftc.teamcode.teleop.Intake;
 import org.firstinspires.ftc.teamcode.teleop.Limelight;
+import org.firstinspires.ftc.teamcode.teleop.ServoSpindexer;
 import org.firstinspires.ftc.teamcode.teleop.Spindexer;
 import org.firstinspires.ftc.teamcode.teleop.Turret;
 
@@ -21,14 +22,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 
-@Disabled
+
 @TeleOp(name = "Turret Regression Finder")
 public class AutoAimRegressionFinder extends LinearOpMode{
     private final Turret turret = new Turret();
     private final Drivetrain drive = new Drivetrain();
     private final Limelight limelight = new Limelight();
     private final Intake intake = new Intake();
-    private final Spindexer spindexer = new Spindexer();
+    private final ServoSpindexer spindexer = new ServoSpindexer();
     @Override
     public void runOpMode() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -72,7 +73,6 @@ public class AutoAimRegressionFinder extends LinearOpMode{
                     currentGamepad1.cross,          // In
                     currentGamepad1.right_trigger,  // Shoot
                     isFlywheelReady,
-                    false,
                     false,
                     false
             );

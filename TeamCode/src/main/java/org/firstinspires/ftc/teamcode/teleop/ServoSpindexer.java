@@ -303,10 +303,7 @@ public class ServoSpindexer {
     }
 
     public boolean ballDetectedSpin(){
-        if(getBackDistance() < 5 && !(getSpinDistance() < 0.9)){
-            return true;
-        }
-        return false;
+        return (getBackDistance() < 3.0) && !(getSpinDistance() < 0.9);
     }
 
     public boolean ballIsGreenSpin(){

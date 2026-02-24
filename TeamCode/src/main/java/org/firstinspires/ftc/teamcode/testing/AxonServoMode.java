@@ -82,6 +82,7 @@ public class AxonServoMode extends LinearOpMode {
             telemetry.addData("Current Angle", currentAngle);
             telemetry.addData("currect angle from average", getCurrentServoPosition((forwardEncoder.getVoltage() + rightEncoder.getVoltage())/2));
             telemetry.addData("back distance", backColor.getDistance(DistanceUnit.CM));
+            telemetry.addData("back alpha", backColor.getNormalizedColors().alpha);
             telemetry.addData("spin distance", spinColor.getDistance(DistanceUnit.CM));
             telemetry.addData("2nd spin distance", spinColor2.getDistance(DistanceUnit.CM));
             telemetry.update();

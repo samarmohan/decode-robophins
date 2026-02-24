@@ -38,15 +38,17 @@ public class DecodeTeleOp extends LinearOpMode {
     }
 
     private double lastTime;
-    
+
 
     @Override
     public void runOpMode() {
         //bulk reading
+
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
+
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetry.addData("Status", "DEAD");
@@ -86,6 +88,7 @@ public class DecodeTeleOp extends LinearOpMode {
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
             }
+             
 
             previousGamepad1.copy(currentGamepad1);
             previousGamepad2.copy(currentGamepad2);
