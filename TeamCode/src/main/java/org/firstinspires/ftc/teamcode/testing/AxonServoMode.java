@@ -73,11 +73,14 @@ public class AxonServoMode extends LinearOpMode {
             servoLeft.setPosition(targetPosition);
             servoRight.setPosition(targetPosition);
 
-            telemetry.addData("Target Position", targetAngle);
+            telemetry.addData("Target Position", targetPosition);
             telemetry.addData("Current Position", currentPosition);
             telemetry.addLine("------------------------------");
             telemetry.addData("Target Angle", targetAngle);
+            telemetry.addData("voltage", forwardEncoder.getVoltage());
+            telemetry.addData("voltage average", (forwardEncoder.getVoltage() + rightEncoder.getVoltage())/2);
             telemetry.addData("Current Angle", currentAngle);
+            telemetry.addData("currect angle from average", getCurrentServoPosition((forwardEncoder.getVoltage() + rightEncoder.getVoltage())/2));
             telemetry.addData("back distance", backColor.getDistance(DistanceUnit.CM));
             telemetry.addData("spin distance", spinColor.getDistance(DistanceUnit.CM));
             telemetry.addData("2nd spin distance", spinColor2.getDistance(DistanceUnit.CM));
@@ -99,6 +102,6 @@ public class AxonServoMode extends LinearOpMode {
     }
 
     public double getCurrentServoPosition(double voltage) {
-        return (voltage * 0.355892) - 0.0790679;
+        return (0.351385 * voltage) - 0.076737;
     }
 }

@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.hardware.lynx.LynxModule;
 import java.util.List;
+import java.util.logging.*;
 
 @TeleOp(name = "Decode TeleOp", group = "Competition")
 public class DecodeTeleOp extends LinearOpMode {
@@ -37,6 +38,7 @@ public class DecodeTeleOp extends LinearOpMode {
     }
 
     private double lastTime;
+    
 
     @Override
     public void runOpMode() {

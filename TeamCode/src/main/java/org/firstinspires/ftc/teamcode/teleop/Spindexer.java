@@ -141,9 +141,7 @@ public class Spindexer {
         switch (spindexerState) {
             case INTAKING:
                 intakeState = Intake.IntakeState.INTAKE;
-                if (ballDetectedSpin(isOffset) && intakeTimer
-
-                        .seconds() > 0.5 || indexOverride) {
+                if (ballDetectedSpin(isOffset) && intakeTimer.seconds() > 0.5 || indexOverride) {
                     if (ballIsGreenSpin(isOffset)) {
                         order[0] = 2;
                     } else {

@@ -45,17 +45,13 @@ public class ServoSpindexer {
     public int isWithinTolerance;
 
     private boolean hasShot;
-    private boolean hasIndexed;
-    private boolean hasAligned;
 
     public int[] order = {0,0,0};
     public int[] correctOrder = {2,1,1};
     public double[][] weights = generateWeightArray(0.9);
 
-    private ElapsedTime indexTimer;
-    private ElapsedTime alignTimer;
     private ElapsedTime shootTimer;
-    private ElapsedTime intakeTimer;
+
 
     public enum SpindexerState {
         INTAKING,
@@ -95,14 +91,8 @@ public class ServoSpindexer {
 
 
         //timers
-        indexTimer = new ElapsedTime();
-        indexTimer.reset();
-        alignTimer = new ElapsedTime();
-        alignTimer.reset();
         shootTimer = new ElapsedTime();
         shootTimer.reset();
-        intakeTimer = new ElapsedTime();
-        intakeTimer.reset();
 
         //default servo position
         targetAngle = 240;
@@ -120,13 +110,13 @@ public class ServoSpindexer {
      */
     public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady, boolean indexOverride, boolean shouldSort) {
 
-        targetPosition = angleToPosition(targetAngle);
+        targetPosition = angleToPosition((Math.min(Math.max(targetAngle, 0),720)));
 
-        currentPosition = getCurrentPosition(getVoltage());
+        currentPosition = getCurrentPosition(getVoltageAverage());
         currentAngle = positionToAngle(currentPosition);
 
         NormalizedRGBA colorsSpin = spinColor.getNormalizedColors();
-        double distanceSpin = getSpinDistance();
+
 
         trueRedSpin = colorsSpin.red;
         trueBlueSpin = colorsSpin.blue;
@@ -138,7 +128,7 @@ public class ServoSpindexer {
                 //set intake
                 intakeState = Intake.IntakeState.INTAKE;
                 //ball detection for indexing
-                if (ballDetectedSpin() && intakeTimer.seconds() > 0.5 || indexOverride) {
+                if ((isWithinTolerance(currentAngle, targetAngle) && ballDetectedSpin()) || indexOverride) {
                     if (ballIsGreenSpin()) {
                         order[0] = 2;
                     } else {
@@ -146,60 +136,47 @@ public class ServoSpindexer {
                     }
                     //switching state to indexing
                     if(!isFull()) {
-                        hasIndexed = false;
-                        indexTimer.reset();
                         spindexerState = SpindexerState.INDEXING;
+                        break;
                     }
                     else if(shouldSort){
                         //if full starts to align
-                        alignTimer.reset();
-                        hasAligned = false;
                         spindexerState = SpindexerState.ALIGNING;
+                        break;
                     }else{
                         alignToHold();
                         spindexerState = SpindexerState.READY_TO_SHOOT;
+                        break;
                     }
                 }
                 if (!inButton) {
                     //moves out of intaking if stop pressing to intake
                     alignToHold();
                     spindexerState = SpindexerState.READY_TO_SHOOT;
+                    break;
                 }
                 break;
             case INDEXING:
                 //set intake state
                 intakeState = Intake.IntakeState.INTAKE;
-                //first loop indexes
-                if (!hasIndexed) {
-                    hasIndexed = true;
-                    index();
+                index();
+                if (inButton) {
+                    //if holding in, goes back to intaking
+                    spindexerState = SpindexerState.INTAKING;
+                    break;
+                } else {
+                    //defaults to hold position
+                    alignToHold();
+                    spindexerState = SpindexerState.READY_TO_SHOOT;
+                    break;
                 }
-                //once indexing is done
-                if (isWithinTolerance(currentAngle, targetAngle) || indexTimer.seconds() > 1) {
-                    if (inButton) {
-                        //if holding in, goes back to intaking
-                        intakeTimer.reset();
-                        spindexerState = SpindexerState.INTAKING;
-                    } else {
-                        //defaults to hold position
-                        alignToHold();
-                        spindexerState = SpindexerState.READY_TO_SHOOT;
-                    }
-                }
-                break;
             case ALIGNING:
                 //set intake state
                 intakeState = Intake.IntakeState.OUTTAKE;
-                //first loop runs align
-                if (!hasAligned) {
-                    align();
-                    hasAligned = true;
-                }
-                //once done switches to ready to shoot
-                if (isWithinTolerance(currentAngle, targetAngle) || alignTimer.seconds() > 1) {
-                    alignToHold();
-                    spindexerState = SpindexerState.READY_TO_SHOOT;
-                }
+
+                align();
+                alignToHold();
+                spindexerState = SpindexerState.READY_TO_SHOOT;
                 break;
             case READY_TO_SHOOT:
                 //sets intake state
@@ -207,14 +184,14 @@ public class ServoSpindexer {
                 //if there is space allows you to intake
                 if (inButton && !isFull()) {
                     alignBack();
-                    intakeTimer.reset();
                     spindexerState = SpindexerState.INTAKING;
+                    break;
                 }
                 //if flywheel is up to RPM allows you to shoot
                 else if (shootTrigger > 0.2 && isFlywheelReady) {
                     shootTimer.reset();
-                    hasShot = false;
                     spindexerState = SpindexerState.SHOOTING;
+                    break;
                 }
                 break;
             case SHOOTING:
@@ -269,12 +246,16 @@ public class ServoSpindexer {
         return forwardEncoder.getVoltage();
     }
 
+    public double getVoltageAverage(){
+        return (getVoltage() + rightEncoder.getVoltage())/2;
+    }
+
     public double getCurrentPosition(double voltage) {
-        return (voltage * 0.355892) - 0.0790679;
+        return (0.351385 * voltage) - 0.076737;
     }
 
     public boolean isWithinTolerance(double current, double target) {
-        return Math.abs(current-target) < 1;
+        return Math.abs(current-target) < 12;
     }
     public void index() {
         targetAngle += 120;
@@ -322,19 +303,10 @@ public class ServoSpindexer {
     }
 
     public boolean ballDetectedSpin(){
-        if((getBackDistance() < 4 || getSpinDistance() < 2 || getSpinDistance2() < 2) && (getSpinDistance() > 1)){
+        if(getBackDistance() < 5 && !(getSpinDistance() < 0.9)){
             return true;
         }
         return false;
-        //old code
-        /*
-        isWithinTolerance = Math.floorMod((int)currentAngle-180, 120);
-        //value not tuned
-        if ((isWithinTolerance > 110 || isWithinTolerance < 10) && sensorAlphaSpin > 0.2) {
-            return true;
-        }
-        return false;
-         */
     }
 
     public boolean ballIsGreenSpin(){
