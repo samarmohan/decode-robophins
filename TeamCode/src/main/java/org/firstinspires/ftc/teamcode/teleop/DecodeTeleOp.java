@@ -88,7 +88,7 @@ public class DecodeTeleOp extends LinearOpMode {
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
             }
-             
+
 
             previousGamepad1.copy(currentGamepad1);
             previousGamepad2.copy(currentGamepad2);
@@ -117,12 +117,11 @@ public class DecodeTeleOp extends LinearOpMode {
 
             limelight.update(heading);
 
-            if (currentGamepad2.right_bumper && !previousGamepad2.right_bumper){
-                spindexer.setTargetAngle(spindexer.getTargetAngle()+60);
-                isOffset = !isOffset;
+            if (currentGamepad2.right_trigger > 0.2){
+                spindexer.resetTarget();
             }
             if (currentGamepad2.left_bumper && !previousGamepad2.left_bumper){
-                spindexer.setTargetAngle(0);
+                spindexer.shoot();
             }
 
             if (currentGamepad2.dpad_left && currentGamepad2.dpad_up) {
@@ -316,6 +315,8 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Spindexer State", spindexer.getState());
             telemetry.addData("Intake State", intake.getState());
             telemetry.addData("back sensor distance", spindexer.getBackDistance());
+            telemetry.addData("back sensor raw distance", spindexer.getRawBackDistance());
+            telemetry.addData("back alpha", spindexer.getBackAlpha());
             telemetry.addData("spin sensor distance", spindexer.getSpinDistance());
             telemetry.addData("2nd spin sensor distance", spindexer.getSpinDistance2());
             telemetry.addData("Ball in Spindexer? BOOLEAN", spindexer.ballDetectedSpin());

@@ -281,9 +281,12 @@ public class ServoSpindexer {
     public void alignToStart(){
         targetAngle = 240;
     }
+    public void alignToEnd(){
+        targetAngle = 720;
+    }
 
     public void resetTarget() {
-        targetAngle = 0;
+        targetAngle = currentAngle;
     }
     public boolean hasBalls() {
         for (int i : order) {
@@ -303,7 +306,8 @@ public class ServoSpindexer {
     }
 
     public boolean ballDetectedSpin(){
-        return (getBackDistance() < 3.0) && !(getSpinDistance() < 0.9);
+        //return (getBackDistance() < 9.0) && !(getSpinDistance() < 0.9);
+        return (getBackAlpha() < 0.03) && !(getSpinDistance() <0.9);
     }
 
     public boolean ballIsGreenSpin(){
@@ -434,6 +438,14 @@ public class ServoSpindexer {
     }
     public double getSpinDistance2(){
         return spinColor2.getDistance(DistanceUnit.CM);
+    }
+
+    public double getRawBackDistance(){
+        return backColor.rawOptical();
+    }
+
+    public double getBackAlpha(){
+        return backColor.getNormalizedColors().alpha;
     }
 
 }
