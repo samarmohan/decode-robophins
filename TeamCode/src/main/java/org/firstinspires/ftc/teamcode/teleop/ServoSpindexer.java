@@ -59,7 +59,7 @@ public class ServoSpindexer {
     // cutoff distance
     private double cutoffDistance;
     // cutoffDelta
-    private double cutoffDelta = 1;
+    private double cutoffDelta = 1.5;
 
 
     public enum SpindexerState {
@@ -121,7 +121,7 @@ public class ServoSpindexer {
 
         targetPosition = angleToPosition((Math.min(Math.max(targetAngle, 0),720)));
 
-        currentPosition = getCurrentPosition(getVoltageAverage());
+        currentPosition = getCurrentPosition(getVoltage());
         currentAngle = positionToAngle(currentPosition);
 
         NormalizedRGBA colorsSpin = spinColor.getNormalizedColors();
@@ -214,12 +214,14 @@ public class ServoSpindexer {
                 if (!hasShot) {
                     shoot();
                     hasShot = true;
+                    break;
                 }
                 //once done goes back to ready to shoot(defualt state)
-                if (isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 1) {
+                if (isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 10) {
                     alignToStart();
                     hasShot = false;
                     spindexerState = SpindexerState.READY_TO_SHOOT;
+                    break;
                 }
                 break;
         }
@@ -268,7 +270,7 @@ public class ServoSpindexer {
     }
 
     public boolean isWithinTolerance(double current, double target) {
-        return Math.abs(current-target) < 12;
+        return Math.abs(current-target) < 10;
     }
     public void index() {
         targetAngle += 120;

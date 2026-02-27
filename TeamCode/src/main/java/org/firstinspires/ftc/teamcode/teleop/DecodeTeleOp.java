@@ -103,7 +103,8 @@ public class DecodeTeleOp extends LinearOpMode {
             spindexer.update(
                     currentGamepad1.cross,          // In
                     currentGamepad1.right_trigger,  // Shoot
-                    isFlywheelReady,
+                    // TODO fix and make actual variable
+                    true,
                     currentGamepad2.right_trigger > 0.1,        // Manual Index
                     shouldSort
             );

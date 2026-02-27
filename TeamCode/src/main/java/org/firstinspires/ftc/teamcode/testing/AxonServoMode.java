@@ -60,7 +60,7 @@ public class AxonServoMode extends LinearOpMode {
 
         while (opModeIsActive()) {
             targetPosition = angleToServoPosition(targetAngle);
-            currentPosition = getCurrentServoPosition(forwardEncoder.getVoltage());
+            currentPosition = getCurrentServoPosition((forwardEncoder.getVoltage() + rightEncoder.getVoltage())/2);
             currentAngle = positionToAngle(currentPosition);
 
             if (gamepad1.squareWasPressed()) {
@@ -80,7 +80,7 @@ public class AxonServoMode extends LinearOpMode {
             telemetry.addData("voltage", forwardEncoder.getVoltage());
             telemetry.addData("voltage average", (forwardEncoder.getVoltage() + rightEncoder.getVoltage())/2);
             telemetry.addData("Current Angle", currentAngle);
-            telemetry.addData("currect angle from average", getCurrentServoPosition((forwardEncoder.getVoltage() + rightEncoder.getVoltage())/2));
+            telemetry.addData("correct angle from average", getCurrentServoPosition((forwardEncoder.getVoltage() + rightEncoder.getVoltage())/2));
             telemetry.addData("back distance", backColor.getDistance(DistanceUnit.CM));
             telemetry.addData("back alpha", backColor.getNormalizedColors().alpha);
             telemetry.addData("back raw", backColor.rawOptical());
