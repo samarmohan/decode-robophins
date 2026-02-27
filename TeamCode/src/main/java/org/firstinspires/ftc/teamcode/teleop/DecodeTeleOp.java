@@ -326,6 +326,7 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Spindexer Target", spindexer.targetAngle);
             telemetry.addData("Spindexer Angle", spindexer.currentAngle);
             telemetry.addData("D", spindexer.isWithinTolerance);
+            telemetry.addData("cutoff: ", spindexer.getCutoffDistance());
             telemetry.update();
         }
         limelight.stop();

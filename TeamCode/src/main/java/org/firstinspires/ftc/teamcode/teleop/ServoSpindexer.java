@@ -53,6 +53,15 @@ public class ServoSpindexer {
     private ElapsedTime shootTimer;
 
 
+    // CHANGING CUTOFF THINGS
+    // holdingDistance
+    private double holdingDistance;
+    // cutoff distance
+    private double cutoffDistance;
+    // cutoffDelta
+    private double cutoffDelta = 1;
+
+
     public enum SpindexerState {
         INTAKING,
         INDEXING,
@@ -179,6 +188,10 @@ public class ServoSpindexer {
                 spindexerState = SpindexerState.READY_TO_SHOOT;
                 break;
             case READY_TO_SHOOT:
+                // CUTOFF DISTANCE THINGS
+                holdingDistance = getBackDistance();
+                cutoffDistance = holdingDistance - cutoffDelta;
+
                 //sets intake state
                 intakeState = Intake.IntakeState.OUTTAKE;
                 //if there is space allows you to intake
@@ -307,7 +320,7 @@ public class ServoSpindexer {
 
     public boolean ballDetectedSpin(){
         //return (getBackDistance() < 9.0) && !(getSpinDistance() < 0.9);
-        return (getBackAlpha() < 0.03) && !(getSpinDistance() <0.9);
+        return (getBackDistance() < cutoffDistance) && !(getSpinDistance() <0.9);
     }
 
     public boolean ballIsGreenSpin(){
@@ -446,6 +459,10 @@ public class ServoSpindexer {
 
     public double getBackAlpha(){
         return backColor.getNormalizedColors().alpha;
+    }
+
+    public double getCutoffDistance(){
+        return cutoffDistance;
     }
 
 }
