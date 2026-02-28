@@ -45,7 +45,7 @@ public class BlueClose {
                 .strafeToSplineHeading(shooting, BLUE_OBELISK_ROTATION)
 //                .stopAndAdd(spindexer.getObelisk())
                 .waitSeconds(0.5)
-                .turnTo(BLUE_SHOOT_ROTATION+Math.toRadians(3))
+                .turnTo(BLUE_SHOOT_ROTATION)
 //                .stopAndAdd(spindexer.alignForShooting())
                 .waitSeconds(SHOOT_WAIT_TIME)
 //                .stopAndAdd(spindexer.shoot())

@@ -20,7 +20,7 @@ public class DecodeTeleOp extends LinearOpMode {
     private final Limelight limelight = new Limelight();
     private final Intake intake = new Intake();
     private final ServoSpindexer spindexer = new ServoSpindexer();
-    private final Tilt tilt = new Tilt();
+    //private final Tilt tilt = new Tilt();
 
     // Constants
     private static final double TURRET_MIN_DEG = -135.0;
@@ -59,7 +59,7 @@ public class DecodeTeleOp extends LinearOpMode {
         intake.init(hardwareMap);
         limelight.init(hardwareMap);
         spindexer.init(hardwareMap, intake);
-        tilt.init(hardwareMap);
+        //tilt.init(hardwareMap);
 
         Gamepad currentGamepad1 = new Gamepad();
         Gamepad currentGamepad2 = new Gamepad();
@@ -236,7 +236,6 @@ public class DecodeTeleOp extends LinearOpMode {
             if (turretMode != TurretMode.OVERRIDE) {
                 boolean currentAprilTagVisible = limelight.isResultValid();
 
-
                 // Detect mode switching and reset PID states accordingly
                 if (currentAprilTagVisible != previousAprilTagVisible) {
                     if (currentAprilTagVisible) {
@@ -264,15 +263,15 @@ public class DecodeTeleOp extends LinearOpMode {
             turret.updateFlywheelPID(currentTime);
             turret.applyFlywheelPower();
 
-            if (currentGamepad2.square && !previousGamepad2.square) {
-                shouldTilt = !shouldTilt;
-            }
-
-            if (shouldTilt) {
-                tilt.moveDown();
-            } else {
-                tilt.moveUp();
-            }
+//            if (currentGamepad2.square && !previousGamepad2.square) {
+//                shouldTilt = !shouldTilt;
+//            }
+//
+//            if (shouldTilt) {
+//                tilt.moveDown();
+//            } else {
+//                tilt.moveUp();
+//            }
 
             telemetry.addData("Loop Speed (ms)", (currentTime-lastTime)*1000);
             lastTime = currentTime;
