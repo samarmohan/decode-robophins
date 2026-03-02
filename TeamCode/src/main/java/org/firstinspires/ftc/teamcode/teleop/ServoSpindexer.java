@@ -59,7 +59,7 @@ public class ServoSpindexer {
     // cutoff distance
     private double cutoffDistance;
     // cutoffDelta
-    private double cutoffDelta = 1;
+    private double cutoffDelta = 1.5;
 
 
     public enum SpindexerState {
@@ -104,10 +104,10 @@ public class ServoSpindexer {
         shootTimer.reset();
 
         //default servo position
-        targetAngle = 240;
-        targetPosition = angleToPosition(targetAngle);
-        currentAngle = positionToAngle(getCurrentPosition(getVoltage()));
-        setServoPositions(targetPosition);
+        setTargetAngle(240);
+
+        currentPosition = getCurrentPosition(getVoltage());
+        currentAngle = positionToAngle(currentPosition);
     }
 
     /**
@@ -119,13 +119,10 @@ public class ServoSpindexer {
      */
     public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady, boolean indexOverride, boolean shouldSort) {
 
-        targetPosition = angleToPosition((Math.min(Math.max(targetAngle, 0),720)));
-
-        currentPosition = getCurrentPosition(getVoltageAverage());
+        currentPosition = getCurrentPosition(getVoltage());
         currentAngle = positionToAngle(currentPosition);
 
         NormalizedRGBA colorsSpin = spinColor.getNormalizedColors();
-
 
         trueRedSpin = colorsSpin.red;
         trueBlueSpin = colorsSpin.blue;
@@ -146,23 +143,18 @@ public class ServoSpindexer {
                     //switching state to indexing
                     if(!isFull()) {
                         spindexerState = SpindexerState.INDEXING;
-                        break;
-                    }
-                    else if(shouldSort){
+                    } else if (shouldSort){
                         //if full starts to align
                         spindexerState = SpindexerState.ALIGNING;
-                        break;
-                    }else{
+                    } else {
                         alignToHold();
                         spindexerState = SpindexerState.READY_TO_SHOOT;
-                        break;
                     }
                 }
                 if (!inButton) {
                     //moves out of intaking if stop pressing to intake
                     alignToHold();
                     spindexerState = SpindexerState.READY_TO_SHOOT;
-                    break;
                 }
                 break;
             case INDEXING:
@@ -172,13 +164,12 @@ public class ServoSpindexer {
                 if (inButton) {
                     //if holding in, goes back to intaking
                     spindexerState = SpindexerState.INTAKING;
-                    break;
                 } else {
                     //defaults to hold position
                     alignToHold();
                     spindexerState = SpindexerState.READY_TO_SHOOT;
-                    break;
                 }
+                break;
             case ALIGNING:
                 //set intake state
                 intakeState = Intake.IntakeState.OUTTAKE;
@@ -198,13 +189,11 @@ public class ServoSpindexer {
                 if (inButton && !isFull()) {
                     alignBack();
                     spindexerState = SpindexerState.INTAKING;
-                    break;
                 }
                 //if flywheel is up to RPM allows you to shoot
                 else if (shootTrigger > 0.2 && isFlywheelReady) {
                     shootTimer.reset();
                     spindexerState = SpindexerState.SHOOTING;
-                    break;
                 }
                 break;
             case SHOOTING:
@@ -216,7 +205,7 @@ public class ServoSpindexer {
                     hasShot = true;
                 }
                 //once done goes back to ready to shoot(defualt state)
-                if (isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 1) {
+                if (isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 10) {
                     alignToStart();
                     hasShot = false;
                     spindexerState = SpindexerState.READY_TO_SHOOT;
@@ -224,22 +213,18 @@ public class ServoSpindexer {
                 break;
         }
         intake.setState(intakeState);
-        setServoPositions(targetPosition);
     }
 
     public Intake.IntakeState getIntakeCommand() {
         return intakeState;
     }
 
-    public void setServoPositions(double position) {
-        double correctedPos = Math.min(1,Math.max(0,position));
-        forwardServo.setPosition(correctedPos);
-        leftServo.setPosition(correctedPos);
-        rightServo.setPosition(correctedPos);
-    }
-
     public void setTargetAngle(double angle) {
         targetAngle = angle;
+        targetPosition = angleToPosition((Math.min(Math.max(targetAngle, 0),720)));
+        forwardServo.setPosition(targetPosition);
+        leftServo.setPosition(targetPosition);
+        rightServo.setPosition(targetPosition);
     }
 
     public double getTargetAngle() {
@@ -268,38 +253,38 @@ public class ServoSpindexer {
     }
 
     public boolean isWithinTolerance(double current, double target) {
-        return Math.abs(current-target) < 12;
+        return Math.abs(current-target) < 10;
     }
     public void index() {
-        targetAngle += 120;
+        setTargetAngle(targetAngle + 120);
         shiftArrayRight(order);
     }
     public void shoot() {
-        targetAngle = 0;
+        setTargetAngle(0);
         order = new int[]{0, 0, 0};
     }
     public void align() {
         int shift = findBestShift(correctOrder, order, weights);
         for (int i = 0; i < shift; i++){
-            targetAngle += 120;
+            setTargetAngle(targetAngle + 120);
             shiftArrayRight(order);
         }
     }
     public void alignBack() {
-        targetAngle -= 60;
+        setTargetAngle(targetAngle - 60);
     }
     public void alignToHold() {
-        targetAngle += 60;
+        setTargetAngle(targetAngle + 60);
     }
     public void alignToStart(){
-        targetAngle = 240;
+        setTargetAngle(240);
     }
     public void alignToEnd(){
-        targetAngle = 720;
+        setTargetAngle(720);
     }
 
     public void resetTarget() {
-        targetAngle = currentAngle;
+        setTargetAngle(currentAngle);
     }
     public boolean hasBalls() {
         for (int i : order) {
