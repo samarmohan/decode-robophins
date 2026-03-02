@@ -71,15 +71,16 @@ public class Turret {
     // --- Auto Calculations ---
 
     public double autoRPM(double dist) {
+
         if (dist < 30) return FLYWHEEL_RPM_CLOSE;
         if (dist < 225) return 4 * dist + 1920;
-        return FLYWHEEL_RPM_FAR;
+        return 5 * dist + 1525;
     }
 
     public double autoPitch(double dist) {
         if (dist < 30) return 0.3;
-        if (dist < 225) return 0.655;
-        return 0.55; // Far pitch
+        if (dist < 260) return 0.655;
+        return 0.72; // Far pitch
     }
 
     // --- PID Updates ---
@@ -89,7 +90,7 @@ public class Turret {
             limelightRotation_lastTime = currentTimeSeconds;
         }
 
-        double rotationPos = getRotationPosition();
+        double rotationPos = -getRotationPosition();
 
         double error = (isTeamRed) ? tx + 0.5 : tx -0.5;
         double dt = Math.max(currentTimeSeconds - limelightRotation_lastTime, 0.001); // Avoid div/0
@@ -153,7 +154,10 @@ public class Turret {
         double feedforward = targetRPM * FLYWHEEL_kF;
         double output = (FLYWHEEL_kP * error) + (FLYWHEEL_kI * flywheel_integral) + (FLYWHEEL_kD * derivative) + feedforward;
 
-        if (error < 0.3) flywheelOutput = 0;
+        if (error < 0.3){
+            flywheelOutput = 0;
+            flywheel_integral = 0;
+        }
         flywheelOutput = Math.max(-1.0, Math.min(1.0, output));
 
         flywheel_lastError = error;

@@ -281,12 +281,12 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Pos", "X:%.1f Y:%.1f H:%.1f", xPos, yPos, heading);
 
             //color sensor testing
-
+            /*
             telemetry.addData("Alpha: ", spindexer.getSensorAlphaSpin());
             telemetry.addData("Red: ", spindexer.getNormalizedRedSpin());
             telemetry.addData("Blue: ", spindexer.getNormalizedBlueSpin());
             telemetry.addData("Green:", spindexer.getNormalizedGreenSpin());
-            /*
+
             telemetry.addData("Ball Detected:", spindexer.ballDetectedSpin());
             telemetry.addData("Green Detected:", spindexer.ballIsGreenSpin());
             telemetry.addData("Purple Detected:", spindexer.ballIsPurpleSpin());
