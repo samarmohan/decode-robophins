@@ -119,9 +119,6 @@ public class DecodeTeleOp extends LinearOpMode {
 
             limelight.update(heading);
 
-            if (currentGamepad2.right_trigger > 0.2){
-                spindexer.resetTarget();
-            }
             if (currentGamepad2.left_bumper && !previousGamepad2.left_bumper){
                 spindexer.shoot();
             }
@@ -146,7 +143,7 @@ public class DecodeTeleOp extends LinearOpMode {
                 spindexer.setTargetAngle(spindexer.getTargetAngle()+120);
             }
             else if (currentGamepad2.share){
-                spindexer.setTargetAngle(spindexer.getTargetAngle()+240);
+                spindexer.resetTarget();
             }
 
 
