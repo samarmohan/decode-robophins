@@ -20,7 +20,7 @@ public class DecodeTeleOp extends LinearOpMode {
     private final Limelight limelight = new Limelight();
     private final Intake intake = new Intake();
     private final ServoSpindexer spindexer = new ServoSpindexer();
-    //private final Tilt tilt = new Tilt();
+    private final Tilt tilt = new Tilt();
 
     // Constants
     private static final double TURRET_MIN_DEG = -135.0;
@@ -59,7 +59,7 @@ public class DecodeTeleOp extends LinearOpMode {
         intake.init(hardwareMap);
         limelight.init(hardwareMap);
         spindexer.init(hardwareMap, intake);
-        //tilt.init(hardwareMap);
+        tilt.init(hardwareMap);
 
         Gamepad currentGamepad1 = new Gamepad();
         Gamepad currentGamepad2 = new Gamepad();
@@ -74,6 +74,7 @@ public class DecodeTeleOp extends LinearOpMode {
         double pitchPosition = 1.0;
         double testingFlywheelTargetRPM = 0.0;
         boolean previousAprilTagVisible = false;
+        double distance = 55;
 
         TurretMode turretMode = TurretMode.IDLE;
         ElapsedTime runtime = new ElapsedTime();
@@ -190,7 +191,37 @@ public class DecodeTeleOp extends LinearOpMode {
                 }
             }
 
-            double distance = turret.getDistance(limelight.getTa());
+            if (turretMode != TurretMode.OVERRIDE) {
+                boolean currentAprilTagVisible = limelight.isResultValid();
+
+                // Detect mode switching and reset PID states accordingly
+                if (currentAprilTagVisible != previousAprilTagVisible) {
+                    if (currentAprilTagVisible) {
+                        // Switching from general direction to camera PID
+                        turret.resetLimelightPIDState();
+                    } else {
+                        // Switching from camera to general direction PID
+                        turret.resetEncoderPIDState();
+                    }
+                }
+
+                previousAprilTagVisible = currentAprilTagVisible;
+
+
+
+                if (currentAprilTagVisible) {
+                    turret.updateLimelightPID(currentTime, limelight.getTx(), isTeamRed);
+                    turret.applyRotationPower();
+                    distance = turret.getDistance(limelight.getTa());
+
+                } else {
+                    turret.updateEncoderPID(currentTime, 0);
+                    turret.applyRotationPower();
+                }
+            }
+
+            turret.updateFlywheelPID(currentTime);
+            turret.applyFlywheelPower();
 
             switch (turretMode) {
                 case FULL_AUTO:
@@ -233,45 +264,16 @@ public class DecodeTeleOp extends LinearOpMode {
 
             turret.setPitch(pitchPosition);
 
-            if (turretMode != TurretMode.OVERRIDE) {
-                boolean currentAprilTagVisible = limelight.isResultValid();
 
-                // Detect mode switching and reset PID states accordingly
-                if (currentAprilTagVisible != previousAprilTagVisible) {
-                    if (currentAprilTagVisible) {
-                        // Switching from general direction to camera PID
-                        turret.resetLimelightPIDState();
-                    } else {
-                        // Switching from camera to general direction PID
-                        turret.resetEncoderPIDState();
-                    }
-                }
-
-                previousAprilTagVisible = currentAprilTagVisible;
-
-
-
-                if (currentAprilTagVisible) {
-                    turret.updateLimelightPID(currentTime, limelight.getTx(), isTeamRed);
-                    turret.applyRotationPower();
-                } else {
-                    turret.updateEncoderPID(currentTime, 0);
-                    turret.applyRotationPower();
-                }
+            if (currentGamepad2.square && !previousGamepad2.square) {
+                shouldTilt = !shouldTilt;
             }
 
-            turret.updateFlywheelPID(currentTime);
-            turret.applyFlywheelPower();
-
-//            if (currentGamepad2.square && !previousGamepad2.square) {
-//                shouldTilt = !shouldTilt;
-//            }
-//
-//            if (shouldTilt) {
-//                tilt.moveDown();
-//            } else {
-//                tilt.moveUp();
-//            }
+            if (shouldTilt) {
+                tilt.moveDown();
+            } else {
+                tilt.moveUp();
+            }
 
             telemetry.addData("Loop Speed (ms)", (currentTime-lastTime)*1000);
             lastTime = currentTime;

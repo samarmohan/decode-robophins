@@ -200,7 +200,7 @@ public class Spindexer {
                 }
                 break;
             case SHOOTING:
-                intakeState = Intake.IntakeState.OUTTAKE;
+                intakeState = Intake.IntakeState.INTAKE;
                 if (!hasShot) {
                     shoot();
                     hasShot = true;

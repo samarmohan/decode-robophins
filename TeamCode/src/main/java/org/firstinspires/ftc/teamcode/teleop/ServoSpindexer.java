@@ -59,7 +59,7 @@ public class ServoSpindexer {
     // cutoff distance
     private double cutoffDistance;
     // cutoffDelta
-    private double cutoffDelta = 1.5;
+    private double cutoffDelta = 3;
 
 
     public enum SpindexerState {
@@ -198,7 +198,7 @@ public class ServoSpindexer {
                 break;
             case SHOOTING:
                 //sets intake state
-                intakeState = Intake.IntakeState.OUTTAKE;
+                intakeState = Intake.IntakeState.INTAKE;
                 //first loop runs shoot
                 if (!hasShot) {
                     shoot();
