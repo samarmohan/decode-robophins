@@ -1,14 +1,13 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
+
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.Arrays;
@@ -35,7 +34,7 @@ public class ServoSpindexer {
 
     public RevColorSensorV3 spinColor2;
 
-    public RevColorSensorV3 backColor;
+    public Rev2mDistanceSensor backColor;
 
     private double sensorAlphaSpin;
     private double trueRedSpin;
@@ -54,12 +53,9 @@ public class ServoSpindexer {
 
 
     // CHANGING CUTOFF THINGS
-    // holdingDistance
-    private double holdingDistance;
     // cutoff distance
-    private double cutoffDistance;
-    // cutoffDelta
-    private double cutoffDelta = 3;
+    private final double CUTOFF_DISTANCE = 7.0;
+
 
 
     public enum SpindexerState {
@@ -95,8 +91,7 @@ public class ServoSpindexer {
         spinColor2 = hardwareMap.get(RevColorSensorV3.class, "spinColor2");
         spinColor2.setGain(10);
 
-        backColor = hardwareMap.get(RevColorSensorV3.class, "backColor");
-        backColor.setGain(10);
+        backColor = hardwareMap.get(Rev2mDistanceSensor.class, "backColor");
 
 
         //timers
@@ -179,9 +174,6 @@ public class ServoSpindexer {
                 spindexerState = SpindexerState.READY_TO_SHOOT;
                 break;
             case READY_TO_SHOOT:
-                // CUTOFF DISTANCE THINGS
-                holdingDistance = getBackDistance();
-                cutoffDistance = holdingDistance - cutoffDelta;
 
                 //sets intake state
                 intakeState = Intake.IntakeState.OUTTAKE;
@@ -305,7 +297,7 @@ public class ServoSpindexer {
 
     public boolean ballDetectedSpin(){
         //return (getBackDistance() < 9.0) && !(getSpinDistance() < 0.9);
-        return (getBackDistance() < cutoffDistance) && !(getSpinDistance() <0.9);
+        return (getBackDistance() < CUTOFF_DISTANCE) && !(getSpinDistance() <0.9);
     }
 
     public boolean ballIsGreenSpin(){
@@ -438,16 +430,9 @@ public class ServoSpindexer {
         return spinColor2.getDistance(DistanceUnit.CM);
     }
 
-    public double getRawBackDistance(){
-        return backColor.rawOptical();
-    }
-
-    public double getBackAlpha(){
-        return backColor.getNormalizedColors().alpha;
-    }
 
     public double getCutoffDistance(){
-        return cutoffDistance;
+        return CUTOFF_DISTANCE;
     }
 
 }

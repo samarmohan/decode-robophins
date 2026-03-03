@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.testing;
 
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -29,7 +30,7 @@ public class AxonServoMode extends LinearOpMode {
 
     public RevColorSensorV3 spinColor2;
 
-    public RevColorSensorV3 backColor;
+    public Rev2mDistanceSensor backColor;
 
     public double targetAngle;
     public double targetPosition;
@@ -53,8 +54,7 @@ public class AxonServoMode extends LinearOpMode {
         spinColor2 = hardwareMap.get(RevColorSensorV3.class, "spinColor2");
         spinColor2.setGain(10);
 
-        backColor = hardwareMap.get(RevColorSensorV3.class, "backColor");
-        backColor.setGain(10);
+        backColor = hardwareMap.get(Rev2mDistanceSensor.class, "backColor");
 
         waitForStart();
 
@@ -82,8 +82,6 @@ public class AxonServoMode extends LinearOpMode {
             telemetry.addData("Current Angle", currentAngle);
             telemetry.addData("correct angle from average", getCurrentServoPosition((forwardEncoder.getVoltage() + rightEncoder.getVoltage())/2));
             telemetry.addData("back distance", backColor.getDistance(DistanceUnit.CM));
-            telemetry.addData("back alpha", backColor.getNormalizedColors().alpha);
-            telemetry.addData("back raw", backColor.rawOptical());
             telemetry.addData("spin distance", spinColor.getDistance(DistanceUnit.CM));
             telemetry.addData("2nd spin distance", spinColor2.getDistance(DistanceUnit.CM));
             telemetry.update();

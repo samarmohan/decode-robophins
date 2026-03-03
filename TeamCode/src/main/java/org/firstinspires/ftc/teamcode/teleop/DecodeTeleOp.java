@@ -314,8 +314,6 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Spindexer State", spindexer.getState());
             telemetry.addData("Intake State", intake.getState());
             telemetry.addData("back sensor distance", spindexer.getBackDistance());
-            telemetry.addData("back sensor raw distance", spindexer.getRawBackDistance());
-            telemetry.addData("back alpha", spindexer.getBackAlpha());
             telemetry.addData("spin sensor distance", spindexer.getSpinDistance());
             telemetry.addData("2nd spin sensor distance", spindexer.getSpinDistance2());
             telemetry.addData("Ball in Spindexer? BOOLEAN", spindexer.ballDetectedSpin());

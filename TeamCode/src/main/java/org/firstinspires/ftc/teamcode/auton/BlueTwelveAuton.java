@@ -48,7 +48,7 @@ public class BlueTwelveAuton extends LinearOpMode {
         //Actions.runBlocking(new SequentialAction(claw.clawClose()));
 
         Action action = new ParallelAction(
-                spindexer.updateServos(),
+                spindexer.updateSpindexer(),
                 turret.setPitchPosition(PITCH_POSITION),
                 turret.setFlywheelRPM(FLYWHEEL_RPM),
                 drive.actionBuilder(initialPose)
@@ -60,7 +60,7 @@ public class BlueTwelveAuton extends LinearOpMode {
                         .stopAndAdd(spindexer.getObelisk())
                         .waitSeconds(0.5)
                         .turnTo(BLUE_SHOOT_ROTATION+Math.toRadians(3))
-                        .stopAndAdd(spindexer.alignForShooting())
+                        .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
@@ -68,13 +68,13 @@ public class BlueTwelveAuton extends LinearOpMode {
                         // collect first spike and shoot
                         .turnTo(BLUE_COLLECT_ROTATION)
                         .strafeTo(collectFirstSet)
-                        .stopAndAdd(spindexer.indexBall(1))
+                        .stopAndAdd(spindexer.index(1))
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .stopAndAdd(spindexer.indexBall(1))
+                        .stopAndAdd(spindexer.index(1))
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .stopAndAdd(spindexer.indexBall(2))
+                        .stopAndAdd(spindexer.index(2))
                         .strafeToSplineHeading(shooting, BLUE_SHOOT_ROTATION-Math.toRadians(5))
-                        .stopAndAdd(spindexer.alignForShooting())
+                        .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
@@ -87,14 +87,14 @@ public class BlueTwelveAuton extends LinearOpMode {
                         .waitSeconds(0.3)
                         .strafeTo(collectSecondSet)
                         .waitSeconds(0.3)
-                        .stopAndAdd(spindexer.indexBall(1))
+                        .stopAndAdd(spindexer.index(1))
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .stopAndAdd(spindexer.indexBall(2))
+                        .stopAndAdd(spindexer.index(2))
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .stopAndAdd(spindexer.indexBall(1))
+                        .stopAndAdd(spindexer.index(1))
                         .setReversed(true)
                         .splineToSplineHeading(new Pose2d(shooting, BLUE_SHOOT_ROTATION-Math.toRadians(0)), -BLUE_SHOOT_ROTATION)
-                        .stopAndAdd(spindexer.alignForShooting())
+                        .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)

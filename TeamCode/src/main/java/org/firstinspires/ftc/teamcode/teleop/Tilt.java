@@ -5,10 +5,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Tilt {
         public Servo tilt;
 
-        private final double UP_POS = 0.4;
-        private final double DOWN_POS = 0.63;
+        private final double UP_POS = 0.7;
+        private final double DOWN_POS = 1.0;
 
-        public void init(HardwareMap hardwareMap){
+        public void init(HardwareMap hardwareMap) {
             tilt = hardwareMap.get(Servo.class, "tilt");
 
             tilt.setDirection(Servo.Direction.REVERSE);

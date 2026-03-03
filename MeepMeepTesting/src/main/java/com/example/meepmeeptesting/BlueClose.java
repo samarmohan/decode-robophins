@@ -24,9 +24,9 @@ public class BlueClose {
         final double BLUE_SHOOT_ROTATION_SLIGHT_LEFT = Math.toRadians(-132);
         final double BLUE_SHOOT_ROTATION_SLIGHT_RIGHT = Math.toRadians(-138);
         final double BLUE_COLLECT_ROTATION = Math.toRadians(-90);
-        final double BLUE_OBELISK_ROTATION = Math.toRadians(-180);
+        final double BLUE_OBELISK_ROTATION = Math.toRadians(-200);
 
-        Pose2d initialPose = new Pose2d(-40, -52, BLUE_COLLECT_ROTATION);
+        Pose2d initialPose = new Pose2d(-40, -54, BLUE_COLLECT_ROTATION);
         Vector2d shooting = new Vector2d(-10, -14);
         Vector2d collectFirstSet = new Vector2d(-10, -50);
         Vector2d lineUpSecondSet = new Vector2d(15, -22);
