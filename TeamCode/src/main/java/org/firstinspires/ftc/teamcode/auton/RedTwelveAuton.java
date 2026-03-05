@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.auton;
 
 
 import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.COLLECT_WAIT_TIME;
-import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.FLYWHEEL_RPM;
+import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.CLOSE_FLYWHEEL_RPM;
 import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.PITCH_POSITION;
 import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.SHOOT_WAIT_TIME;
 
@@ -12,6 +12,7 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -20,6 +21,7 @@ import org.firstinspires.ftc.teamcode.auton.parts.AutonSpindexer;
 import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
 import org.firstinspires.ftc.teamcode.teleop.Intake;
 
+@Disabled
 @Autonomous(name = "RED - 12 - NO Gate Auton")
 public class RedTwelveAuton extends LinearOpMode {
     @Override
@@ -50,7 +52,7 @@ public class RedTwelveAuton extends LinearOpMode {
         Action action = new ParallelAction(
                 spindexer.updateSpindexer(),
                 turret.setPitchPosition(PITCH_POSITION),
-                turret.setFlywheelRPM(FLYWHEEL_RPM),
+                turret.setFlywheelRPM(CLOSE_FLYWHEEL_RPM),
                 drive.actionBuilder(initialPose)
                         // shoot preset balls
                         .stopAndAdd(spindexer.intake())
@@ -68,11 +70,11 @@ public class RedTwelveAuton extends LinearOpMode {
                         // collect first spike and shoot
                         .turnTo(RED_COLLECT_ROTATION)
                         .strafeTo(collectFirstSet)
-                        .stopAndAdd(spindexer.index(1))
+                        .stopAndAdd(spindexer.index())
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .stopAndAdd(spindexer.index(1))
+                        .stopAndAdd(spindexer.index())
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .stopAndAdd(spindexer.index(2))
+                        .stopAndAdd(spindexer.index())
                         .strafeToSplineHeading(shooting, RED_SHOOT_ROTATION-Math.toRadians(5))
                         .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME)
@@ -86,11 +88,11 @@ public class RedTwelveAuton extends LinearOpMode {
                         .strafeTo(lineUpSecondSet)
                         .waitSeconds(0.3)
                         .strafeTo(collectSecondSet)
-                        .stopAndAdd(spindexer.index(1))
+                        .stopAndAdd(spindexer.index())
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .stopAndAdd(spindexer.index(2))
+                        .stopAndAdd(spindexer.index())
                         .waitSeconds(COLLECT_WAIT_TIME)
-                        .stopAndAdd(spindexer.index(1))
+                        .stopAndAdd(spindexer.index())
                         .setReversed(true)
                         .splineToSplineHeading(new Pose2d(shooting, RED_SHOOT_ROTATION-Math.toRadians(2)), -RED_SHOOT_ROTATION)
                         .stopAndAdd(spindexer.align())

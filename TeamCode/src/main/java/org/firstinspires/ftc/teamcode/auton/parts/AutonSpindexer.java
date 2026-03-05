@@ -5,12 +5,15 @@ import static org.firstinspires.ftc.teamcode.teleop.Spindexer.generateWeightArra
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.teleop.Intake;
 
 import java.util.Arrays;
@@ -35,8 +38,11 @@ public class AutonSpindexer {
     public Servo rightServo;
 
 
-    public NormalizedColorSensor spinColor;
+    public RevColorSensorV3 spinColor;
 
+    public RevColorSensorV3 spinColor2;
+
+    public Rev2mDistanceSensor backColor;
     private double sensorAlphaSpin;
     private double trueRedSpin;
     private double trueBlueSpin;
@@ -53,7 +59,7 @@ public class AutonSpindexer {
     public int[] correctOrder = {1,2,1};
     public double[][] weights = generateWeightArray(0.9);
 
-    private ElapsedTime shootTimer;
+    private ElapsedTime detectingTimer;
 
     private final double CUTOFF_DISTANCE = 7.0;
 
@@ -70,17 +76,21 @@ public class AutonSpindexer {
         leftServo = hardwareMap.get(Servo.class, "axonLeft");
         rightServo = hardwareMap.get(Servo.class, "axonRight");
 
-        spinColor = hardwareMap.get(NormalizedColorSensor.class, "spinColor");
+        spinColor = hardwareMap.get(RevColorSensorV3.class, "spinColor");
         spinColor.setGain(10);
+
+        spinColor2 = hardwareMap.get(RevColorSensorV3.class, "spinColor2");
+        spinColor2.setGain(10);
+
+        backColor = hardwareMap.get(Rev2mDistanceSensor.class, "backColor");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(2);
 
-        shootTimer = new ElapsedTime();
-        shootTimer.reset();
+        detectingTimer = new ElapsedTime();
 
         //default servo position
-        setTargetAngle(240);
+        setTargetAngle(480);
 
         currentPosition = getCurrentPosition(getVoltage());
         currentAngle = positionToAngle(currentPosition);
@@ -103,7 +113,9 @@ public class AutonSpindexer {
             packet.put("Spindexer Target", getTargetAngle());
             packet.put("Spindexer Current", currentAngle);
             packet.put("Order", Arrays.toString(order));
+            packet.put("Correct Order", Arrays.toString(correctOrder));
             packet.put("ID", obeliskId);
+            packet.put("Should Index?", ballDetectedSpin());
 
             return true;
         };
@@ -155,16 +167,39 @@ public class AutonSpindexer {
         };
     }
 
-    public Action index(int color) {
-        return packet -> {
-            packet.addLine("INDEXING");
+    public Action indexBalls(int count) {
+        int[] ballsIndexed = {0};
+        boolean[] currentlyIndexing = {false};
 
+        return packet -> {
+            boolean ballPresent = ballDetectedSpin();
+
+            if (ballPresent && !currentlyIndexing[0] && ballsIndexed[0] < count) {
+                setIndex();
+                currentlyIndexing[0] = true;
+                ballsIndexed[0]++;
+            }
+
+            if (currentlyIndexing[0] && isWithinTolerance(currentAngle, targetAngle)) {
+                currentlyIndexing[0] = false;
+                detectingTimer.reset();
+            }
+
+            packet.put("Balls Indexed", ballsIndexed[0] + " / " + count);
+            packet.put("Back Distance", getBackDistance());
+
+            return (ballsIndexed[0] < count) || detectingTimer.seconds() > 3;  // Stop when count reached
+        };
+    }
+
+    public Action index() {
+        return packet -> {
             if (!hasIndexed) {
-                order[0] = color;
+                packet.addLine("INDEXING");
                 setIndex();
                 hasIndexed = true;
             }
-            if (isWithinTolerance(currentAngle, targetAngle)) {
+            if ((isWithinTolerance(currentAngle, targetAngle))) {
                 hasIndexed = false;
                 packet.addLine("DONE INDEXING");
                 return false;
@@ -173,12 +208,22 @@ public class AutonSpindexer {
         };
     }
 
+
+
+    public Action setOrder(int a, int b, int c) {
+        return packet -> {
+            order[0] = a;
+            order[1] = b;
+            order[2] = c;
+            return false;
+        };
+    }
+
     public Action align() {
         return packet -> {
             packet.addLine("ALIGNING");
             if (!hasAligned) {
                 setAlign();
-                alignToHold();
                 hasAligned = true;
             }
             if (isWithinTolerance(currentAngle, targetAngle)) {
@@ -200,6 +245,7 @@ public class AutonSpindexer {
             }
             if (isWithinTolerance(currentAngle, targetAngle)) {
                 hasShot = false;
+                alignToStart();
                 packet.addLine("DONE SHOOTING");
                 return false;
             }
@@ -210,7 +256,6 @@ public class AutonSpindexer {
 
     public void setIndex() {
         setTargetAngle(targetAngle + 120);
-        shiftArrayRight(order);
     }
     public void setShoot() {
         setTargetAngle(0);
@@ -230,7 +275,7 @@ public class AutonSpindexer {
         setTargetAngle(targetAngle + 60);
     }
     public void alignToStart(){
-        setTargetAngle(240);
+        setTargetAngle(180);
     }
 
     public void setTargetAngle(double angle) {
@@ -325,33 +370,21 @@ public class AutonSpindexer {
     }
 
 
+
     public boolean ballDetectedSpin(){
-        //value not tuned
-        return sensorAlphaSpin > 0.4;
+        //return (getBackDistance() < 9.0) && !(getSpinDistance() < 0.9);
+        return (getBackDistance() < CUTOFF_DISTANCE) && !(getSpinDistance() < 0.9);
     }
 
-    public boolean ballIsGreenSpin(){
-        //not tuned
-        return ballDetectedSpin() &&
-                getNormalizedRedSpin() < 0.075 &&
-                getNormalizedGreenSpin() > 0.1 &&
-                getNormalizedBlueSpin() > 0.075;
+    public double getBackDistance(){
+        return backColor.getDistance(DistanceUnit.CM);
+    }
+    public double getSpinDistance(){
+        return spinColor.getDistance(DistanceUnit.CM);
+    }
+    public double getSpinDistance2(){
+        return spinColor2.getDistance(DistanceUnit.CM);
     }
 
-    public boolean ballIsPurpleSpin(){
-        //not tuned
-        return ballDetectedSpin() &&
-                getNormalizedRedSpin() > 0.06 &&
-                getNormalizedGreenSpin() < 0.2 &&
-                getNormalizedBlueSpin() > 0.1;
-    }
-
-    public double getSensorAlphaSpin() {return sensorAlphaSpin;}
-
-    public double getNormalizedRedSpin(){return trueRedSpin/sensorAlphaSpin;}
-
-    public double getNormalizedBlueSpin(){return trueBlueSpin/sensorAlphaSpin;}
-
-    public double getNormalizedGreenSpin(){return trueGreenSpin/sensorAlphaSpin;}
 
 }

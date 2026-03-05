@@ -104,8 +104,7 @@ public class DecodeTeleOp extends LinearOpMode {
             spindexer.update(
                     currentGamepad1.cross,          // In
                     currentGamepad1.right_trigger,  // Shoot
-                    // TODO fix and make actual variable
-                    true,
+                    isFlywheelReady,
                     currentGamepad2.right_trigger > 0.1,        // Manual Index
                     shouldSort
             );
@@ -123,12 +122,21 @@ public class DecodeTeleOp extends LinearOpMode {
                 spindexer.shoot();
             }
 
-            if (currentGamepad2.dpad_left && currentGamepad2.dpad_up) {
-                isTeamRed = false;
-                limelight.setPipeline(0);
-            } else if (currentGamepad2.dpad_right && currentGamepad2.dpad_down) {
-                isTeamRed = true;
-                limelight.setPipeline(1);
+            if (currentGamepad2.square) {
+                if (currentGamepad2.dpad_left && !previousGamepad2.dpad_left) {
+                    spindexer.OFFSET_ANGLE -= 5;
+                } else if (currentGamepad2.dpad_right && !previousGamepad2.dpad_right) {
+                    spindexer.OFFSET_ANGLE += 5;
+                }
+                spindexer.setTargetAngle(spindexer.targetAngle);
+            } else {
+                if (currentGamepad2.dpad_left && currentGamepad2.dpad_up) {
+                    isTeamRed = false;
+                    limelight.setPipeline(0);
+                } else if (currentGamepad2.dpad_right && currentGamepad2.dpad_down) {
+                    isTeamRed = true;
+                    limelight.setPipeline(1);
+                }
             }
 
             //setting order
@@ -145,8 +153,6 @@ public class DecodeTeleOp extends LinearOpMode {
             else if (currentGamepad2.share){
                 spindexer.resetTarget();
             }
-
-
 
 //            if (currentGamepad1.touchpad){
 //                drive.setOdometryXY(64, isTeamRed ? -63.5 : 63.5);
@@ -262,7 +268,7 @@ public class DecodeTeleOp extends LinearOpMode {
             turret.setPitch(pitchPosition);
 
 
-            if (currentGamepad2.square && !previousGamepad2.square) {
+            if (currentGamepad1.square && !previousGamepad1.square) {
                 shouldTilt = !shouldTilt;
             }
 
@@ -311,6 +317,7 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Rotation Power", turret.rotationOutput);
 
             telemetry.addLine("---------------------------------------");
+            telemetry.addData("offset", spindexer.OFFSET_ANGLE);
             telemetry.addData("Spindexer State", spindexer.getState());
             telemetry.addData("Intake State", intake.getState());
             telemetry.addData("back sensor distance", spindexer.getBackDistance());
@@ -322,7 +329,7 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Current Order", spindexer.getOrder());
             telemetry.addData("Spindexer Target", spindexer.targetAngle);
             telemetry.addData("Spindexer Angle", spindexer.currentAngle);
-            telemetry.addData("D", spindexer.isWithinTolerance);
+            telemetry.addData("Tolerance", spindexer.isWithinTolerance);
             telemetry.addData("cutoff: ", spindexer.getCutoffDistance());
             telemetry.update();
         }

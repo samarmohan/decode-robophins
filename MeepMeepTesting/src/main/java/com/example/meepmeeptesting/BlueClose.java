@@ -9,8 +9,8 @@ import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 
 
 public class BlueClose {
-    public static final double SHOOT_WAIT_TIME = 0.5;
-    public static final double COLLECT_WAIT_TIME = 0.5;
+    public static final double SHOOT_WAIT_TIME = 0.2;
+    public static final double COLLECT_WAIT_TIME = 0.3;
     public static final double GATE_OPEN_TIME = 1.0;
 
     public static void main(String[] args) {
@@ -27,7 +27,7 @@ public class BlueClose {
         final double BLUE_OBELISK_ROTATION = Math.toRadians(-200);
 
         Pose2d initialPose = new Pose2d(-40, -54, BLUE_COLLECT_ROTATION);
-        Vector2d shooting = new Vector2d(-10, -14);
+        Vector2d shooting = new Vector2d(-12, -12);
         Vector2d collectFirstSet = new Vector2d(-10, -50);
         Vector2d lineUpSecondSet = new Vector2d(15, -22);
         Vector2d collectSecondSet = new Vector2d(15, -57);
@@ -46,7 +46,6 @@ public class BlueClose {
 //                .stopAndAdd(spindexer.getObelisk())
                 .waitSeconds(0.5)
                 .turnTo(BLUE_SHOOT_ROTATION)
-//                .stopAndAdd(spindexer.alignForShooting())
                 .waitSeconds(SHOOT_WAIT_TIME)
 //                .stopAndAdd(spindexer.shoot())
                 .waitSeconds(SHOOT_WAIT_TIME)
@@ -60,7 +59,7 @@ public class BlueClose {
                 .waitSeconds(COLLECT_WAIT_TIME)
 //                .stopAndAdd(spindexer.indexBall(2))
 
-                // OPEN GATE
+                // open gate first time
                 .strafeTo(lineUpGate)
                 .strafeTo(openGate)
                 .waitSeconds(GATE_OPEN_TIME)
@@ -70,7 +69,7 @@ public class BlueClose {
                 .waitSeconds(SHOOT_WAIT_TIME)
 //                .stopAndAdd(spindexer.shoot())
                 .waitSeconds(SHOOT_WAIT_TIME)
-                .turnTo(Math.toRadians(-90))
+                .turnTo(BLUE_COLLECT_ROTATION)
 
                 // collect second spike and shoot
                 .setReversed(true)
@@ -84,7 +83,9 @@ public class BlueClose {
                 .waitSeconds(COLLECT_WAIT_TIME)
 //                .stopAndAdd(spindexer.indexBall(1))
 
-                .strafeTo(lineUpGate)
+                // open gate second time
+                .setReversed(true)
+                .splineToConstantHeading(lineUpGate, Math.toRadians(-90))
                 .strafeTo(openGate)
                 .waitSeconds(GATE_OPEN_TIME)
 

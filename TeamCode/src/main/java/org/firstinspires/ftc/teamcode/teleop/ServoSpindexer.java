@@ -56,6 +56,8 @@ public class ServoSpindexer {
     // cutoff distance
     private final double CUTOFF_DISTANCE = 7.0;
 
+    public double OFFSET_ANGLE = 0.0;
+    public double offsetTargetAngle = 0.0;
 
 
     public enum SpindexerState {
@@ -197,7 +199,7 @@ public class ServoSpindexer {
                     hasShot = true;
                 }
                 //once done goes back to ready to shoot(defualt state)
-                if (isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 10) {
+                if (isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 3) {
                     alignToStart();
                     hasShot = false;
                     spindexerState = SpindexerState.READY_TO_SHOOT;
@@ -214,9 +216,11 @@ public class ServoSpindexer {
     public void setTargetAngle(double angle) {
         targetAngle = angle;
         targetPosition = angleToPosition((Math.min(Math.max(targetAngle, 0),720)));
-        forwardServo.setPosition(targetPosition);
-        leftServo.setPosition(targetPosition);
-        rightServo.setPosition(targetPosition);
+
+        double OFFSET_POSITION = angleToPosition(Math.min(30, Math.max(OFFSET_ANGLE, 0)));
+        forwardServo.setPosition(targetPosition+OFFSET_POSITION);
+        leftServo.setPosition(targetPosition+OFFSET_POSITION);
+        rightServo.setPosition(targetPosition+OFFSET_POSITION);
     }
 
     public double getTargetAngle() {
@@ -276,7 +280,7 @@ public class ServoSpindexer {
     }
 
     public void resetTarget() {
-        setTargetAngle(currentAngle);
+        setTargetAngle(currentAngle-OFFSET_ANGLE);
     }
     public boolean hasBalls() {
         for (int i : order) {
