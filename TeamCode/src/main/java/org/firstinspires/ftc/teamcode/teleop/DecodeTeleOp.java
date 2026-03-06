@@ -147,10 +147,7 @@ public class DecodeTeleOp extends LinearOpMode {
             } else if (currentGamepad2.cross){
                 spindexer.setCorrectOrder(new int[]{1,1,2});
             }
-            if (currentGamepad2.options){
-                spindexer.setTargetAngle(spindexer.getTargetAngle()+120);
-            }
-            else if (currentGamepad2.share){
+            if (currentGamepad2.share){
                 spindexer.resetTarget();
             }
 
@@ -284,6 +281,7 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Testing?", TESTING);
             telemetry.addData("Team", isTeamRed ? "RED" : "BLUE");
             telemetry.addData("Pos", "X:%.1f Y:%.1f H:%.1f", xPos, yPos, heading);
+            telemetry.addData("jew", distance);
 
             //color sensor testing
             /*
@@ -321,16 +319,11 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Spindexer State", spindexer.getState());
             telemetry.addData("Intake State", intake.getState());
             telemetry.addData("back sensor distance", spindexer.getBackDistance());
-            telemetry.addData("spin sensor distance", spindexer.getSpinDistance());
-            telemetry.addData("2nd spin sensor distance", spindexer.getSpinDistance2());
             telemetry.addData("Ball in Spindexer? BOOLEAN", spindexer.ballDetectedSpin());
-            telemetry.addData("Spindexer Alpha", spindexer.getSensorAlphaSpin());
             telemetry.addData("Ball Count", spindexer.isFull() ? "3 (FULL)" : spindexer.hasBalls() ? "1-2" : "0");
             telemetry.addData("Current Order", spindexer.getOrder());
             telemetry.addData("Spindexer Target", spindexer.targetAngle);
             telemetry.addData("Spindexer Angle", spindexer.currentAngle);
-            telemetry.addData("Tolerance", spindexer.isWithinTolerance);
-            telemetry.addData("cutoff: ", spindexer.getCutoffDistance());
             telemetry.update();
         }
         limelight.stop();

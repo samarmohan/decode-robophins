@@ -9,7 +9,6 @@ import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -21,7 +20,7 @@ import java.util.List;
 
 public class AutonSpindexer {
     public static double GEAR_RATIO = 48.0 / 20.0;
-    private Limelight3A limelight;
+    private final Limelight3A limelight;
     public Intake intake;
 
     public double targetAngle;
@@ -49,7 +48,10 @@ public class AutonSpindexer {
     private double trueGreenSpin;
 
     private int obeliskId = 0;
+    public static final int OBELISK_PIPELINE = 2;
 
+
+    private boolean shouldIndex = true;
 
     private boolean hasShot = false;
     private boolean hasIndexed = false;
@@ -63,8 +65,9 @@ public class AutonSpindexer {
 
     private final double CUTOFF_DISTANCE = 7.0;
 
-    public AutonSpindexer(HardwareMap hardwareMap, Intake intake) {
+    public AutonSpindexer(HardwareMap hardwareMap, Intake intake, Limelight3A limelight) {
         this.intake = intake;
+        this.limelight = limelight;
 
         //axon encoders
         forwardEncoder = hardwareMap.get(AnalogInput.class, "encoderForward");
@@ -84,9 +87,6 @@ public class AutonSpindexer {
 
         backColor = hardwareMap.get(Rev2mDistanceSensor.class, "backColor");
 
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(2);
-
         detectingTimer = new ElapsedTime();
 
         //default servo position
@@ -99,6 +99,7 @@ public class AutonSpindexer {
 
     public Action startLimeight() {
         return packet -> {
+            limelight.pipelineSwitch(OBELISK_PIPELINE);
             limelight.start();
             return false;
         };
@@ -159,10 +160,10 @@ public class AutonSpindexer {
         };
     }
 
-    public Action outtake() {
+    public Action slowIntake() {
         return packet -> {
             packet.addLine("STOPPED");
-            intake.setState(Intake.IntakeState.OUTTAKE);
+            intake.setState(Intake.IntakeState.SLOW_INTAKE);
             return false;
         };
     }
@@ -174,21 +175,21 @@ public class AutonSpindexer {
         return packet -> {
             boolean ballPresent = ballDetectedSpin();
 
-            if (ballPresent && !currentlyIndexing[0] && ballsIndexed[0] < count) {
+            if (ballPresent && !currentlyIndexing[0] && ballsIndexed[0] < count-1) {
                 setIndex();
                 currentlyIndexing[0] = true;
                 ballsIndexed[0]++;
+                detectingTimer.reset();
             }
 
             if (currentlyIndexing[0] && isWithinTolerance(currentAngle, targetAngle)) {
                 currentlyIndexing[0] = false;
-                detectingTimer.reset();
             }
 
             packet.put("Balls Indexed", ballsIndexed[0] + " / " + count);
             packet.put("Back Distance", getBackDistance());
 
-            return (ballsIndexed[0] < count) || detectingTimer.seconds() > 3;  // Stop when count reached
+            return (ballsIndexed[0] < count);
         };
     }
 
@@ -212,9 +213,9 @@ public class AutonSpindexer {
 
     public Action setOrder(int a, int b, int c) {
         return packet -> {
-            order[0] = a;
-            order[1] = b;
-            order[2] = c;
+            order[0] = b;
+            order[1] = c;
+            order[2] = a;
             return false;
         };
     }
@@ -224,6 +225,7 @@ public class AutonSpindexer {
             packet.addLine("ALIGNING");
             if (!hasAligned) {
                 setAlign();
+                alignToHold();
                 hasAligned = true;
             }
             if (isWithinTolerance(currentAngle, targetAngle)) {
@@ -238,6 +240,7 @@ public class AutonSpindexer {
     public Action shoot() {
         return packet -> {
             packet.addLine("SHOOTING");
+            shouldIndex = false;
 
             if (!hasShot) {
                 setShoot();
@@ -279,8 +282,8 @@ public class AutonSpindexer {
     }
 
     public void setTargetAngle(double angle) {
-        targetAngle = angle;
-        targetPosition = angleToPosition((Math.min(Math.max(targetAngle, 0),720)));
+        targetAngle = Math.min(Math.max(angle, 0),720);
+        targetPosition = angleToPosition(targetAngle);
         forwardServo.setPosition(targetPosition);
         leftServo.setPosition(targetPosition);
         rightServo.setPosition(targetPosition);
@@ -292,7 +295,7 @@ public class AutonSpindexer {
 
     public double angleToPosition(double angle) {
         double newPosition = angle / (315 * (GEAR_RATIO));
-        return Math.min(1.0, Math.max(0.0, newPosition));
+        return Math.min(0.97, Math.max(0.0, newPosition));
     }
 
     public double positionToAngle(double position) {

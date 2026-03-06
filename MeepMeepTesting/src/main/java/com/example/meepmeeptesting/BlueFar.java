@@ -25,7 +25,7 @@ public class BlueFar {
         final double BLUE_COLLECT_ROTATION = Math.toRadians(-90);
         final double BLUE_OBELISK_ROTATION = Math.toRadians(-190);
 
-        Pose2d initialPose = new Pose2d(60, -10, BLUE_COLLECT_ROTATION);
+        Pose2d initialPose = new Pose2d(57, -16, BLUE_COLLECT_ROTATION);
         Vector2d shooting = new Vector2d(55, -10);
         Vector2d collectFirstSetPartOne = new Vector2d(53, -57);
         Vector2d collectFirstSetTransition = new Vector2d(55, -50);

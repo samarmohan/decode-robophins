@@ -9,6 +9,7 @@ public class Intake {
     public enum IntakeState {
         INTAKE,
         OUTTAKE,
+        SLOW_INTAKE,
         OFF
     }
 
@@ -29,6 +30,9 @@ public class Intake {
                 break;
             case OUTTAKE:
                 intake.setPower(-0.5);
+                break;
+            case SLOW_INTAKE:
+                intake.setPower(0.5);
                 break;
             case OFF:
                 intake.setPower(0.0);
