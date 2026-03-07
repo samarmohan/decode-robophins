@@ -57,28 +57,33 @@ public class BlueCloseGate12 extends LinearOpMode {
                 turret.setFlywheelRPM(CLOSE_FLYWHEEL_RPM),
                 spindexer.updateSpindexer(),
                 drive.actionBuilder(initialPose)
+                        // Setup + Shoot Preload
                         .stopAndAdd(spindexer.startLimeight())
-                        .afterTime(0, turret.rotateRight(400))
-                        .afterTime(0, spindexer.getObelisk())
+                        .stopAndAdd(spindexer.intake())
                         .strafeTo(shooting)
-                        .afterTime(0, turret.rotateRight(200))
+                        .afterTime(0, spindexer.getObelisk())
+                        .stopAndAdd(turret.rotateRight(400))
+                        .stopAndAdd(turret.startAutoAim())
+                        .stopAndAdd(turret.rotateLeft(200))
+                        .afterTime(0, turret.updateLimelightPID())
                         .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.intake())
 
-                        // collect first spike and shoot
+                        // Collect First Spike
                         .afterTime(0, spindexer.setOrder(1,1,2))
                         .afterTime(0, spindexer.indexBalls(3))
                         .strafeTo(collectFirstSet, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
                         .stopAndAdd(spindexer.slowIntake())
 
-                        // open gate first time
+                        // Open Gate
                         .strafeTo(lineUpGate)
                         .strafeTo(openGate)
                         .waitSeconds(GATE_OPEN_TIME)
 
+                        // Shoot First Spike
                         .strafeTo(shooting)
                         .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME)
@@ -86,7 +91,7 @@ public class BlueCloseGate12 extends LinearOpMode {
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.intake())
 
-                        // collect second spike and shoot
+                        // Collect Second Spike
                         .strafeTo(lineUpSecondSet)
                         .afterTime(0, spindexer.setOrder(1,2,1))
                         .afterTime(0, spindexer.indexBalls(3))
@@ -100,6 +105,7 @@ public class BlueCloseGate12 extends LinearOpMode {
                         .waitSeconds(GATE_OPEN_TIME)
                         */
 
+                        // Shoot Second Spike
                         .strafeTo(shooting)
                         .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME)
@@ -107,24 +113,25 @@ public class BlueCloseGate12 extends LinearOpMode {
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.intake())
 
-                        // collect third spike and shoot
+                        // Collect 3rd Spike
                         .strafeTo(lineUpThirdSet)
                         .afterTime(0, spindexer.setOrder(2,1,1))
                         .afterTime(0, spindexer.indexBalls(3))
                         .strafeTo(collectThirdSet, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED-5))
                         .stopAndAdd(spindexer.slowIntake())
 
+                        // Shoot 3rd Spike
                         .strafeTo(shooting)
                         .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
+                        .stopAndAdd(turret.stopAutoAim())
+                        .stopAndAdd(turret.rotateLeft(10))
+                        .stopAndAdd(spindexer.outtake())
 
-                        // reset
+                        // Power Down
                         .strafeTo(collectFirstSet, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
-                        .stopAndAdd(spindexer.off())
-                        .stopAndAdd(turret.setFlywheelRPM(0))
-                        .stopAndAdd(turret.rotateRight(0))
                         .build()
         );
 

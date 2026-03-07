@@ -32,7 +32,10 @@ public class AutonTurret {
     public static final int AIMING_PIPELINE_BLUE = 0;
     public static final int AIMING_PIPELINE_RED = 0;
 
+    public double tx;
     public double lastTx;
+
+    public boolean shouldAutoAim;
 
 
     public AutonTurret(HardwareMap hardwareMap, Limelight3A limelight, String team) {
@@ -91,6 +94,8 @@ public class AutonTurret {
     public Action rotateLeft(int angle) {
         return packet -> {
             double pos = -turret.getCurrentPosition();
+            tx = 0;
+            lastTx = 0;
             if (pos > angle)  {
                 turret.setPower(-0.4);
                 return true;
@@ -101,11 +106,19 @@ public class AutonTurret {
         };
     }
 
-    public Action switchToAimingPipeline() {
+    public Action startAutoAim() {
         return packet -> {
             int pipeline = team.equals("RED") ? AIMING_PIPELINE_RED :  AIMING_PIPELINE_BLUE;
+            shouldAutoAim = true;
             limelight.pipelineSwitch(pipeline);
             packet.put("limelight", pipeline);
+            return false;
+        };
+    }
+
+    public Action stopAutoAim() {
+        return packet -> {
+            shouldAutoAim = false;
             return false;
         };
     }
@@ -113,7 +126,6 @@ public class AutonTurret {
     public Action updateLimelightPID() {
         return packet -> {
             double rotationPos = -turret.getCurrentPosition();
-            double tx;
             boolean isTeamRed = team.equals("RED");
 
             boolean currentAprilTagVisible = limelight.getLatestResult().isValid();
@@ -125,7 +137,7 @@ public class AutonTurret {
             lastTx = tx;
 
 
-            double error = (isTeamRed) ? tx + 1 : tx -1;
+            double error = (isTeamRed) ? tx + 0.25 : tx -0.25;
 
             double output = (AUTON_LIMELIGHT_ROTATION_kP * error);
             if (Math.abs(error) > AUTON_LIMELIGHT_FF_DEADZONE) {
@@ -138,14 +150,15 @@ public class AutonTurret {
             if (rotationOutput < 0 && rotationPos < ROTATION_MIN_POS) {
                 rotationOutput = 0;
             }
-            packet.put("Rotation Output", rotationPos);
+            packet.put("Rotation Output", rotationOutput);
             packet.put("Tx", tx);
             packet.put("Rotation Pos", rotationPos);
-            turret.setPower(rotationOutput);
+            if (shouldAutoAim) {
+                turret.setPower(rotationOutput);
+            }
             return true;
         };
     }
-
 
     public Action setPitchPosition(double pitchPos) {
             return packet -> {

@@ -160,6 +160,14 @@ public class AutonSpindexer {
         };
     }
 
+    public Action outtake() {
+        return packet -> {
+            packet.addLine("STOPPED");
+            intake.setState(Intake.IntakeState.OUTTAKE);
+            return false;
+        };
+    }
+
     public Action slowIntake() {
         return packet -> {
             packet.addLine("STOPPED");
@@ -213,8 +221,8 @@ public class AutonSpindexer {
 
     public Action setOrder(int a, int b, int c) {
         return packet -> {
-            order[0] = b;
-            order[1] = c;
+            order[0] = c;
+            order[1] = b;
             order[2] = a;
             return false;
         };
