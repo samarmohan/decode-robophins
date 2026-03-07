@@ -22,34 +22,34 @@ import org.firstinspires.ftc.teamcode.auton.parts.AutonSpindexer;
 import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
 import org.firstinspires.ftc.teamcode.teleop.Intake;
 
-@Autonomous(name = "RED - FAR - 9 Auton")
-public class RedFar9 extends LinearOpMode {
+@Autonomous(name = "BLUE - FAR - DOUBLE WALL (10138) - 9 Auton")
+public class BlueFar9DoubleWall extends LinearOpMode {
     @Override
     public void runOpMode() {
         ElapsedTime runtime = new ElapsedTime();
 
-        final double RED_COLLECT_ROTATION = Math.toRadians(90);
+        final double BLUE_COLLECT_ROTATION = Math.toRadians(-90);
 
         final double INTAKE_FORWARD_SPEED = 25.0;
 
-        Pose2d z = new Pose2d(0, 0, RED_COLLECT_ROTATION);
+        Pose2d z = new Pose2d(0, 0, BLUE_COLLECT_ROTATION);
 
-        Pose2d initialPose = new Pose2d(60, 12, RED_COLLECT_ROTATION);
-        Vector2d shooting = new Vector2d(50, 12);
-        Vector2d collectFirstSetPartOne = new Vector2d(55, 60);
-        Vector2d collectFirstSetTransition = new Vector2d(63, 45);
-        Vector2d collectFirstSetPartTwo = new Vector2d(63, 60);;
-        Vector2d lineUpSecondSet = new Vector2d(34, 25);
-        Vector2d collectSecondSet = new Vector2d(34, 60);
+        Pose2d initialPose = new Pose2d(60, -12, BLUE_COLLECT_ROTATION);
+        Vector2d shooting = new Vector2d(50, -12);
+        Vector2d collectFirstSetPartOne = new Vector2d(55, -60);
+        Vector2d collectFirstSetTransition = new Vector2d(63, -45);
+        Vector2d collectFirstSetPartTwo = new Vector2d(63, -60);;
+        Vector2d lineUpSecondSet = new Vector2d(34, -25);
+        Vector2d collectSecondSet = new Vector2d(34, -60);
 
-        Vector2d park = new Vector2d(45, 45);
+        Vector2d park = new Vector2d(45, -45);
 
         Intake intake = new Intake();
         Limelight3A limelight = hardwareMap.get(Limelight3A.class, "limelight");
         intake.init(hardwareMap);
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
-        AutonTurret turret = new AutonTurret(hardwareMap, limelight, "RED");
+        AutonTurret turret = new AutonTurret(hardwareMap, limelight, "BLUE");
         AutonSpindexer spindexer = new AutonSpindexer(hardwareMap, intake, limelight);
 
         Action action = new ParallelAction(
@@ -62,9 +62,9 @@ public class RedFar9 extends LinearOpMode {
                         .stopAndAdd(spindexer.intake())
                         .strafeTo(shooting)
                         .afterTime(0, spindexer.getObelisk())
-                        .stopAndAdd(turret.rotateLeft(-700))
+                        .stopAndAdd(turret.rotateRight(700))
                         .stopAndAdd(turret.startAutoAim())
-                        .stopAndAdd(turret.rotateRight(-500))
+                        .stopAndAdd(turret.rotateLeft(500))
                         .afterTime(0, turret.updateLimelightPID())
                         .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME+0.5)
@@ -89,21 +89,24 @@ public class RedFar9 extends LinearOpMode {
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.intake())
 
-                        // Collect 3rd Spike
-                        .strafeTo(lineUpSecondSet)
-                        .afterTime(0, spindexer.setOrder(2,1,1))
+                        // Collect Wall Balls
+                        .afterTime(0, spindexer.setOrder(1,2,1))
                         .afterTime(0, spindexer.indexBalls(3))
-                        .strafeTo(collectSecondSet, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
+                        .strafeTo(collectFirstSetPartOne, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
+                        .waitSeconds(COLLECT_WAIT_TIME)
+                        .strafeTo(collectFirstSetTransition)
+                        .strafeTo(collectFirstSetPartTwo, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
+                        .waitSeconds(COLLECT_WAIT_TIME)
                         .stopAndAdd(spindexer.slowIntake())
 
-                        // Shoot 3rd Spike
+                        // Shoot Wall Balls PART 2
                         .strafeTo(shooting)
                         .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(turret.stopAutoAim())
-                        .stopAndAdd(turret.rotateRight(0))
+                        .stopAndAdd(turret.rotateLeft(10))
                         .stopAndAdd(spindexer.outtake())
 
                         // Power Down

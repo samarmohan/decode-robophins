@@ -86,6 +86,27 @@ public class BlueFar9 extends LinearOpMode {
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.intake())
 
+                        // Collect Wall Balls
+                        .afterTime(0, spindexer.setOrder(1,2,1))
+                        .afterTime(0, spindexer.indexBalls(3))
+                        .strafeTo(collectFirstSetPartOne, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
+                        .waitSeconds(COLLECT_WAIT_TIME)
+                        .strafeTo(collectFirstSetTransition)
+                        .strafeTo(collectFirstSetPartTwo, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
+                        .waitSeconds(COLLECT_WAIT_TIME)
+                        .stopAndAdd(spindexer.slowIntake())
+
+                        // Shoot Wall Balls PART 2
+                        .strafeTo(shooting)
+                        .stopAndAdd(spindexer.align())
+                        .waitSeconds(SHOOT_WAIT_TIME)
+                        .stopAndAdd(spindexer.shoot())
+                        .waitSeconds(SHOOT_WAIT_TIME)
+                        .stopAndAdd(turret.stopAutoAim())
+                        .stopAndAdd(turret.rotateLeft(10))
+                        .stopAndAdd(spindexer.outtake())
+
+                        /*
                         // Collect 3rd Spike
                         .strafeTo(lineUpSecondSet)
                         .afterTime(0, spindexer.setOrder(2,1,1))
@@ -102,6 +123,8 @@ public class BlueFar9 extends LinearOpMode {
                         .stopAndAdd(turret.stopAutoAim())
                         .stopAndAdd(turret.rotateLeft(10))
                         .stopAndAdd(spindexer.outtake())
+
+                         */
 
                         // Power Down
                         .strafeTo(park, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))

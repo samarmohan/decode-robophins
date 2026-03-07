@@ -22,8 +22,8 @@ import org.firstinspires.ftc.teamcode.auton.parts.AutonSpindexer;
 import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
 import org.firstinspires.ftc.teamcode.teleop.Intake;
 
-@Autonomous(name = "RED - FAR - 9 Auton")
-public class RedFar9 extends LinearOpMode {
+@Autonomous(name = "RED - FAR - DOUBLE WALL (18255) - 9 Auton")
+public class RedFar9DoubleWall extends LinearOpMode {
     @Override
     public void runOpMode() {
         ElapsedTime runtime = new ElapsedTime();
@@ -89,14 +89,17 @@ public class RedFar9 extends LinearOpMode {
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.intake())
 
-                        // Collect 3rd Spike
-                        .strafeTo(lineUpSecondSet)
-                        .afterTime(0, spindexer.setOrder(2,1,1))
+                        // Collect Wall Balls
+                        .afterTime(0, spindexer.setOrder(1,2,1))
                         .afterTime(0, spindexer.indexBalls(3))
-                        .strafeTo(collectSecondSet, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
+                        .strafeTo(collectFirstSetPartOne, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
+                        .waitSeconds(COLLECT_WAIT_TIME)
+                        .strafeTo(collectFirstSetTransition)
+                        .strafeTo(collectFirstSetPartTwo, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
+                        .waitSeconds(COLLECT_WAIT_TIME)
                         .stopAndAdd(spindexer.slowIntake())
 
-                        // Shoot 3rd Spike
+                        // Shoot Wall Balls PART 2
                         .strafeTo(shooting)
                         .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME)

@@ -30,7 +30,7 @@ public class AutonTurret {
     public String team;
 
     public static final int AIMING_PIPELINE_BLUE = 0;
-    public static final int AIMING_PIPELINE_RED = 0;
+    public static final int AIMING_PIPELINE_RED = 1;
 
     public double tx;
     public double lastTx;

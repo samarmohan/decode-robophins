@@ -28,7 +28,7 @@ public class RedCloseGate12 extends LinearOpMode {
     public void runOpMode() {
         ElapsedTime runtime = new ElapsedTime();
 
-        final double RED_COLLECT_ROTATION = Math.toRadians(-90);
+        final double RED_COLLECT_ROTATION = Math.toRadians(90);
 
         final double INTAKE_FORWARD_SPEED = 25.0;
 
@@ -62,7 +62,7 @@ public class RedCloseGate12 extends LinearOpMode {
                         .stopAndAdd(spindexer.intake())
                         .strafeTo(shooting)
                         .afterTime(0, spindexer.getObelisk())
-                        .stopAndAdd(turret.rotateLeft(-400))
+                        .stopAndAdd(turret.rotateLeft(-600))
                         .stopAndAdd(turret.startAutoAim())
                         .stopAndAdd(turret.rotateRight(-200))
                         .afterTime(0, turret.updateLimelightPID())
@@ -127,7 +127,7 @@ public class RedCloseGate12 extends LinearOpMode {
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(turret.stopAutoAim())
-                        .stopAndAdd(turret.rotateRight(10))
+                        .stopAndAdd(turret.rotateRight(0))
                         .stopAndAdd(spindexer.outtake())
 
                         // Power Down

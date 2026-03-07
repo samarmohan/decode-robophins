@@ -62,7 +62,7 @@ public class BlueCloseGate12 extends LinearOpMode {
                         .stopAndAdd(spindexer.intake())
                         .strafeTo(shooting)
                         .afterTime(0, spindexer.getObelisk())
-                        .stopAndAdd(turret.rotateRight(400))
+                        .stopAndAdd(turret.rotateRight(600))
                         .stopAndAdd(turret.startAutoAim())
                         .stopAndAdd(turret.rotateLeft(200))
                         .afterTime(0, turret.updateLimelightPID())
