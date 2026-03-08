@@ -1,10 +1,7 @@
 package org.firstinspires.ftc.teamcode.auton;
 
 
-import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.COLLECT_WAIT_TIME;
-import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.FAR_FLYWHEEL_RPM;
-import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.FAR_PITCH_POSITION;
-import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.SHOOT_WAIT_TIME;
+import static org.firstinspires.ftc.teamcode.auton.parts.AutonConstants.*;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
@@ -24,34 +21,34 @@ import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
 import org.firstinspires.ftc.teamcode.teleop.Intake;
 
 @Disabled
-@Autonomous(name = "RED - FAR - SINGLE WALL (25893) - 9 Auton")
-public class RedFar9 extends LinearOpMode {
+@Autonomous(name = "QUAL #23 - BLUE - FAR - 9 Auton")
+public class Qual23BlueFar9 extends LinearOpMode {
     @Override
     public void runOpMode() {
         ElapsedTime runtime = new ElapsedTime();
 
-        final double RED_COLLECT_ROTATION = Math.toRadians(90);
+        final double BLUE_COLLECT_ROTATION = Math.toRadians(-90);
 
         final double INTAKE_FORWARD_SPEED = 25.0;
 
-        Pose2d z = new Pose2d(0, 0, RED_COLLECT_ROTATION);
+        Pose2d z = new Pose2d(0, 0, BLUE_COLLECT_ROTATION);
 
-        Pose2d initialPose = new Pose2d(60, 12, RED_COLLECT_ROTATION);
-        Vector2d shooting = new Vector2d(50, 12);
-        Vector2d collectFirstSetPartOne = new Vector2d(55, 60);
-        Vector2d collectFirstSetTransition = new Vector2d(63, 45);
-        Vector2d collectFirstSetPartTwo = new Vector2d(63, 60);;
-        Vector2d lineUpSecondSet = new Vector2d(34, 25);
-        Vector2d collectSecondSet = new Vector2d(34, 60);
+        Pose2d initialPose = new Pose2d(60, -12, BLUE_COLLECT_ROTATION);
+        Vector2d shooting = new Vector2d(50, -12);
+        Vector2d collectFirstSetPartOne = new Vector2d(55, -60);
+        Vector2d collectFirstSetTransition = new Vector2d(63, -45);
+        Vector2d collectFirstSetPartTwo = new Vector2d(63, -60);;
+        Vector2d lineUpSecondSet = new Vector2d(34, -25);
+        Vector2d collectSecondSet = new Vector2d(34, -60);
 
-        Vector2d park = new Vector2d(45, 45);
+        Vector2d park = new Vector2d(45, -45);
 
         Intake intake = new Intake();
         Limelight3A limelight = hardwareMap.get(Limelight3A.class, "limelight");
         intake.init(hardwareMap);
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
-        AutonTurret turret = new AutonTurret(hardwareMap, limelight, "RED");
+        AutonTurret turret = new AutonTurret(hardwareMap, limelight, "BLUE");
         AutonSpindexer spindexer = new AutonSpindexer(hardwareMap, intake, limelight);
 
         Action action = new ParallelAction(
@@ -64,12 +61,12 @@ public class RedFar9 extends LinearOpMode {
                         .stopAndAdd(spindexer.intake())
                         .strafeTo(shooting)
                         .afterTime(0, spindexer.getObelisk())
-                        .stopAndAdd(turret.rotateLeft(-700))
+                        .stopAndAdd(turret.rotateRight(700))
                         .stopAndAdd(turret.startAutoAim())
-                        .stopAndAdd(turret.rotateRight(-500))
+                        .stopAndAdd(turret.rotateLeft(500))
                         .afterTime(0, turret.updateLimelightPID())
                         .stopAndAdd(spindexer.align())
-                        .waitSeconds(SHOOT_WAIT_TIME+0.5)
+                        .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
@@ -91,6 +88,7 @@ public class RedFar9 extends LinearOpMode {
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.intake())
 
+
                         // Collect 3rd Spike
                         .strafeTo(lineUpSecondSet)
                         .afterTime(0, spindexer.setOrder(2,1,1))
@@ -105,7 +103,7 @@ public class RedFar9 extends LinearOpMode {
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(turret.stopAutoAim())
-                        .stopAndAdd(turret.rotateRight(0))
+                        .stopAndAdd(turret.rotateLeft(10))
                         .stopAndAdd(spindexer.outtake())
 
                         // Power Down

@@ -14,6 +14,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -22,7 +23,7 @@ import org.firstinspires.ftc.teamcode.auton.parts.AutonSpindexer;
 import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
 import org.firstinspires.ftc.teamcode.teleop.Intake;
 
-@Autonomous(name = "RED - FAR - DOUBLE WALL (18255) - 9 Auton")
+@Autonomous(name = "RED ELIMINATION ROUNDS - 9 FAR")
 public class RedFar9DoubleWall extends LinearOpMode {
     @Override
     public void runOpMode() {
@@ -66,8 +67,7 @@ public class RedFar9DoubleWall extends LinearOpMode {
                         .stopAndAdd(turret.startAutoAim())
                         .stopAndAdd(turret.rotateRight(-500))
                         .afterTime(0, turret.updateLimelightPID())
-                        .stopAndAdd(spindexer.align())
-                        .waitSeconds(SHOOT_WAIT_TIME+0.5)
+                        .waitSeconds(SHOOT_WAIT_TIME+1)
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
 
@@ -83,13 +83,12 @@ public class RedFar9DoubleWall extends LinearOpMode {
 
                         // Shoot Wall Balls
                         .strafeTo(shooting)
-                        .stopAndAdd(spindexer.align())
-                        .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.intake())
 
-                        // Collect Wall Balls
+                        /*
+                        // Collect Wall Balls PART 2
                         .afterTime(0, spindexer.setOrder(1,2,1))
                         .afterTime(0, spindexer.indexBalls(3))
                         .strafeTo(collectFirstSetPartOne, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
@@ -101,10 +100,25 @@ public class RedFar9DoubleWall extends LinearOpMode {
 
                         // Shoot Wall Balls PART 2
                         .strafeTo(shooting)
-                        .stopAndAdd(spindexer.align())
-                        .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
                         .waitSeconds(SHOOT_WAIT_TIME)
+
+                         */
+
+                        // Collect 3rd Spike
+                        .strafeTo(lineUpSecondSet)
+                        .afterTime(0, spindexer.setOrder(2,1,1))
+                        .afterTime(0, spindexer.indexBalls(3))
+                        .strafeTo(collectSecondSet, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
+                        .stopAndAdd(spindexer.slowIntake())
+
+                        // Shoot 3rd Spike
+                        .strafeTo(shooting)
+                        .stopAndAdd(spindexer.align())
+                        .waitSeconds(SHOOT_WAIT_TIME+0.2)
+                        .stopAndAdd(spindexer.shoot())
+                        .waitSeconds(SHOOT_WAIT_TIME)
+
                         .stopAndAdd(turret.stopAutoAim())
                         .stopAndAdd(turret.rotateRight(0))
                         .stopAndAdd(spindexer.outtake())

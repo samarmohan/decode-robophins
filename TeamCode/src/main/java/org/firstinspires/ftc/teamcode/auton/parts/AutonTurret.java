@@ -132,9 +132,9 @@ public class AutonTurret {
             if (currentAprilTagVisible) {
                 tx = limelight.getLatestResult().getTx();
             } else {
-                tx = lastTx;
+                tx = 0;
             }
-            lastTx = tx;
+            //lastTx = tx;
 
 
             double error = (isTeamRed) ? tx + 0.25 : tx -0.25;

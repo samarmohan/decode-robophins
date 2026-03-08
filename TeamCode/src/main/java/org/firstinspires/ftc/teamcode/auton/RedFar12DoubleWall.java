@@ -14,7 +14,6 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -23,16 +22,15 @@ import org.firstinspires.ftc.teamcode.auton.parts.AutonSpindexer;
 import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
 import org.firstinspires.ftc.teamcode.teleop.Intake;
 
-@Disabled
-@Autonomous(name = "RED - FAR - SINGLE WALL (25893) - 9 Auton")
-public class RedFar9 extends LinearOpMode {
+@Autonomous(name = "RED ELIMINATION ROUNDS - 12 FAR")
+public class RedFar12DoubleWall extends LinearOpMode {
     @Override
     public void runOpMode() {
         ElapsedTime runtime = new ElapsedTime();
 
         final double RED_COLLECT_ROTATION = Math.toRadians(90);
 
-        final double INTAKE_FORWARD_SPEED = 25.0;
+        final double INTAKE_FORWARD_SPEED = 40.0;
 
         Pose2d z = new Pose2d(0, 0, RED_COLLECT_ROTATION);
 
@@ -68,10 +66,8 @@ public class RedFar9 extends LinearOpMode {
                         .stopAndAdd(turret.startAutoAim())
                         .stopAndAdd(turret.rotateRight(-500))
                         .afterTime(0, turret.updateLimelightPID())
-                        .stopAndAdd(spindexer.align())
-                        .waitSeconds(SHOOT_WAIT_TIME+0.5)
                         .stopAndAdd(spindexer.shoot())
-                        .waitSeconds(SHOOT_WAIT_TIME)
+                        .waitSeconds(SHOOT_WAIT_TIME-0.2)
 
                         // Collect Wall Balls
                         .afterTime(0, spindexer.setOrder(1,2,1))
@@ -85,11 +81,24 @@ public class RedFar9 extends LinearOpMode {
 
                         // Shoot Wall Balls
                         .strafeTo(shooting)
-                        .stopAndAdd(spindexer.align())
-                        .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
-                        .waitSeconds(SHOOT_WAIT_TIME)
+                        .waitSeconds(SHOOT_WAIT_TIME-0.2)
                         .stopAndAdd(spindexer.intake())
+
+                        // Collect Wall Balls PART 2
+                        .afterTime(0, spindexer.setOrder(1,2,1))
+                        .afterTime(0, spindexer.indexBalls(3))
+                        .strafeTo(collectFirstSetPartOne, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
+                        .waitSeconds(COLLECT_WAIT_TIME)
+                        .strafeTo(collectFirstSetTransition)
+                        .strafeTo(collectFirstSetPartTwo, new TranslationalVelConstraint(INTAKE_FORWARD_SPEED))
+                        .waitSeconds(COLLECT_WAIT_TIME)
+                        .stopAndAdd(spindexer.slowIntake())
+
+                        // Shoot Wall Balls PART 2
+                        .strafeTo(shooting)
+                        .stopAndAdd(spindexer.shoot())
+                        .waitSeconds(SHOOT_WAIT_TIME-0.2)
 
                         // Collect 3rd Spike
                         .strafeTo(lineUpSecondSet)
@@ -100,10 +109,9 @@ public class RedFar9 extends LinearOpMode {
 
                         // Shoot 3rd Spike
                         .strafeTo(shooting)
-                        .stopAndAdd(spindexer.align())
-                        .waitSeconds(SHOOT_WAIT_TIME)
                         .stopAndAdd(spindexer.shoot())
-                        .waitSeconds(SHOOT_WAIT_TIME)
+                        .waitSeconds(SHOOT_WAIT_TIME-0.2)
+
                         .stopAndAdd(turret.stopAutoAim())
                         .stopAndAdd(turret.rotateRight(0))
                         .stopAndAdd(spindexer.outtake())

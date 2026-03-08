@@ -14,6 +14,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -22,6 +23,7 @@ import org.firstinspires.ftc.teamcode.auton.parts.AutonSpindexer;
 import org.firstinspires.ftc.teamcode.auton.parts.AutonTurret;
 import org.firstinspires.ftc.teamcode.teleop.Intake;
 
+@Disabled
 @Autonomous(name = "BLUE - CLOSE - 12 - 1 GATE Auton")
 public class BlueCloseGate12 extends LinearOpMode {
     @Override
@@ -30,7 +32,7 @@ public class BlueCloseGate12 extends LinearOpMode {
 
         final double BLUE_COLLECT_ROTATION = Math.toRadians(-90);
 
-        final double INTAKE_FORWARD_SPEED = 25.0;
+        final double INTAKE_FORWARD_SPEED = 35.0;
 
         Pose2d initialPose = new Pose2d(-40, -54, BLUE_COLLECT_ROTATION);
         Vector2d shooting = new Vector2d(-12, -20);
@@ -38,7 +40,7 @@ public class BlueCloseGate12 extends LinearOpMode {
         Vector2d lineUpSecondSet = new Vector2d(15, -25);
         Vector2d collectSecondSet = new Vector2d(15, -62);
         Vector2d lineUpThirdSet = new Vector2d(34, -25);
-        Vector2d collectThirdSet = new Vector2d(34, -62);
+        Vector2d collectThirdSet = new Vector2d(34, -63);
 
         Vector2d lineUpGate = new Vector2d(-3, -45);
         Vector2d lineUpGateTwo = new Vector2d(-3, -50);
@@ -62,9 +64,9 @@ public class BlueCloseGate12 extends LinearOpMode {
                         .stopAndAdd(spindexer.intake())
                         .strafeTo(shooting)
                         .afterTime(0, spindexer.getObelisk())
-                        .stopAndAdd(turret.rotateRight(600))
+                        .stopAndAdd(turret.rotateRight(800))
                         .stopAndAdd(turret.startAutoAim())
-                        .stopAndAdd(turret.rotateLeft(200))
+                        .stopAndAdd(turret.rotateLeft(400))
                         .afterTime(0, turret.updateLimelightPID())
                         .stopAndAdd(spindexer.align())
                         .waitSeconds(SHOOT_WAIT_TIME)
