@@ -11,7 +11,6 @@ public class Tilt {
         DOWN
     }
 
-    private TiltState previousTiltState = TiltState.UP;
     private TiltState currentTiltState = TiltState.UP;
 
     public Tilt(HardwareMap hardwareMap){
@@ -21,10 +20,17 @@ public class Tilt {
     public void setTiltState(TiltState state){
         currentTiltState = state;
     }
+    //teleop set state
+    public void toggleTilt(){
+            if (currentTiltState == TiltState.UP){
+                currentTiltState = TiltState.DOWN;
+            } else if (currentTiltState == TiltState.DOWN) {
+                currentTiltState = TiltState.UP;
+            }
+    }
 
     public void update(){
-        if (currentTiltState != previousTiltState) {
-            switch (currentTiltState) {
+        switch (currentTiltState) {
                 case UP:
                     tilt.setPosition(0.7);
                     break;
@@ -32,6 +38,5 @@ public class Tilt {
                     tilt.setPosition(1.0);
                     break;
             }
-        }
     }
 }

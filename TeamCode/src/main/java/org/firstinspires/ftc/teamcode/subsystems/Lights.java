@@ -14,8 +14,6 @@ public class Lights {
     }
 
     public LightState currentLightState = LightState.EMPTY;
-    public LightState previousLightState = LightState.EMPTY;
-
     public Lights(HardwareMap hardwareMap) {
         lights = hardwareMap.get(Servo.class, "LEDs");
     }
@@ -23,14 +21,24 @@ public class Lights {
     public void setLightState(LightState state) {
         currentLightState = state;
     }
+    //basic light control for rn
+    public void autoLights(boolean hasBall, boolean isFull){
+        if(isFull){
+            currentLightState = LightState.FULL;
+        } else if (hasBall) {
+            currentLightState = LightState.PARTIAL;
+        }
+        else {
+            currentLightState = LightState.EMPTY;
+        }
+    }
 
     private void setColor(double pwm){
         lights.setPosition(pwm);
     }
 
     public void update() {
-        if (currentLightState != previousLightState) {
-            switch (currentLightState) {
+        switch (currentLightState) {
                 case FULL:
                     setColor(0.5);
                     break;
@@ -41,7 +49,5 @@ public class Lights {
                     setColor(0.33);
                     break;
             }
-            previousLightState = currentLightState;
-        }
     }
 }

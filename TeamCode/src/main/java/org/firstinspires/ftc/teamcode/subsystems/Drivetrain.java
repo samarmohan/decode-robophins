@@ -6,19 +6,20 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.utils.DcMotorMax;
 
 public class Drivetrain {
-    private final DcMotor frontLeft;
-    private final DcMotor backLeft;
-    private final DcMotor frontRight;
-    private final DcMotor backRight;
+    private final DcMotorMax frontLeft;
+    private final DcMotorMax backLeft;
+    private final DcMotorMax frontRight;
+    private final DcMotorMax backRight;
     public IMU imu;
 
     public Drivetrain(HardwareMap hardwareMap) {
-        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backRight = hardwareMap.get(DcMotor.class, "backRight");
+        frontLeft = hardwareMap.get(DcMotorMax.class, "frontLeft");
+        backLeft = hardwareMap.get(DcMotorMax.class, "backLeft");
+        frontRight = hardwareMap.get(DcMotorMax.class, "frontRight");
+        backRight = hardwareMap.get(DcMotorMax.class, "backRight");
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -34,6 +35,11 @@ public class Drivetrain {
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        frontLeft.setCachingThreshold(0.01);
+        backLeft.setCachingThreshold(0.01);
+        frontRight.setCachingThreshold(0.01);
+        backRight.setCachingThreshold(0.01);
 
         imu = hardwareMap.get(IMU.class, "imu");
 

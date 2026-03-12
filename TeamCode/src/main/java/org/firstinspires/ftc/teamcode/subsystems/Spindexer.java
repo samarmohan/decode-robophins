@@ -337,4 +337,7 @@ public static double findBallValue(int[] order, int ball, double[] weight){
     public boolean getShouldSort(){
         return shouldSort;
     }
+    public boolean shouldIntake(){
+        return spindexerState == SpindexerState.INDEXING || spindexerState == SpindexerState.INTAKING;
+    }
 }

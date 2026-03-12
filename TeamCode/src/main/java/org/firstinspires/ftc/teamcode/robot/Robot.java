@@ -1,0 +1,48 @@
+package org.firstinspires.ftc.teamcode.robot;
+
+import android.hardware.lights.Light;
+
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Lights;
+import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
+import org.firstinspires.ftc.teamcode.subsystems.Tilt;
+import org.firstinspires.ftc.teamcode.subsystems.Turret;
+
+import java.util.List;
+
+public class Robot {
+    public Drivetrain drivetrain;
+    public Intake intake;
+    public Lights lights;
+    public Spindexer spindexer;
+    public Tilt tilt;
+    public Turret turret;
+    List<LynxModule> allHubs;
+
+    public Robot(HardwareMap hardwareMap){
+        drivetrain =new Drivetrain(hardwareMap);
+        intake = new Intake(hardwareMap);
+        lights = new Lights(hardwareMap);
+        spindexer = new Spindexer(hardwareMap);
+        tilt = new Tilt(hardwareMap);
+        turret = new Turret(hardwareMap);
+
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+    }
+    public void update(){
+
+    }
+
+    public void clearCache(){
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();
+        }
+    }
+}
