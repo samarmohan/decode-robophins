@@ -9,12 +9,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.utils.DcMotorMax;
 
 public class Drivetrain {
+    //--- Hardware ---
     private final DcMotorMax frontLeft;
     private final DcMotorMax backLeft;
     private final DcMotorMax frontRight;
     private final DcMotorMax backRight;
     public IMU imu;
-
+    //--- Constructor ---
     public Drivetrain(HardwareMap hardwareMap) {
         frontLeft = hardwareMap.get(DcMotorMax.class, "frontLeft");
         backLeft = hardwareMap.get(DcMotorMax.class, "backLeft");
@@ -48,7 +49,7 @@ public class Drivetrain {
                 RevHubOrientationOnRobot.UsbFacingDirection.UP));
         imu.initialize(parameters);
     }
-
+    //--- Functions ---
     public void drive(double y, double x, double rx, double accelerator) {
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
 

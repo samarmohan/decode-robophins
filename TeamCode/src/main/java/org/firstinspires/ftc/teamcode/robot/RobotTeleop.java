@@ -9,11 +9,13 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import dalvik.system.DelegateLastClassLoader;
 
 public abstract class RobotTeleop extends OpMode {
+    //--- Systems ---
     protected Robot r;
     protected Follower f;
+    // --- Timer ---
     protected ElapsedTime runtime = new ElapsedTime();
 
-    //opmode functions
+    //--- Opmode Functions ---
     @Override
     public void init(){
         r = new Robot(hardwareMap);
@@ -40,7 +42,7 @@ public abstract class RobotTeleop extends OpMode {
     public void stop(){
 
     }
-    //helper functions
+    //--- Subsystems ---
     public void update(){
         r.clearCache();
         r.update();
@@ -78,7 +80,7 @@ public abstract class RobotTeleop extends OpMode {
         r.tilt.update();
     }
     public void turret(){
-
+        r.turret.update(0);
     }
 
 

@@ -14,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import java.util.Arrays;
 
 public class Spindexer {
+    //--- Hardware ---
     public AnalogInput forwardEncoder;
     public AnalogInput leftEncoder;
     public AnalogInput rightEncoder;
@@ -23,25 +24,24 @@ public class Spindexer {
     public RevColorSensorV3 spinColor;
     public RevColorSensorV3 spinColor2;
     public Rev2mDistanceSensor backColor;
-
+    //--- Movement Variables ---
     public double targetAngle = 240;
     public double targetPosition;
     public double currentAngle;
     public double currentPosition;
-
+    //--- Ordering Variables ---
     public int[] order = {0,0,0};
     public int[] correctOrder = {2,1,1};
     public double[][] weights = generateWeightArray(0.9);
-//back sensor cutoff
-    private final double CUTOFF_DISTANCE = 7.0;
-//offset overricdes
+    //--- Sensor Variables ---
+    private final double CUTOFF_DISTANCE = 7.0;//back sensor cutoff
+    //--- Offset Override Variables ---
     private double OFFSET_ANGLE = 0.0;
     private double offsetTargetAngle = 0.0;
+    //--- State Machine Variables ---
     private boolean shouldSort = false;
     private boolean hasShot = false;
-
     private ElapsedTime shootTimer;
-
     public enum SpindexerState {
         INTAKING,
         INDEXING,
@@ -51,7 +51,7 @@ public class Spindexer {
 
     }
     private SpindexerState spindexerState = SpindexerState.READY_TO_SHOOT;
-
+    //--- Constructor
     public Spindexer(HardwareMap hardwareMap){
         //axon encoders
         forwardEncoder = hardwareMap.get(AnalogInput.class, "encoderForward");
@@ -75,6 +75,7 @@ public class Spindexer {
         shootTimer = new ElapsedTime();
         shootTimer.reset();
     }
+    //--- Main Loop Function ---
     public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady, boolean indexOverride) {
         currentPosition = getCurrentPosition(getVoltage());
         currentAngle = positionToAngle(currentPosition);
@@ -147,7 +148,7 @@ public class Spindexer {
                 break;
         }
     }
-
+    //--- Movement Helpers ---
     public void setTargetAngle(double angle) {
         targetAngle = angle;
         targetPosition = angleToPosition((Math.min(Math.max(targetAngle, 0),720)));
@@ -203,6 +204,7 @@ public class Spindexer {
     public void alignToStart(){
         setTargetAngle(240);
     }
+    //--- Ordering Helpers ---
     public boolean hasBalls() {
         for (int i : order) {
             if (i != 0) {
@@ -219,26 +221,16 @@ public class Spindexer {
         }
         return true;
     }
-    public boolean ballDetectedSpin(){
-        return (getBackDistance() < CUTOFF_DISTANCE) && !(getSpinDistance() <0.9);
-    }
-
-    public boolean ballIsGreenSpin(){
-        return ballDetectedSpin() &&
-                getNormalizedRedSpin() < 0.075 &&
-                getNormalizedGreenSpin() > 0.1 &&
-                getNormalizedBlueSpin() > 0.075;
-    }
-//array stuff
-public static double findBallValue(int[] order, int ball, double[] weight){
-    double value = 0;
-    for (int i = 0; i < 3; i++){
-        if (ball == order[i]){
-            value += weight[i];
+    //array stuff
+    public static double findBallValue(int[] order, int ball, double[] weight){
+        double value = 0;
+        for (int i = 0; i < 3; i++){
+            if (ball == order[i]){
+                value += weight[i];
+            }
         }
+        return value;
     }
-    return value;
-}
 
     //adds all values for 3 balls in a specific shift
     public static double findWeightedValue(int[] order, int[] balls, double[][] weights){
@@ -302,6 +294,17 @@ public static double findBallValue(int[] order, int ball, double[] weight){
         }
         array[0] = oldLast;
     }
+    //--- Sensor Helpers ---
+    public boolean ballDetectedSpin(){
+        return (getBackDistance() < CUTOFF_DISTANCE) && !(getSpinDistance() <0.9);
+    }
+
+    public boolean ballIsGreenSpin(){
+        return ballDetectedSpin() &&
+                getNormalizedRedSpin() < 0.075 &&
+                getNormalizedGreenSpin() > 0.1 &&
+                getNormalizedBlueSpin() > 0.075;
+    }
     public double getSensorAlphaSpin() {return spinColor.getNormalizedColors().alpha;}
     public double getSensorRedSpin() {return spinColor.getNormalizedColors().red;}
     public double getSensorBlueSpin() {return spinColor.getNormalizedColors().blue;}
@@ -316,8 +319,7 @@ public static double findBallValue(int[] order, int ball, double[] weight){
     public double getNormalizedGreenSpin() {
         return (getSensorAlphaSpin() > 0.001) ? (getSensorGreenSpin() / getSensorAlphaSpin()) : 0.0;
     }
-
-
+    //--- Getters and Setters ---
     public String getOrder(){
         return Arrays.toString(order);
     }

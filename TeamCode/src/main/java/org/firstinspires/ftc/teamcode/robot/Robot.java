@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import java.util.List;
 
 public class Robot {
+    //--- Subsystems ---
     public Drivetrain drivetrain;
     public Intake intake;
     public Lights lights;
@@ -22,7 +23,7 @@ public class Robot {
     public Tilt tilt;
     public Turret turret;
     List<LynxModule> allHubs;
-
+    //--- Constructor ---
     public Robot(HardwareMap hardwareMap){
         drivetrain =new Drivetrain(hardwareMap);
         intake = new Intake(hardwareMap);
@@ -36,6 +37,7 @@ public class Robot {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
     }
+    //--- Main Loop Functions ---
     public void update(){
 
     }
