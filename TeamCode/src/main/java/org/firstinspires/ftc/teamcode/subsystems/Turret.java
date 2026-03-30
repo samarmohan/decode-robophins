@@ -1,16 +1,17 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.utils.DcMotorMax;
+import org.firstinspires.ftc.teamcode.utils.CachedMotor;
 import org.firstinspires.ftc.teamcode.utils.PID;
 
 public class Turret {
     //--- Hardware ---
-    private DcMotorMax flywheel1, flywheel2, turret;
+    private CachedMotor flywheel1, flywheel2, turret;
     private Servo pitch;
     //--- Variables --
     private double targetRPM = 0;
@@ -32,19 +33,22 @@ public class Turret {
     private PID turretPID = new PID(0,0,0,0);
     //--- Constructor ---
     public Turret(HardwareMap hardwareMap){
-        flywheel1 = hardwareMap.get(DcMotorMax.class, "flywheel");
+        DcMotorEx  fw1 = hardwareMap.get(DcMotorEx.class, "flywheel");
+        flywheel1 = new CachedMotor(fw1);
         flywheel1.setDirection(DcMotorEx.Direction.FORWARD);
         flywheel1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         flywheel1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         flywheel1.setCachingThreshold(0.01);
 
-        flywheel2 = hardwareMap.get(DcMotorMax.class, "flywheel2");
-        flywheel2.setDirection(DcMotorEx.Direction.FORWARD);
+        DcMotorEx fw2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
+        flywheel2 = new CachedMotor(fw2);
+        flywheel2.setDirection(DcMotorEx.Direction.REVERSE);
         flywheel2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         flywheel2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         flywheel2.setCachingThreshold(0.01);
 
-        turret = hardwareMap.get(DcMotorMax.class, "turret");
+        DcMotorEx t = hardwareMap.get(DcMotorEx.class, "turret");
+        turret = new CachedMotor(t);
         turret.setDirection(DcMotorEx.Direction.FORWARD);
         turret.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         turret.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);

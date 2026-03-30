@@ -1,12 +1,14 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 import com.pedropathing.follower.Follower;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 import dalvik.system.DelegateLastClassLoader;
+
 
 public abstract class RobotTeleop extends OpMode {
     //--- Systems ---
@@ -18,7 +20,14 @@ public abstract class RobotTeleop extends OpMode {
     //--- Opmode Functions ---
     @Override
     public void init(){
-        r = new Robot(hardwareMap);
+        try {
+            r = new Robot(hardwareMap);
+            telemetry.addData("Status", "Init Complete");
+        } catch (Exception e) {
+            telemetry.addData("ERROR", e.getMessage());
+            telemetry.addData("Stack", e.getStackTrace()[0].toString());
+        }
+        telemetry.update();
     }
     @Override
     public void init_loop(){
@@ -46,7 +55,7 @@ public abstract class RobotTeleop extends OpMode {
     public void update(){
         r.clearCache();
         r.update();
-        f.update();
+        //f.update(); TODO
     }
 
     public void drive(){
@@ -81,6 +90,7 @@ public abstract class RobotTeleop extends OpMode {
     }
     public void turret(){
         r.turret.update(0);
+        r.turret.setFlywheelPower(1);
     }
 
 

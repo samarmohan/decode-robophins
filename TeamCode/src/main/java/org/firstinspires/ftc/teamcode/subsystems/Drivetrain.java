@@ -2,25 +2,32 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.utils.DcMotorMax;
+import org.firstinspires.ftc.teamcode.utils.CachedMotor;
+
 
 public class Drivetrain {
     //--- Hardware ---
-    private final DcMotorMax frontLeft;
-    private final DcMotorMax backLeft;
-    private final DcMotorMax frontRight;
-    private final DcMotorMax backRight;
+    private final CachedMotor frontLeft;
+    private final CachedMotor backLeft;
+    private final CachedMotor frontRight;
+    private final CachedMotor backRight;
     public IMU imu;
     //--- Constructor ---
     public Drivetrain(HardwareMap hardwareMap) {
-        frontLeft = hardwareMap.get(DcMotorMax.class, "frontLeft");
-        backLeft = hardwareMap.get(DcMotorMax.class, "backLeft");
-        frontRight = hardwareMap.get(DcMotorMax.class, "frontRight");
-        backRight = hardwareMap.get(DcMotorMax.class, "backRight");
+        DcMotorEx fL = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        DcMotorEx bL = hardwareMap.get(DcMotorEx.class, "backLeft");
+        DcMotorEx fR = hardwareMap.get(DcMotorEx.class, "frontRight");
+        DcMotorEx bR = hardwareMap.get(DcMotorEx.class, "backRight");
+
+        frontLeft = new CachedMotor(fL);
+        backLeft = new CachedMotor(bL);
+        frontRight = new CachedMotor(fR);
+        backRight = new CachedMotor(bR);
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
