@@ -47,7 +47,7 @@ public class Turret {
         flywheel2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         flywheel2.setCachingThreshold(0.01);
 
-        DcMotorEx t = hardwareMap.get(DcMotorEx.class, "turret");
+        DcMotorEx t = hardwareMap.get(DcMotorEx.class, "turretTurn");
         turret = new CachedMotor(t);
         turret.setDirection(DcMotorEx.Direction.FORWARD);
         turret.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
