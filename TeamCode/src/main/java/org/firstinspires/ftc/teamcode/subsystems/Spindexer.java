@@ -74,6 +74,10 @@ public class Spindexer {
 
         shootTimer = new ElapsedTime();
         shootTimer.reset();
+
+        setTargetAngle(240);
+        currentPosition = getCurrentPosition(getVoltage());
+        currentAngle = positionToAngle(currentPosition);
     }
     //--- Main Loop Function ---
     public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady, boolean indexOverride) {
@@ -91,7 +95,7 @@ public class Spindexer {
                     //switching state to indexing
                     if(!isFull()) {
                         spindexerState = SpindexerState.INDEXING;
-                    } else if (shouldSort){
+                    } else if (shouldSort) {
                         //if full starts to align
                         spindexerState = SpindexerState.ALIGNING;
                     } else {

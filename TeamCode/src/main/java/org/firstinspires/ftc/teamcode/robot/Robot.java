@@ -25,7 +25,7 @@ public class Robot {
     List<LynxModule> allHubs;
     //--- Constructor ---
     public Robot(HardwareMap hardwareMap){
-        drivetrain =new Drivetrain(hardwareMap);
+        drivetrain = new Drivetrain(hardwareMap);
         intake = new Intake(hardwareMap);
         lights = new Lights(hardwareMap);
         spindexer = new Spindexer(hardwareMap);

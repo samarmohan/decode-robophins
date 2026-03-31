@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static org.firstinspires.ftc.teamcode.utils.Constants.*;
+
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -29,20 +31,22 @@ public class Turret {
 
     private boolean useAutoPower = true;
     //--- PIDS ---
-    private PID flywheelPID = new PID(0,0,0,0);
+
+    // flywheel PID, use constants
+    private PID flywheelPID = new PID(FLYWHEEL_kP, FLYWHEEL_kI, FLYWHEEL_kD, FLYWHEEL_kF);
     private PID turretPID = new PID(0,0,0,0);
     //--- Constructor ---
     public Turret(HardwareMap hardwareMap){
         DcMotorEx  fw1 = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel1 = new CachedMotor(fw1);
-        flywheel1.setDirection(DcMotorEx.Direction.FORWARD);
+        flywheel1.setDirection(DcMotorEx.Direction.REVERSE);
         flywheel1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         flywheel1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         flywheel1.setCachingThreshold(0.01);
 
         DcMotorEx fw2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
         flywheel2 = new CachedMotor(fw2);
-        flywheel2.setDirection(DcMotorEx.Direction.REVERSE);
+        flywheel2.setDirection(DcMotorEx.Direction.FORWARD);
         flywheel2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         flywheel2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         flywheel2.setCachingThreshold(0.01);
@@ -118,6 +122,9 @@ public class Turret {
         return getFlywheelVelocity() * RPM_PER_TPS;
     }
 
+    public double getTargetRPM() {
+        return targetRPM;
+    }
     public double getTurretAngle(){
         return getTurretPosition()/TICK_PER_DEGREE;
     }
