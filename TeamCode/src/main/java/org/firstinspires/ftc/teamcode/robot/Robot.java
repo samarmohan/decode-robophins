@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Lights;
+import org.firstinspires.ftc.teamcode.subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 import org.firstinspires.ftc.teamcode.subsystems.Tilt;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
@@ -22,6 +23,8 @@ public class Robot {
     public Spindexer spindexer;
     public Tilt tilt;
     public Turret turret;
+    public Limelight limelight;
+
     List<LynxModule> allHubs;
     //--- Constructor ---
     public Robot(HardwareMap hardwareMap){
@@ -30,7 +33,8 @@ public class Robot {
         lights = new Lights(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
         tilt = new Tilt(hardwareMap);
-        turret = new Turret(hardwareMap);
+        turret = new Turret(hardwareMap, isTeamRed);
+        limelight = new Limelight(hardwareMap);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {

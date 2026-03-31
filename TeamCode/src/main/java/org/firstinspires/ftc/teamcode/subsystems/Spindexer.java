@@ -330,7 +330,9 @@ public class Spindexer {
     public SpindexerState getState() {
         return spindexerState;
     }
-
+    public double getCurrentAngle(){
+        return currentAngle;
+    }
     public double getBackDistance(){
         return backColor.getDistance(DistanceUnit.CM);
     }
