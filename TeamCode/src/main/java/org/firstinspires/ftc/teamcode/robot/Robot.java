@@ -27,7 +27,7 @@ public class Robot {
 
     List<LynxModule> allHubs;
     //--- Constructor ---
-    public Robot(HardwareMap hardwareMap){
+    public Robot(HardwareMap hardwareMap, boolean isTeamRed){
         drivetrain = new Drivetrain(hardwareMap);
         intake = new Intake(hardwareMap);
         lights = new Lights(hardwareMap);
@@ -42,7 +42,7 @@ public class Robot {
         }
     }
     //--- Main Loop Functions ---
-    public void update(){
+    public void update() {
 
     }
 

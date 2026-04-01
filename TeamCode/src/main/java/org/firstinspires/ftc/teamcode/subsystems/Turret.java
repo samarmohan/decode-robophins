@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static org.firstinspires.ftc.teamcode.utils.Constants.*;
+
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -31,7 +33,7 @@ public class Turret {
     private final double MIN_TURRET_ANGLE = -180;
     //--- What is used ---
     //--- PIDS ---
-    private PID flywheelPID = new PID(0,0,0,0);
+    private PID flywheelPID = new PID(FLYWHEEL_kP, FLYWHEEL_kI, FLYWHEEL_kD, FLYWHEEL_kF);
     private PID turretPID = new PID(0,0,0,0);
     private PID limelightPID = new PID(0,0,0,0);
     //--- Constructor ---
