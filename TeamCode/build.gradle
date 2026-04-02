@@ -38,6 +38,9 @@ repositories {
     maven {
         url = "https://repo.dairy.foundation/snapshots"
     }
+    maven {
+        url = "https://maven.brott.dev/"
+    }
 }
 
 android {
@@ -56,5 +59,4 @@ android {
 dependencies {
     implementation project(':FtcRobotController')
     implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
-    implementation("com.bylazar:fullpanels:1.0.12")
 }

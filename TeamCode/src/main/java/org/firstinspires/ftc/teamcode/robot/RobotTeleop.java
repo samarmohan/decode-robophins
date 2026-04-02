@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
@@ -19,14 +20,13 @@ public abstract class RobotTeleop extends OpMode {
     // --- Timer ---
     protected ElapsedTime runtime = new ElapsedTime();
     // --- Variables for child Class ---
-    protected boolean isTeamRed = false;
     // --- Variables ---
     private boolean distance;
     //--- Opmode Functions ---
     @Override
     public void init(){
 
-        r = new Robot(hardwareMap, isTeamRed);
+        r = new Robot(hardwareMap);
         //f = Constants.createFollower(hardwareMap);
         //f.setStartingPose(new Pose(0, 0, 0));
         //f.update();
@@ -88,26 +88,23 @@ public abstract class RobotTeleop extends OpMode {
         r.tilt.update();
     }
     public void turret() {
-        r.turret.updateAutoPower(100);//current just constant
-        r.turret.updatePitch(100);
+        r.turret.updateAutoPower(220);//current just constant
+        r.turret.updatePitch(220);
         r.turret.updateFlywheelPID();
-        r.turret.updatePositionAim(new Pose(0,0),0);
+        //r.turret.updatePositionAim(new Pose2D(0,0),0);
     }
     public void telemetry(){
         //telemetry.addData("Position", f.getPose().toString());
+        telemetry.addData("Target Flywheel RPM", r.turret.getTargetRPM());
+        telemetry.addData("Actual Flywheel RPM", r.turret.getFlywheelRPM());
+        telemetry.addData("Flywheel Power", r.turret.getFlywheelPower());
         telemetry.addLine("------------------------------------");
-        telemetry.addData("Spindexer State", r.spindexer.getState().toString());
-        telemetry.addData("back Sensor distance", r.spindexer.getBackDistance());
-        telemetry.addData("spindexer target angle", r.spindexer.getTargetAngle());
-        telemetry.addData("spindexer current angle", r.spindexer.getCurrentAngle());
-        telemetry.addLine("------------------------------------");
-        telemetry.addData("RPM", r.turret.getFlywheelRPM());
-        telemetry.addData("turret angle", r.turret.getTurretAngle());
+        telemetry.addData("Turret Angle", r.turret.getTurretAngle());
         telemetry.addLine("------------------------------------");
         telemetry.addData("Spindexer State", r.spindexer.getState());
-        telemetry.addData("Is Full", r.spindexer.isFull());
-        telemetry.addData("Current Angle", r.spindexer.currentAngle);
-        telemetry.addData("Target Angle", r.spindexer.targetAngle);
+        telemetry.addData("Is Full?", r.spindexer.isFull());
+        telemetry.addData("Current Angle", r.spindexer.getCurrentAngle());
+        telemetry.addData("Target Angle", r.spindexer.getTargetAngle());
         telemetry.addData("Ball Detected", r.spindexer.ballDetectedSpin());
         telemetry.addData("Back Distance", r.spindexer.getBackDistance());
         telemetry.update();

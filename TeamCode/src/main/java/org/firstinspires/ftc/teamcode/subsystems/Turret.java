@@ -36,9 +36,11 @@ public class Turret {
     private PID flywheelPID = new PID(FLYWHEEL_kP, FLYWHEEL_kI, FLYWHEEL_kD, FLYWHEEL_kF);
     private PID turretPID = new PID(0,0,0,0);
     private PID limelightPID = new PID(0,0,0,0);
+
+    double flywheelPower = 0;
     //--- Constructor ---
-    public Turret(HardwareMap hardwareMap, boolean isTeamRed){
-        DcMotorEx  fw1 = hardwareMap.get(DcMotorEx.class, "flywheel");
+    public Turret(HardwareMap hardwareMap){
+        DcMotorEx fw1 = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel1 = new CachedMotor(fw1);
         flywheel1.setDirection(DcMotorEx.Direction.REVERSE);
         flywheel1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
@@ -60,20 +62,14 @@ public class Turret {
         turret.setCachingThreshold(0.01);
 
         pitch = hardwareMap.get(Servo.class, "pitch");
-
-        if(isTeamRed){
-            goalPose = new Pose(-72, 72);
-        }else {
-            goalPose = new Pose(-72, -72);
-        }
     }
     //--- Main Loop Functions ---
-    public void updateAutoPower(double dist){
+    public void updateAutoPower(double dist) {
         pitchPosition = autoPitch(dist);
         targetRPM = autoRPM(dist);
     }
-    public void updateFlywheelPID(){
-        double flywheelPower = flywheelPID.update(targetRPM, getFlywheelRPM());
+    public void updateFlywheelPID () {
+        flywheelPower = flywheelPID.update(targetRPM, getFlywheelRPM());
         setFlywheelPower(flywheelPower);
     }
     public void updatePitch(double dist){
@@ -130,6 +126,7 @@ public class Turret {
         return getFlywheelVelocity() * RPM_PER_TPS;
     }
 
+    public double getFlywheelPower() {return flywheelPower;}
     public double getTargetRPM() {
         return targetRPM;
     }

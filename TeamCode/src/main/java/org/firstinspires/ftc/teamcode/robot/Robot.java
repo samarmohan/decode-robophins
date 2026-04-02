@@ -27,13 +27,13 @@ public class Robot {
 
     List<LynxModule> allHubs;
     //--- Constructor ---
-    public Robot(HardwareMap hardwareMap, boolean isTeamRed){
+    public Robot(HardwareMap hardwareMap){
         drivetrain = new Drivetrain(hardwareMap);
         intake = new Intake(hardwareMap);
         lights = new Lights(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
         tilt = new Tilt(hardwareMap);
-        turret = new Turret(hardwareMap, isTeamRed);
+        turret = new Turret(hardwareMap);
         limelight = new Limelight(hardwareMap);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
