@@ -64,10 +64,14 @@ public abstract class RobotTeleop extends OpMode {
         double accelerator = gamepad1.left_trigger;
 
         r.drivetrain.driveFieldCentric(y,x,rx,accelerator);
+
+        if(gamepad1.options){
+            r.drivetrain.resetFieldCentric();
+        }
     }
 
     public void intake() {
-        if (gamepad1.cross) {
+        if (gamepad1.cross || r.spindexer.isShooting()) {
             r.intake.intake();
         } else {
             r.intake.outtake();

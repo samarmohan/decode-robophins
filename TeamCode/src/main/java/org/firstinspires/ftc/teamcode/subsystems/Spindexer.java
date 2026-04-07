@@ -41,6 +41,7 @@ public class Spindexer {
     //--- State Machine Variables ---
     private boolean shouldSort = false;
     private boolean hasShot = false;
+    private boolean isShooting = false;
     private ElapsedTime shootTimer;
     public enum SpindexerState {
         INTAKING,
@@ -143,10 +144,12 @@ public class Spindexer {
                 if (!hasShot) {
                     shoot();
                     hasShot = true;
+                    isShooting = true;
                 }
                 //once done goes back to ready to shoot(defualt state)
                 if (isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 3) {
                     alignToStart();
+                    isShooting = false;
                     spindexerState = SpindexerState.READY_TO_SHOOT;
                 }
                 break;
@@ -347,5 +350,8 @@ public class Spindexer {
     }
     public boolean shouldIntake(){
         return spindexerState == SpindexerState.INDEXING || spindexerState == SpindexerState.INTAKING;
+    }
+    public boolean isShooting(){
+        return isShooting;
     }
 }
