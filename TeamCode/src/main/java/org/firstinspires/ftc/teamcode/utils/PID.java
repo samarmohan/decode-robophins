@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.util.Range;
 
 public class PID {
     private double kP, kI, kD, kF, integral, lastError, lastTime;
+    private boolean flywheel = false;
 
     public PID(double p, double i, double d, double f) {
         kP = p;
@@ -28,6 +29,9 @@ public class PID {
         lastError = error;
 
         double ff = kF * Math.signum(error);
+        if(flywheel){
+            ff = kF;
+        }
 
         double output = ff + (kP * error) + (kI * integral) + (kD * derivative);
         return Range.clip(output, -1, 1);
@@ -39,5 +43,8 @@ public class PID {
         lastError = 0;
     }
 
+    public void setFlywheel(boolean flywheel){
+        this.flywheel = flywheel;
+    }
 
 }

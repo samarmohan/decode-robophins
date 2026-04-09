@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
@@ -27,9 +28,9 @@ public abstract class RobotTeleop extends OpMode {
     public void init(){
 
         r = new Robot(hardwareMap);
-        //f = Constants.createFollower(hardwareMap);
-        //f.setStartingPose(new Pose(0, 0, 0));
-        //f.update();
+        f = Constants.createFollower(hardwareMap);
+        f.setStartingPose(new Pose(0, 0, 0));
+        f.update();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
     }
@@ -54,7 +55,7 @@ public abstract class RobotTeleop extends OpMode {
     public void update(){
         r.clearCache();
         r.update();
-        //f.update();
+        f.update();
     }
 
     public void drive(){
@@ -95,7 +96,7 @@ public abstract class RobotTeleop extends OpMode {
         r.turret.updateAutoPower(220);//current just constant
         r.turret.updatePitch(220);
         r.turret.updateFlywheelPID();
-        //r.turret.updatePositionAim(new Pose2D(0,0),0);
+        r.turret.updatePositionAim(new Pose(0, 0, f.getHeading()));
     }
     public void telemetry(){
         //telemetry.addData("Position", f.getPose().toString());
@@ -104,6 +105,8 @@ public abstract class RobotTeleop extends OpMode {
         telemetry.addData("Flywheel Power", r.turret.getFlywheelPower());
         telemetry.addLine("------------------------------------");
         telemetry.addData("Turret Angle", r.turret.getTurretAngle());
+        telemetry.addData("Turret Target Angle", r.turret.getTargetAngle());
+        telemetry.addData("Turret Power", r.turret.getTurretPower());
         telemetry.addLine("------------------------------------");
         telemetry.addData("Spindexer State", r.spindexer.getState());
         telemetry.addData("Is Full?", r.spindexer.isFull());

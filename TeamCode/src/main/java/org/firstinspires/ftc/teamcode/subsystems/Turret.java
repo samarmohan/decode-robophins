@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import static org.firstinspires.ftc.teamcode.utils.Constants.*;
 
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -22,27 +23,31 @@ public class Turret {
     private double targetRPM = 0;
     private double targetAngle = 0;
     private double pitchPosition = 0;
-    private Pose goalPose;
+    private Pose goalPose = new Pose(72, 72);
     //--- Flywheel Encoder Constants ---
     private final double TICK_PER_ROTATION = 28.0;
     private final double SECOND_PER_MINUTE = 60;
     private final double RPM_PER_TPS = SECOND_PER_MINUTE/TICK_PER_ROTATION;
     //(NOT DONE)--- Turret Encoder Constants ---
-    private final double TICK_PER_DEGREE = 1;
+    private final double TICK_PER_DEGREE = -8.0111;
     private final double MAX_TURRET_ANGLE = 180;
     private final double MIN_TURRET_ANGLE = -180;
     //--- What is used ---
     //--- PIDS ---
     private PID flywheelPID = new PID(FLYWHEEL_kP, FLYWHEEL_kI, FLYWHEEL_kD, FLYWHEEL_kF);
-    private PID turretPID = new PID(0,0,0,0);
+
+    private PID turretPID = new PID(TURRET_kP,TURRET_kI,TURRET_kD,0);
     private PID limelightPID = new PID(0,0,0,0);
 
     double flywheelPower = 0;
     //--- Constructor ---
     public Turret(HardwareMap hardwareMap){
+        flywheelPID.setFlywheel(true);
+
         DcMotorEx fw1 = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel1 = new CachedMotor(fw1);
         flywheel1.setDirection(DcMotorEx.Direction.REVERSE);
+        flywheel1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flywheel1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         flywheel1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         flywheel1.setCachingThreshold(0.01);
@@ -50,13 +55,15 @@ public class Turret {
         DcMotorEx fw2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
         flywheel2 = new CachedMotor(fw2);
         flywheel2.setDirection(DcMotorEx.Direction.FORWARD);
+        flywheel2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flywheel2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         flywheel2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         flywheel2.setCachingThreshold(0.01);
 
         DcMotorEx t = hardwareMap.get(DcMotorEx.class, "turretTurn");
         turret = new CachedMotor(t);
-        turret.setDirection(DcMotorEx.Direction.FORWARD);
+        turret.setDirection(DcMotorEx.Direction.REVERSE);
+        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turret.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         turret.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         turret.setCachingThreshold(0.01);
@@ -77,20 +84,22 @@ public class Turret {
     }
     // --- Auto-Aim ---
     //-- Black Box --
-    public void updateBlackBox(Pose pose, double heading, double ty, boolean islimelightValid){
+    public void updateBlackBox(Pose pose, double ty, boolean islimelightValid){
         if(islimelightValid){
             double turretPower = limelightPID.update(ty, 0);
             setTurretPower(turretPower);
         }
         else{
-            targetAngle = correctTurretAngleToGoal(pose, goalPose, heading);
+            targetAngle = correctTurretAngleToGoal(pose, goalPose);
             double turretPower = turretPID.update(targetAngle, getTurretAngle());
+            setTurretPower(turretPower);
         }
     }
     //-- Position Based --
-    public void updatePositionAim(Pose pose, double heading){
-        targetAngle = correctTurretAngleToGoal(pose, goalPose, heading);
+    public void updatePositionAim(Pose pose){
+        targetAngle = correctTurretAngleToGoal(pose, goalPose);
         double turretPower = turretPID.update(targetAngle, getTurretAngle());
+        setTurretPower(turretPower);
     }
     // --- Auto Calculations ---
     public double autoRPM(double dist) {
@@ -118,6 +127,9 @@ public class Turret {
     public void setTurretPower(double power){
         turret.setPower(power);
     }
+    public double getTurretPower(){
+        return turret.getPower();
+    }
     public void setPitch(double pos){
         pitch.setPosition(pos);
     }
@@ -136,10 +148,13 @@ public class Turret {
     public boolean isFlywheelReady(){
         return getFlywheelRPM() > targetRPM*0.9;
     }
-    public double correctTurretAngleToGoal(Pose pose, Pose goalPose, double heading){
+    public double getTargetAngle(){
+        return targetAngle;
+    }
+    public double correctTurretAngleToGoal(Pose pose, Pose goalPose){
         double xToGoal = goalPose.getX() - pose.getX();
         double yToGoal = goalPose.getY() - pose.getY();
-        double robotHeading = Math.toDegrees(heading);
+        double robotHeading = Math.toDegrees(pose.getHeading());
         double headingToGoal = Math.toDegrees(Math.atan2(yToGoal, xToGoal));
         double targetTurretAngle = headingToGoal - robotHeading;
         return Math.IEEEremainder(targetTurretAngle, 360);
