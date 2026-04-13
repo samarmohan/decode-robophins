@@ -96,7 +96,7 @@ public abstract class RobotTeleop extends OpMode {
         r.turret.updateAutoPower(220);//current just constant
         r.turret.updatePitch(220);
         r.turret.updateFlywheelPID();
-        r.turret.updatePositionAim(new Pose(0, 0, f.getHeading()));
+        r.turret.updatePositionAim(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()));
     }
     public void telemetry(){
         //telemetry.addData("Position", f.getPose().toString());
