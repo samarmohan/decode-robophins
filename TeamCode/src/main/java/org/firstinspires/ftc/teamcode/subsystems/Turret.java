@@ -24,7 +24,9 @@ public class Turret {
     private double targetRPM = 0;
     private double targetAngle = 0;
     private double pitchPosition = 0;
-    private Pose goalPose = new Pose(144, 144);
+    private boolean isTeamRed =  true;
+    private Pose redGoalPose = new Pose(144, 144);
+    private Pose blueGoalPose = new Pose(0, 144);
     //--- Flywheel Encoder Constants ---
     private final double TICK_PER_ROTATION = 28.0;
     private final double SECOND_PER_MINUTE = 60;
@@ -92,14 +94,14 @@ public class Turret {
             setTurretPower(turretPower);
         }
         else{
-            targetAngle = correctTurretAngleToGoal(pose, goalPose);
+            targetAngle = correctTurretAngleToGoal(pose, isTeamRed ? redGoalPose : blueGoalPose );
             double turretPower = turretPID.update(targetAngle, getTurretAngle());
             setTurretPower(turretPower);
         }
     }
     //-- Position Based --
     public void updatePositionAim(Pose pose){
-        targetAngle = correctTurretAngleToGoal(pose, goalPose);
+        targetAngle = correctTurretAngleToGoal(pose, isTeamRed ? redGoalPose : blueGoalPose);
         double turretPower = turretPID.update(targetAngle, getTurretAngle());
         setTurretPower(turretPower);
     }
@@ -144,6 +146,9 @@ public class Turret {
     public double getFlywheelPower() {return flywheelPower;}
     public double getTargetRPM() {
         return targetRPM;
+    }
+    public void setTeam(boolean red){
+        isTeamRed = red;
     }
     public double getTurretAngle(){
         return getTurretPosition()/TICK_PER_DEGREE;
