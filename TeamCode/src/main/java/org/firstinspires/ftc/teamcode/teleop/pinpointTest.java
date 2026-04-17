@@ -5,8 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 @TeleOp(name="Pinpoint Test")
-@Disabled
 public class pinpointTest extends OpMode {
     public GoBildaPinpointDriver pinpoint;
 
@@ -31,6 +32,7 @@ public class pinpointTest extends OpMode {
 
         telemetry.addData("X Encoder", pinpoint.getEncoderX());
         telemetry.addData("Y Encoder", pinpoint.getEncoderY());
+        telemetry.addData("heading", pinpoint.getHeading(AngleUnit.DEGREES));
         telemetry.addData("Status", pinpoint.getDeviceStatus());
         telemetry.update();
     }

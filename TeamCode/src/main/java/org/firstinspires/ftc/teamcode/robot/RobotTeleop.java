@@ -29,7 +29,7 @@ public abstract class RobotTeleop extends OpMode {
 
         r = new Robot(hardwareMap);
         f = Constants.createFollower(hardwareMap);
-        f.setStartingPose(new Pose(0, 0, 0));
+        f.setStartingPose(new Pose(72, 0, 0));
         f.update();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
@@ -99,7 +99,7 @@ public abstract class RobotTeleop extends OpMode {
         r.turret.updatePositionAim(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()));
     }
     public void telemetry(){
-        //telemetry.addData("Position", f.getPose().toString());
+        telemetry.addData("Position", f.getPose().toString());
         telemetry.addData("Target Flywheel RPM", r.turret.getTargetRPM());
         telemetry.addData("Actual Flywheel RPM", r.turret.getFlywheelRPM());
         telemetry.addData("Flywheel Power", r.turret.getFlywheelPower());

@@ -18,12 +18,13 @@ import org.firstinspires.ftc.teamcode.utils.PID;
 public class Turret {
     //--- Hardware ---
     private CachedMotor flywheel1, flywheel2, turret;
-    private Servo pitch;
+    private Servo pitch1;
+    private Servo pitch2;
     //--- Variables --
     private double targetRPM = 0;
     private double targetAngle = 0;
     private double pitchPosition = 0;
-    private Pose goalPose = new Pose(72, 72);
+    private Pose goalPose = new Pose(144, 144);
     //--- Flywheel Encoder Constants ---
     private final double TICK_PER_ROTATION = 28.0;
     private final double SECOND_PER_MINUTE = 60;
@@ -68,7 +69,8 @@ public class Turret {
         turret.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         turret.setCachingThreshold(0.01);
 
-        pitch = hardwareMap.get(Servo.class, "pitch");
+        pitch1 = hardwareMap.get(Servo.class, "pitch1");
+        pitch2 = hardwareMap.get(Servo.class, "pitch2");
     }
     //--- Main Loop Functions ---
     public void updateAutoPower(double dist) {
@@ -80,7 +82,7 @@ public class Turret {
         setFlywheelPower(flywheelPower);
     }
     public void updatePitch(double dist){
-        pitch.setPosition(pitchPosition);
+        setPitch(autoPitch(dist));
     }
     // --- Auto-Aim ---
     //-- Black Box --
@@ -131,7 +133,8 @@ public class Turret {
         return turret.getPower();
     }
     public void setPitch(double pos){
-        pitch.setPosition(pos);
+        pitch1.setPosition(pos);
+        pitch2.setPosition(1 - pos);
     }
     //--- Helpers ---
     public double getFlywheelRPM(){
