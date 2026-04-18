@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import static org.firstinspires.ftc.teamcode.utils.Constants.*;
+import static org.firstinspires.ftc.teamcode.utils.TeleOpConstants.*;
 
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
@@ -133,7 +133,8 @@ public class Spindexer {
                     spindexerState = SpindexerState.INTAKING;
                 }
                 //if flywheel is up to RPM allows you to shoot
-                else if (shootTrigger > 0.2 && isFlywheelReady) {
+                // TODO add isFlywheelReady
+                else if (shootTrigger > 0.2 /*&& isFlywheelReady*/) {
                     shootTimer.reset();
                     hasShot = false;
                     spindexerState = SpindexerState.SHOOTING;

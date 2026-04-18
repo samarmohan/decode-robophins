@@ -1,17 +1,13 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import static org.firstinspires.ftc.teamcode.utils.Constants.*;
+import static org.firstinspires.ftc.teamcode.utils.TeleOpConstants.*;
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.utils.CachedMotor;
 import org.firstinspires.ftc.teamcode.utils.PID;
 
@@ -37,12 +33,12 @@ public class Turret {
     private final double MIN_TURRET_ANGLE = -180;
     //--- What is used ---
     //--- PIDS ---
-    private PID flywheelPID = new PID(FLYWHEEL_kP, FLYWHEEL_kI, FLYWHEEL_kD, FLYWHEEL_kF);
-
-    private PID turretPID = new PID(TURRET_kP,TURRET_kI,TURRET_kD,0);
-    private PID limelightPID = new PID(0,0,0,0);
+    private final PID flywheelPID = new PID(FLYWHEEL_kP, FLYWHEEL_kI, FLYWHEEL_kD, FLYWHEEL_kF, 0);
+    private final PID rotationAnglePID = new PID(ROTATION_ANGLE_kP, ROTATION_ANGLE_kI, ROTATION_ANGLE_kD,0, 0);
+    private final PID rotationLimelightPID = new PID(ROTATION_LIMELIGHT_kP, ROTATION_LIMELIGHT_kI, ROTATION_LIMELIGHT_kD, ROTATION_LIMELIGHT_kF, ROTATION_LIMELIGHT_FF_DEADZONE);
 
     double flywheelPower = 0;
+    double turretPower = 0;
     //--- Constructor ---
     public Turret(HardwareMap hardwareMap){
         flywheelPID.setFlywheel(true);
@@ -88,21 +84,19 @@ public class Turret {
     }
     // --- Auto-Aim ---
     //-- Black Box --
-    public void updateBlackBox(Pose pose, double ty, boolean islimelightValid){
-        if(islimelightValid){
-            double turretPower = limelightPID.update(ty, 0);
+    public void updateBlackBox(Pose pose, double tx, boolean islimelightValid){
+        if (islimelightValid) {
+            turretPower = rotationLimelightPID.update(0, tx);
             setTurretPower(turretPower);
         }
-        else{
-            targetAngle = correctTurretAngleToGoal(pose, isTeamRed ? redGoalPose : blueGoalPose );
-            double turretPower = turretPID.update(targetAngle, getTurretAngle());
-            setTurretPower(turretPower);
+        else {
+            updatePositionAim(pose);
         }
     }
     //-- Position Based --
     public void updatePositionAim(Pose pose){
         targetAngle = correctTurretAngleToGoal(pose, isTeamRed ? redGoalPose : blueGoalPose);
-        double turretPower = turretPID.update(targetAngle, getTurretAngle());
+        double turretPower = rotationAnglePID.update(targetAngle, getTurretAngle());
         setTurretPower(turretPower);
     }
     // --- Auto Calculations ---

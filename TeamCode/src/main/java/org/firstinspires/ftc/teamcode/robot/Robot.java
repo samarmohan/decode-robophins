@@ -41,11 +41,6 @@ public class Robot {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
     }
-    //--- Main Loop Functions ---
-    public void update() {
-
-    }
-
     public void clearCache(){
         for (LynxModule hub : allHubs) {
             hub.clearBulkCache();

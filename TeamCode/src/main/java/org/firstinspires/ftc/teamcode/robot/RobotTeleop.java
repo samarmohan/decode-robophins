@@ -2,34 +2,25 @@ package org.firstinspires.ftc.teamcode.robot;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-
-import dalvik.system.DelegateLastClassLoader;
 
 
 public abstract class RobotTeleop extends OpMode {
     //--- Systems ---
     protected Robot r;
     protected Follower f;
-    // --- Timer ---
     protected ElapsedTime runtime = new ElapsedTime();
-    // --- Variables for child Class ---
-    // --- Variables ---
+    private double lastTime;
     private boolean distance;
-    //--- Opmode Functions ---
     @Override
     public void init(){
-
         r = new Robot(hardwareMap);
         f = Constants.createFollower(hardwareMap);
-        f.setStartingPose(new Pose(72, 0, 0));
+        // TODO set where auton ends
+        f.setStartingPose(new Pose(72, 72, 0));
         f.update();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
@@ -44,17 +35,17 @@ public abstract class RobotTeleop extends OpMode {
         update();
         drive();
         intake();
-        lights();
         spindexer();
+        lights();
         tilt();
         turret();
+        limelight();
         telemetry();
+        lastTime = runtime.seconds();
     }
 
-    //--- Subsystems ---
     public void update(){
         r.clearCache();
-        r.update();
         f.update();
     }
 
@@ -84,7 +75,7 @@ public abstract class RobotTeleop extends OpMode {
         r.lights.update();
     }
     public void spindexer() {
-        r.spindexer.update(gamepad1.cross, gamepad1.right_trigger, r.turret.isFlywheelReady(), gamepad2.right_trigger >0.1);
+        r.spindexer.update(gamepad1.cross, gamepad1.right_trigger, true, gamepad2.right_trigger >0.1);
     }
     public void tilt() {
         if (gamepad1.square) {
@@ -92,14 +83,21 @@ public abstract class RobotTeleop extends OpMode {
         }
         r.tilt.update();
     }
+
+    public void limelight() {
+        r.limelight.update();
+    }
+
     public void turret() {
         r.turret.updateAutoPower(220);//current just constant
-        r.turret.updatePitch(220);
+        //r.turret.updatePitch(220);
+        r.turret.setPitch(0.5); //0 is min 0.6 is max
         r.turret.updateFlywheelPID();
-        r.turret.updatePositionAim(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()));
+        r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
     }
     public void telemetry(){
-        telemetry.addData("Position", f.getPose().toString());
+        telemetry.addData("loop time", runtime.seconds()-lastTime);
+        telemetry.addLine("Position: X:"+  f.getPose().getX() + " Y: " +  f.getPose().getY()+ "Heading: " +  f.getPose().getHeading());
         telemetry.addData("Target Flywheel RPM", r.turret.getTargetRPM());
         telemetry.addData("Actual Flywheel RPM", r.turret.getFlywheelRPM());
         telemetry.addData("Flywheel Power", r.turret.getFlywheelPower());
@@ -107,13 +105,14 @@ public abstract class RobotTeleop extends OpMode {
         telemetry.addData("Turret Angle", r.turret.getTurretAngle());
         telemetry.addData("Turret Target Angle", r.turret.getTargetAngle());
         telemetry.addData("Turret Power", r.turret.getTurretPower());
-        telemetry.addLine("------------------------------------");
-        telemetry.addData("Spindexer State", r.spindexer.getState());
-        telemetry.addData("Is Full?", r.spindexer.isFull());
-        telemetry.addData("Current Angle", r.spindexer.getCurrentAngle());
-        telemetry.addData("Target Angle", r.spindexer.getTargetAngle());
-        telemetry.addData("Ball Detected", r.spindexer.ballDetectedSpin());
-        telemetry.addData("Back Distance", r.spindexer.getBackDistance());
+        telemetry.addData("Limelight Valid", r.limelight.wasLastResultValid());
+//        telemetry.addLine("------------------------------------");
+//        telemetry.addData("Spindexer State", r.spindexer.getState());
+//        telemetry.addData("Is Full?", r.spindexer.isFull());
+//        telemetry.addData("Current Angle", r.spindexer.getCurrentAngle());
+//        telemetry.addData("Target Angle", r.spindexer.getTargetAngle());
+//        telemetry.addData("Ball Detected", r.spindexer.ballDetectedSpin());
+//        telemetry.addData("Back Distance", r.spindexer.getBackDistance());
         telemetry.update();
     }
 }

@@ -24,7 +24,6 @@ public class CachedMotor{
 
 
     public void setPower(double power) {
-        // Fixed logic - only set if change is significant
         if (Math.abs(power - lastPower) > cachingThreshold) {
             motor.setPower(power);
             lastPower = power;
