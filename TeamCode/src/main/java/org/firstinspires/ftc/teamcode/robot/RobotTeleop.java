@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import android.provider.Settings;
+
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -13,6 +17,7 @@ public abstract class RobotTeleop extends OpMode {
     protected Robot r;
     protected Follower f;
     protected ElapsedTime runtime = new ElapsedTime();
+    private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     private double lastTime;
     private boolean distance;
     @Override
@@ -24,6 +29,8 @@ public abstract class RobotTeleop extends OpMode {
         f.update();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
+
+        r.spindexer.alignBack();
     }
     @Override
     public void start() {
@@ -75,7 +82,7 @@ public abstract class RobotTeleop extends OpMode {
         r.lights.update();
     }
     public void spindexer() {
-        r.spindexer.update(gamepad1.cross, gamepad1.right_trigger, true, gamepad2.right_trigger >0.1);
+        //r.spindexer.update(gamepad1.cross, gamepad1.right_trigger, true, gamepad2.right_trigger >0.1);
     }
     public void tilt() {
         if (gamepad1.square) {
@@ -90,12 +97,15 @@ public abstract class RobotTeleop extends OpMode {
 
     public void turret() {
         r.turret.updateAutoPower(220);//current just constant
-        //r.turret.updatePitch(220);
-        r.turret.setPitch(0.5); //0 is min 0.6 is max
+        r.turret.updatePitch(220);
+        //r.turret.setPitch(0.5); //0 is min 0.6 is max
         r.turret.updateFlywheelPID();
-        r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
+        //r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
     }
     public void telemetry(){
+        panelsTelemetry.addData("target RPM", r.turret.getTargetRPM());
+        panelsTelemetry.addData("actual RPM", r.turret.getFlywheelRPM());
+
         telemetry.addData("loop time", runtime.seconds()-lastTime);
         telemetry.addLine("Position: X:"+  f.getPose().getX() + " Y: " +  f.getPose().getY()+ "Heading: " +  f.getPose().getHeading());
         telemetry.addData("Target Flywheel RPM", r.turret.getTargetRPM());
@@ -113,6 +123,7 @@ public abstract class RobotTeleop extends OpMode {
 //        telemetry.addData("Target Angle", r.spindexer.getTargetAngle());
 //        telemetry.addData("Ball Detected", r.spindexer.ballDetectedSpin());
 //        telemetry.addData("Back Distance", r.spindexer.getBackDistance());
+        panelsTelemetry.update();
         telemetry.update();
     }
 }

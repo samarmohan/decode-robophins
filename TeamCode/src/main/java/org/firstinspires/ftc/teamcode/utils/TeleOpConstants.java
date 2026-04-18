@@ -15,10 +15,10 @@ public final class TeleOpConstants {
 
 
     // turret PID constants pidf
-    public static double FLYWHEEL_kP = 0.0001;
+    public static double FLYWHEEL_kP = 0.01;
     public static double FLYWHEEL_kI = 0;
     public static double FLYWHEEL_kD = 0;
-    public static double FLYWHEEL_kF = 0.76;
+    public static double FLYWHEEL_kF = 0.72;
 
     public static double ROTATION_ANGLE_kP = 0.03;
     public static double ROTATION_ANGLE_kI = 0.0;
