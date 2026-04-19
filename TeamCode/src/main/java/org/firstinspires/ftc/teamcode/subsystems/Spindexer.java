@@ -34,7 +34,7 @@ public class Spindexer {
     public int[] correctOrder = {2,1,1};
     public double[][] weights = generateWeightArray(0.9);
     //--- Sensor Variables ---
-    private final double CUTOFF_DISTANCE = 6.5;//back sensor cutoff
+    private final double CUTOFF_DISTANCE = 7.0;//back sensor cutoff
     //--- Offset Override Variables ---
     private double OFFSET_ANGLE = 0.0;
     private double offsetTargetAngle = 0.0;

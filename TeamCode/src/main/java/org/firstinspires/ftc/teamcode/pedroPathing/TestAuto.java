@@ -76,7 +76,15 @@ public class TestAuto extends OpMode{
         switch (pathState){
             case 0:
                 follower.followPath(moveForward);
-                setPathState(-1);
+                intake = true;
+                setPathState(1);
+                break;
+            case 1:
+                if(pathTimer.getElapsedTimeSeconds() > 10){
+                    shoot = true;
+                    intake = false;
+                    setPathState(-1);
+                }
                 break;
         }
     }
@@ -91,6 +99,7 @@ public class TestAuto extends OpMode{
         }else{
             r.intake.outtake();
         }
+        r.intake.run();
     }
     private void spindexer(){
         r.spindexer.update(intake, shoot, true,false);
