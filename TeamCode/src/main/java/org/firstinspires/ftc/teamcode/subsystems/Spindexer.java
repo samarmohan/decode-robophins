@@ -81,7 +81,7 @@ public class Spindexer {
         currentAngle = positionToAngle(currentPosition);
     }
     //--- Main Loop Function ---
-    public void update(boolean inButton, double shootTrigger, boolean isFlywheelReady, boolean indexOverride) {
+    public void update(boolean inButton, boolean shoot, boolean isFlywheelReady, boolean indexOverride) {
         currentPosition = getCurrentPosition(getVoltage());
         currentAngle = positionToAngle(currentPosition);
 
@@ -134,7 +134,7 @@ public class Spindexer {
                 }
                 //if flywheel is up to RPM allows you to shoot
                 // TODO add isFlywheelReady
-                else if (shootTrigger > 0.2 /*&& isFlywheelReady*/) {
+                else if (shoot /*&& isFlywheelReady*/) {
                     shootTimer.reset();
                     hasShot = false;
                     spindexerState = SpindexerState.SHOOTING;

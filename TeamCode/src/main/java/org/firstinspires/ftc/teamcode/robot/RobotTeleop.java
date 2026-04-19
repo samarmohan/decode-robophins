@@ -80,7 +80,7 @@ public abstract class RobotTeleop extends OpMode {
         r.lights.update();
     }
     public void spindexer() {
-        r.spindexer.update(gamepad1.cross, gamepad1.right_trigger, true, gamepad2.right_trigger >0.1);
+        r.spindexer.update(gamepad1.cross, gamepad1.right_trigger > 0.3, true, gamepad2.right_trigger >0.1);
     }
     public void tilt() {
         if (gamepad1.square) {
