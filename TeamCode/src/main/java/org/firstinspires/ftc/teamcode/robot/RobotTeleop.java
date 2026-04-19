@@ -29,8 +29,6 @@ public abstract class RobotTeleop extends OpMode {
         f.update();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
-
-        r.spindexer.alignBack();
     }
     @Override
     public void start() {
@@ -82,7 +80,7 @@ public abstract class RobotTeleop extends OpMode {
         r.lights.update();
     }
     public void spindexer() {
-        //r.spindexer.update(gamepad1.cross, gamepad1.right_trigger, true, gamepad2.right_trigger >0.1);
+        r.spindexer.update(gamepad1.cross, gamepad1.right_trigger, true, gamepad2.right_trigger >0.1);
     }
     public void tilt() {
         if (gamepad1.square) {
@@ -98,13 +96,14 @@ public abstract class RobotTeleop extends OpMode {
     public void turret() {
         r.turret.updateAutoPower(220);//current just constant
         r.turret.updatePitch(220);
-        //r.turret.setPitch(0.5); //0 is min 0.6 is max
+        //r.turret.setPitch(0); //0 is min 0.6 is max
         r.turret.updateFlywheelPID();
-        //r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
+        r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
     }
     public void telemetry(){
         panelsTelemetry.addData("target RPM", r.turret.getTargetRPM());
         panelsTelemetry.addData("actual RPM", r.turret.getFlywheelRPM());
+        panelsTelemetry.addData("Pitch Postion", r.turret.getPitch());
 
         telemetry.addData("loop time", runtime.seconds()-lastTime);
         telemetry.addLine("Position: X:"+  f.getPose().getX() + " Y: " +  f.getPose().getY()+ "Heading: " +  f.getPose().getHeading());
@@ -115,7 +114,9 @@ public abstract class RobotTeleop extends OpMode {
         telemetry.addData("Turret Angle", r.turret.getTurretAngle());
         telemetry.addData("Turret Target Angle", r.turret.getTargetAngle());
         telemetry.addData("Turret Power", r.turret.getTurretPower());
+        telemetry.addData("is running Bang Bang", r.turret.getBangBang());
         telemetry.addData("Limelight Valid", r.limelight.wasLastResultValid());
+        telemetry.addData("Target Pitch", r.turret.getPitch());
 //        telemetry.addLine("------------------------------------");
 //        telemetry.addData("Spindexer State", r.spindexer.getState());
 //        telemetry.addData("Is Full?", r.spindexer.isFull());

@@ -18,6 +18,7 @@ public class Turret {
     private Servo pitch2;
     //--- Variables --
     private double targetRPM = 0;
+    double lastRPM = 0;
     private double targetAngle = 0;
     private double pitchPosition = 0;
     private boolean isTeamRed =  true;
@@ -29,8 +30,8 @@ public class Turret {
     private final double RPM_PER_TPS = SECOND_PER_MINUTE/TICK_PER_ROTATION;
     //(NOT DONE)--- Turret Encoder Constants ---
     private final double TICK_PER_DEGREE = -8.0111;
-    private final double MAX_TURRET_ANGLE = 180;
-    private final double MIN_TURRET_ANGLE = -180;
+    private final double MAX_TURRET_ANGLE = 140;
+    private final double MIN_TURRET_ANGLE = -140;
     //--- What is used ---
     //--- PIDS ---
     private final PID flywheelPID = new PID(FLYWHEEL_kP, FLYWHEEL_kI, FLYWHEEL_kD, FLYWHEEL_kF, 0);
@@ -39,6 +40,7 @@ public class Turret {
 
     double flywheelPower = 0;
     double turretPower = 0;
+    boolean bangBang = false;
     //--- Constructor ---
     public Turret(HardwareMap hardwareMap){
         flywheelPID.setFlywheel(true);
@@ -72,20 +74,41 @@ public class Turret {
     }
     //--- Main Loop Functions ---
     public void updateAutoPower(double dist) {
-        pitchPosition = autoPitch(dist);
         targetRPM = autoRPM(dist);
     }
     public void updateFlywheelPID () {
-        flywheelPower = flywheelPID.update(targetRPM, getFlywheelRPM());
+        double currentRPM = getFlywheelRPM();
+        //bang bang for shooting
+        if(!bangBang) {
+            if (targetRPM > 1500 && lastRPM - currentRPM > 50) {
+                bangBang = true;
+            }
+            flywheelPower = flywheelPID.update(targetRPM, currentRPM);
+        }else {
+            if (currentRPM >= targetRPM) {
+                bangBang = false;
+            }
+            flywheelPower = 1;
+        }
         setFlywheelPower(flywheelPower);
+        lastRPM = currentRPM;
     }
     public void updatePitch(double dist){
-        setPitch(autoPitch(dist));
+        double pitchComp;
+        double kP = 0.002;
+        if(bangBang){
+            pitchComp = kP * (lastRPM - getFlywheelRPM());
+        }
+        else {
+            pitchComp = 0;
+        }
+        pitchPosition = autoPitch(dist) - pitchComp;
+        setPitch(pitchPosition);
     }
     // --- Auto-Aim ---
     //-- Black Box --
     public void updateBlackBox(Pose pose, double tx, boolean islimelightValid){
-        if (islimelightValid) {
+        if (islimelightValid && isWithinBounds(getTurretAngle())) {
             turretPower = rotationLimelightPID.update(0, tx);
             setTurretPower(turretPower);
         }
@@ -159,6 +182,22 @@ public class Turret {
         double robotHeading = Math.toDegrees(pose.getHeading());
         double headingToGoal = Math.toDegrees(Math.atan2(yToGoal, xToGoal));
         double targetTurretAngle = headingToGoal - robotHeading;
-        return Math.IEEEremainder(targetTurretAngle, 360);
+        double normalizedAngle = Math.IEEEremainder(targetTurretAngle, 360);
+        if (isWithinBounds(normalizedAngle)){
+            return normalizedAngle;
+        }
+        double distToMax = Math.abs(normalizedAngle - MAX_TURRET_ANGLE);
+        double distToMin = Math.abs(normalizedAngle - MIN_TURRET_ANGLE);
+
+        return distToMax <= distToMin ? MAX_TURRET_ANGLE : MIN_TURRET_ANGLE;
+    }
+    public double getPitch(){
+        return pitchPosition;
+    }
+    public boolean getBangBang(){
+        return bangBang;
+    }
+    public boolean isWithinBounds(double angle){
+        return angle > MIN_TURRET_ANGLE && angle < MAX_TURRET_ANGLE;
     }
 }
