@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.utils.States;
 
 import java.util.Arrays;
 
@@ -51,6 +52,7 @@ public class Spindexer {
         SHOOTING,
 
     }
+    public States.IntakeState intakeState = States.IntakeState.OFF;
     private SpindexerState spindexerState = SpindexerState.READY_TO_SHOOT;
     //--- Constructor
     public Spindexer(HardwareMap hardwareMap){
@@ -87,6 +89,7 @@ public class Spindexer {
 
         switch(spindexerState){
             case INTAKING:
+                intakeState = States.IntakeState.INTAKE;
                 if ((isWithinTolerance(currentAngle, targetAngle) && ballDetectedSpin()) || indexOverride) {
                     if (ballIsGreenSpin()) {
                         order[0] = 2;
@@ -111,6 +114,7 @@ public class Spindexer {
                 }
                 break;
             case INDEXING:
+                intakeState = States.IntakeState.OFF;
                 index();
                 if (inButton) {
                     //if holding in, goes back to intaking
@@ -122,11 +126,13 @@ public class Spindexer {
                 }
                 break;
             case ALIGNING:
+                intakeState = States.IntakeState.OUTTAKE;
                 align();
                 alignToHold();
                 spindexerState = SpindexerState.READY_TO_SHOOT;
                 break;
             case READY_TO_SHOOT:
+                intakeState = States.IntakeState.OUTTAKE;
                 //if there is space allows you to intake
                 if (inButton && !isFull()) {
                     alignBack();
@@ -141,6 +147,7 @@ public class Spindexer {
                 }
                 break;
             case SHOOTING:
+                intakeState = States.IntakeState.OUTTAKE;
                 //first loop runs shoot
                 if (!hasShot) {
                     shoot();
@@ -354,5 +361,8 @@ public class Spindexer {
     }
     public boolean isShooting(){
         return isShooting;
+    }
+    public States.IntakeState getIntakeState(){
+        return intakeState;
     }
 }

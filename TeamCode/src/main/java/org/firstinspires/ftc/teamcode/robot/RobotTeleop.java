@@ -68,11 +68,14 @@ public abstract class RobotTeleop extends OpMode {
     }
 
     public void intake() {
+        r.intake.setIntakeState(r.spindexer.getIntakeState());
+        /*
         if (gamepad1.cross || r.spindexer.isShooting()) {
             r.intake.intake();
         } else {
             r.intake.outtake();
         }
+         */
         r.intake.run();
     }
     public void lights() {
@@ -94,10 +97,11 @@ public abstract class RobotTeleop extends OpMode {
     }
 
     public void turret() {
-        r.turret.updateAutoPower(220);//current just constant
-        r.turret.updatePitch(220);
+        r.turret.updateAutoPower(r.turret.getDistance(f.getPose()));//current just constant
+        r.turret.updatePitch(r.turret.getDistance(f.getPose()));
         //r.turret.setPitch(0); //0 is min 0.6 is max
         r.turret.updateFlywheelPID();
+        //r.turret.updatePositionAim(f.getPose());
         r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
     }
     public void telemetry(){
@@ -114,7 +118,9 @@ public abstract class RobotTeleop extends OpMode {
         telemetry.addData("Turret Angle", r.turret.getTurretAngle());
         telemetry.addData("Turret Target Angle", r.turret.getTargetAngle());
         telemetry.addData("Turret Power", r.turret.getTurretPower());
+        telemetry.addData("Distance", r.turret.getDistance(f.getPose()));
         telemetry.addData("is running Bang Bang", r.turret.getBangBang());
+        telemetry.addData("Limelight error", r.limelight.getTx());
         telemetry.addData("Limelight Valid", r.limelight.wasLastResultValid());
         telemetry.addData("Target Pitch", r.turret.getPitch());
 //        telemetry.addLine("------------------------------------");

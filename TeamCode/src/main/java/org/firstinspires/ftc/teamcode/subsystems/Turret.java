@@ -125,14 +125,12 @@ public class Turret {
     // --- Auto Calculations ---
     public double autoRPM(double dist) {
 
-        if (dist < 30) return 2200;
-        if (dist < 225) return 4 * dist + 1920;
-        return 5 * dist + 1525;
+        if (dist < 120) return 2200;
+        return 3100;
     }
     public double autoPitch(double dist) {
-        if (dist < 30) return 0.3;
-        if (dist < 260) return 0.655;
-        return 0.72; // Far pitch
+        if (dist < 120) return 0.56;
+        return 0.67; // Far pitch
     }
     //--- Hardware Interactions ---
     public double getFlywheelVelocity(){
@@ -163,6 +161,9 @@ public class Turret {
     public double getFlywheelPower() {return flywheelPower;}
     public double getTargetRPM() {
         return targetRPM;
+    }
+    public void setTargetRPM(double RPM){
+        targetRPM = RPM;
     }
     public void setTeam(boolean red){
         isTeamRed = red;
@@ -199,5 +200,9 @@ public class Turret {
     }
     public boolean isWithinBounds(double angle){
         return angle > MIN_TURRET_ANGLE && angle < MAX_TURRET_ANGLE;
+    }
+    public double getDistance(Pose pose){
+        Pose goalPose = isTeamRed ? redGoalPose : blueGoalPose;
+        return Math.sqrt(Math.pow(goalPose.getX()-pose.getX(), 2) + Math.pow(goalPose.getY()-pose.getY(), 2));
     }
 }

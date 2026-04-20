@@ -5,19 +5,15 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.utils.CachedMotor;
+import org.firstinspires.ftc.teamcode.utils.States;
 
 public class Intake {
     //--- Hardware ---
     private CachedMotor intake;  // Changed from DcMotorEx to CachedMotor
 
     //--- States ---
-    public enum IntakeState {
-        INTAKE,
-        SLOW_INTAKE,
-        OUTTAKE,
-        OFF
-    }
-    private IntakeState currentIntakeState = IntakeState.OFF;
+
+    private States.IntakeState currentIntakeState = States.IntakeState.OFF;
 
     //--- Constructor ---
     public Intake(HardwareMap hardwareMap) {
@@ -34,7 +30,7 @@ public class Intake {
     public void run() {
         switch (currentIntakeState) {
             case INTAKE:
-                intake.setPower(1);
+                intake.setPower(0.7);
                 break;
             case SLOW_INTAKE:
                 intake.setPower(0.5);
@@ -49,23 +45,26 @@ public class Intake {
     }
 
     //--- Helpers ---
-    public void setIntakeState(IntakeState state) {
+    public void setIntakeState(States.IntakeState state) {
         currentIntakeState = state;
     }
 
     public void intake(){
-        setIntakeState(IntakeState.INTAKE);
+        setIntakeState(States.IntakeState.INTAKE);
     }
 
     public void slowIntake(){
-        setIntakeState(IntakeState.SLOW_INTAKE);
+        setIntakeState(States.IntakeState.SLOW_INTAKE);
     }
 
     public void outtake(){
-        setIntakeState(IntakeState.OUTTAKE);
+        setIntakeState(States.IntakeState.OUTTAKE);
     }
 
     public void turnIntakeOff(){
-        setIntakeState(IntakeState.OFF);
+        setIntakeState(States.IntakeState.OFF);
     }
+
+    public States.IntakeState getIntakeState(){
+        return currentIntakeState;}
 }

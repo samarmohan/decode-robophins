@@ -24,10 +24,10 @@ public final class TeleOpConstants {
     public static double ROTATION_ANGLE_kI = 0.0;
     public static double ROTATION_ANGLE_kD = 0.001;
 
-    public static double ROTATION_LIMELIGHT_kP = 0.08;
+    public static double ROTATION_LIMELIGHT_kP = 0.015;
     public static double ROTATION_LIMELIGHT_kI = 0.0;
     public static double ROTATION_LIMELIGHT_kD = 0.0;
-    public static double ROTATION_LIMELIGHT_kF = 0.075;
+    public static double ROTATION_LIMELIGHT_kF = 0.0;
     public static double ROTATION_LIMELIGHT_FF_DEADZONE = 1;
 
 
