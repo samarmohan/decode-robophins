@@ -79,30 +79,31 @@ public class Turret {
     public void updateFlywheelPID () {
         double currentRPM = getFlywheelRPM();
         //bang bang for shooting
-        if(!bangBang) {
-            if (targetRPM > 1500 && lastRPM - currentRPM > 50) {
-                bangBang = true;
-            }
-            flywheelPower = flywheelPID.update(targetRPM, currentRPM);
-        }else {
-            if (currentRPM >= targetRPM) {
-                bangBang = false;
-            }
-            flywheelPower = 1;
-        }
+//        if(!bangBang) {
+//            if (targetRPM > 1500 && lastRPM - currentRPM > 50) {
+//                bangBang = true;
+//            }
+//            flywheelPower = flywheelPID.update(targetRPM, currentRPM);
+//        }else {
+//            if (currentRPM >= targetRPM) {
+//                bangBang = false;
+//            }
+//            flywheelPower = 1;
+//        }
+        flywheelPower = flywheelPID.update(targetRPM, currentRPM);
         setFlywheelPower(flywheelPower);
         lastRPM = currentRPM;
     }
     public void updatePitch(double dist){
-        double pitchComp;
-        double kP = 0.002;
-        if(bangBang){
-            pitchComp = kP * (lastRPM - getFlywheelRPM());
-        }
-        else {
-            pitchComp = 0;
-        }
-        pitchPosition = autoPitch(dist) - pitchComp;
+//        double pitchComp;
+//        double kP = 0.002;
+//        if(bangBang){
+//            pitchComp = kP * (lastRPM - getFlywheelRPM());
+//        }
+//        else {
+//            pitchComp = 0;
+//        }
+        pitchPosition = autoPitch(dist) /*- pitchComp*/;
         setPitch(pitchPosition);
     }
     // --- Auto-Aim ---
@@ -204,5 +205,8 @@ public class Turret {
     public double getDistance(Pose pose){
         Pose goalPose = isTeamRed ? redGoalPose : blueGoalPose;
         return Math.sqrt(Math.pow(goalPose.getX()-pose.getX(), 2) + Math.pow(goalPose.getY()-pose.getY(), 2));
+    }
+    public void resetFlywheelPID(){
+        flywheelPID.reset();
     }
 }

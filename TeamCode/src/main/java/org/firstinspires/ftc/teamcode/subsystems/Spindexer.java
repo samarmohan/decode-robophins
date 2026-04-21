@@ -116,14 +116,16 @@ public class Spindexer {
             case INDEXING:
                 intakeState = States.IntakeState.OFF;
                 index();
-                if (inButton) {
-                    //if holding in, goes back to intaking
-                    spindexerState = SpindexerState.INTAKING;
-                } else {
-                    //defaults to hold position
-                    alignToHold();
-                    spindexerState = SpindexerState.READY_TO_SHOOT;
-                }
+                //if (isWithinTolerance(currentAngle, targetAngle)) {
+                    if (inButton) {
+                        //if holding in, goes back to intaking
+                        spindexerState = SpindexerState.INTAKING;
+                    } else {
+                        //defaults to hold position
+                        alignToHold();
+                        spindexerState = SpindexerState.READY_TO_SHOOT;
+                    }
+                 //}
                 break;
             case ALIGNING:
                 intakeState = States.IntakeState.OUTTAKE;

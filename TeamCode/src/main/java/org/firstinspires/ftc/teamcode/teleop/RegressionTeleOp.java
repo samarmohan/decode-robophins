@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.robot.RobotTeleop;
 
@@ -11,10 +13,10 @@ public class RegressionTeleOp extends RobotTeleop {
     private double RPM = 0;
     @Override
     public void turret(){
-        if(gamepad2.left_bumper){
+        if(currentGamepad2.left_bumper && !previousGamepad2.right_bumper){
             RPM -= 100;
         }
-        if(gamepad2.right_bumper){
+        if(currentGamepad2.right_bumper && !previousGamepad2.right_bumper){
             RPM += 100;
         }
         if(gamepad2.a){
@@ -34,3 +36,4 @@ public class RegressionTeleOp extends RobotTeleop {
         super.telemetry();
     }
 }
+

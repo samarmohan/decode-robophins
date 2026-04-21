@@ -7,6 +7,7 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -18,8 +19,16 @@ public abstract class RobotTeleop extends OpMode {
     protected Follower f;
     protected ElapsedTime runtime = new ElapsedTime();
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+
+    public Gamepad currentGamepad1 = new Gamepad();
+    public Gamepad currentGamepad2 = new Gamepad();
+
+    public Gamepad previousGamepad1 = new Gamepad();
+    public Gamepad previousGamepad2 = new Gamepad();
     private double lastTime;
     private boolean distance;
+
+    boolean turretOn = true;
     @Override
     public void init(){
         r = new Robot(hardwareMap);
@@ -37,6 +46,10 @@ public abstract class RobotTeleop extends OpMode {
     }
     @Override
     public void loop() {
+        previousGamepad1.copy(currentGamepad1);
+        previousGamepad2.copy(currentGamepad2);
+        currentGamepad1.copy(gamepad1);
+        currentGamepad2.copy(gamepad2);
         update();
         drive();
         intake();
@@ -97,18 +110,27 @@ public abstract class RobotTeleop extends OpMode {
     }
 
     public void turret() {
-        r.turret.updateAutoPower(r.turret.getDistance(f.getPose()));//current just constant
+        if (gamepad1.left_bumper) {
+            turretOn = false;
+        } else if (gamepad1.right_bumper) {
+            turretOn = true;
+        }
+        if (turretOn) {
+            r.turret.updateAutoPower(r.turret.getDistance(f.getPose()));//current just constant
+        } else {
+            r.turret.setTargetRPM(0);
+        }
+        r.turret.updateFlywheelPID();
         r.turret.updatePitch(r.turret.getDistance(f.getPose()));
         //r.turret.setPitch(0); //0 is min 0.6 is max
-        r.turret.updateFlywheelPID();
         //r.turret.updatePositionAim(f.getPose());
-        r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
+        //r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
+
     }
     public void telemetry(){
         panelsTelemetry.addData("target RPM", r.turret.getTargetRPM());
         panelsTelemetry.addData("actual RPM", r.turret.getFlywheelRPM());
         panelsTelemetry.addData("Pitch Postion", r.turret.getPitch());
-
         telemetry.addData("loop time", runtime.seconds()-lastTime);
         telemetry.addLine("Position: X:"+  f.getPose().getX() + " Y: " +  f.getPose().getY()+ "Heading: " +  f.getPose().getHeading());
         telemetry.addData("Target Flywheel RPM", r.turret.getTargetRPM());
@@ -123,13 +145,14 @@ public abstract class RobotTeleop extends OpMode {
         telemetry.addData("Limelight error", r.limelight.getTx());
         telemetry.addData("Limelight Valid", r.limelight.wasLastResultValid());
         telemetry.addData("Target Pitch", r.turret.getPitch());
-//        telemetry.addLine("------------------------------------");
-//        telemetry.addData("Spindexer State", r.spindexer.getState());
-//        telemetry.addData("Is Full?", r.spindexer.isFull());
-//        telemetry.addData("Current Angle", r.spindexer.getCurrentAngle());
-//        telemetry.addData("Target Angle", r.spindexer.getTargetAngle());
-//        telemetry.addData("Ball Detected", r.spindexer.ballDetectedSpin());
-//        telemetry.addData("Back Distance", r.spindexer.getBackDistance());
+        telemetry.addLine("------------------------------------");
+        telemetry.addData("Spindexer State", r.spindexer.getState());
+        telemetry.addData("Is Full?", r.spindexer.isFull());
+        telemetry.addData("Current Angle", r.spindexer.getCurrentAngle());
+        telemetry.addData("Target Angle", r.spindexer.getTargetAngle());
+        telemetry.addData("Ball Detected", r.spindexer.ballDetectedSpin());
+        telemetry.addData("Back Distance", r.spindexer.getBackDistance());
+        telemetry.addData("order", r.spindexer.getOrder());
         panelsTelemetry.update();
         telemetry.update();
     }
