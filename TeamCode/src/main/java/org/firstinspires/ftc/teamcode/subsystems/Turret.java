@@ -41,6 +41,9 @@ public class Turret {
     double flywheelPower = 0;
     double turretPower = 0;
     boolean bangBang = false;
+
+    private double filteredVelocity = 0;
+
     //--- Constructor ---
     public Turret(HardwareMap hardwareMap){
         flywheelPID.setFlywheel(true);
@@ -125,13 +128,12 @@ public class Turret {
     }
     // --- Auto Calculations ---
     public double autoRPM(double dist) {
-
-        if (dist < 120) return 2200;
-        return 3100;
+        if (dist < 120) return 177.32155341461 * Math.pow(dist,0.53832768855154);
+        return 2900;
     }
     public double autoPitch(double dist) {
-        if (dist < 120) return 0.56;
-        return 0.67; // Far pitch
+        if (dist < 120) return 0.5496747223156 * Math.log(dist) + -2.0330280945313;
+        return 0.62; // Far pitch
     }
     //--- Hardware Interactions ---
     public double getFlywheelVelocity(){

@@ -22,6 +22,9 @@ public class PID {
         lastTime = currentTime;
 
         double error = target - current;
+//        if (flywheel && Math.abs(error) < FLYWHEEL_PID_DEADZONE) {
+//            error = 0;
+//        }
         integral += error * dt;
         integral = Range.clip(integral, -1, 1);
 

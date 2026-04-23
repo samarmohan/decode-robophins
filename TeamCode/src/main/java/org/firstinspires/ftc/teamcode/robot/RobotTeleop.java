@@ -124,13 +124,15 @@ public abstract class RobotTeleop extends OpMode {
         r.turret.updatePitch(r.turret.getDistance(f.getPose()));
         //r.turret.setPitch(0); //0 is min 0.6 is max
         //r.turret.updatePositionAim(f.getPose());
-        //r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
+        r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
 
     }
     public void telemetry(){
         panelsTelemetry.addData("target RPM", r.turret.getTargetRPM());
         panelsTelemetry.addData("actual RPM", r.turret.getFlywheelRPM());
+        panelsTelemetry.addData("flywheel power", r.turret.getFlywheelPower());
         panelsTelemetry.addData("Pitch Postion", r.turret.getPitch());
+        panelsTelemetry.addData("error",r.turret.getFlywheelRPM() - r.turret.getTargetRPM());
         telemetry.addData("loop time", runtime.seconds()-lastTime);
         telemetry.addLine("Position: X:"+  f.getPose().getX() + " Y: " +  f.getPose().getY()+ "Heading: " +  f.getPose().getHeading());
         telemetry.addData("Target Flywheel RPM", r.turret.getTargetRPM());

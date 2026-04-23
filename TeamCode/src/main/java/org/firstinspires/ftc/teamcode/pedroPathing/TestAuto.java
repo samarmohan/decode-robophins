@@ -13,18 +13,26 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
 @Autonomous(name = "Test Auto", group = "Test")
-public class TestAuto extends OpMode{
+public class TestAuto extends OpMode {
     private Follower follower;
     private Robot r;
     private Timer pathTimer, opmodeTimer;
     private int pathState;
     //points
-    private final Pose startPose = new Pose(0,0,Math.toRadians(0));
-    private final Pose endPose = new Pose(15, 0, Math.toRadians(90));
+
+    // FAR
+    private final Pose startPose = new Pose(62, 9, Math.toRadians(180));
+
+    private final Pose shootPose = new Pose(56, 20, Math.toRadians(135));
+    private final Pose collectUpWallPose = new Pose(10, 9, Math.toRadians(180));
+    private final Pose collectWallRollout = new Pose(10, 16, Math.toRadians(180));
+    private final Pose lineUp3rdSpike = new Pose(50, 36, Math.toRadians(180));
+    private final Pose collect3rdSpike = new Pose(25, 36, Math.toRadians(180));
+
 
     //variables
     private boolean intake = false;
-    private boolean shoot = false;
+    private boolean shouldShoot = false;
 
     //loop functions
     @Override
@@ -54,9 +62,9 @@ public class TestAuto extends OpMode{
         follower.update();
         r.clearCache();
         autonomousPathUpdate();
-        intake();
-        spindexer();
-        turret();
+//        intake();
+//        spindexer();
+//        turret();
         telemetry();
     }
 
@@ -64,25 +72,58 @@ public class TestAuto extends OpMode{
     public void stop() {}
 
     //Pathing
-    private Path moveForward;
+    private Path collectWallBallsPath, collectGateRunoffPath;
+    private PathChain collect3rdSpikePath;
+    private Path wallBallsToShootPath, gateRunoffToShootPath, spikeToShootPath;
+
 
     public void buildPaths(){
-        moveForward = new Path(new BezierLine(startPose, endPose));
-        moveForward.setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading());
+        collectWallBallsPath = new Path(new BezierLine(startPose, collectUpWallPose));
+        collectWallBallsPath.setConstantHeadingInterpolation(startPose.getHeading());
+
+        wallBallsToShootPath = new Path(new BezierLine(collectUpWallPose, shootPose));
+        wallBallsToShootPath.setConstantHeadingInterpolation(startPose.getHeading());
+
+        collect3rdSpikePath = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, lineUp3rdSpike))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+
+                .addPath(new BezierLine(lineUp3rdSpike, collect3rdSpike))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+                .build();
+
+        spikeToShootPath = new Path(new BezierLine(collect3rdSpike, shootPose));
+        spikeToShootPath.setConstantHeadingInterpolation(startPose.getHeading());
+
     }
 
     //Finite State Machine
     public void autonomousPathUpdate(){
         switch (pathState){
             case 0:
-                follower.followPath(moveForward);
-                intake = true;
-                setPathState(1);
+                if (!follower.isBusy()) {
+                    follower.followPath(collectWallBallsPath);
+                    //intake = true;
+                    setPathState(1);
+                }
                 break;
             case 1:
-                if(pathTimer.getElapsedTimeSeconds() > 10){
-                    shoot = true;
-                    intake = false;
+                if(!follower.isBusy()){
+                    follower.followPath(wallBallsToShootPath);
+                    shouldShoot = true;
+                    //intake = false;
+                    setPathState(2);
+                }
+                break;
+            case 2:
+                if(!follower.isBusy()){
+                    follower.followPath(collect3rdSpikePath);
+                    setPathState(3);
+                }
+                break;
+            case 3:
+                if(!follower.isBusy()){
+                    follower.followPath(spikeToShootPath);
                     setPathState(-1);
                 }
                 break;
@@ -102,7 +143,7 @@ public class TestAuto extends OpMode{
         r.intake.run();
     }
     private void spindexer(){
-        r.spindexer.update(intake, shoot, true,false);
+        r.spindexer.update(intake, shouldShoot, true,false);
     }
     private void turret(){
         r.turret.updateAutoPower(220);

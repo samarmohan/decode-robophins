@@ -19,6 +19,9 @@ public final class TeleOpConstants {
     public static double FLYWHEEL_kI = 0;
     public static double FLYWHEEL_kD = 0;
     public static double FLYWHEEL_kF = 0.6;
+    public static double FLYWHEEL_PID_DEADZONE = 75;
+    public static double VELOCITY_FILTER_COEFF = 0.1;
+
 
     public static double ROTATION_ANGLE_kP = 0.03;
     public static double ROTATION_ANGLE_kI = 0.0;
