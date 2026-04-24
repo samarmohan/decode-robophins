@@ -17,7 +17,7 @@ public class TestAuto extends OpMode {
     private Follower follower;
     private Robot r;
     private Timer pathTimer, opmodeTimer;
-    private int pathState;
+    private String pathState;
     //points
 
     // FAR
@@ -25,13 +25,14 @@ public class TestAuto extends OpMode {
 
     private final Pose shootPose = new Pose(56, 20, Math.toRadians(135));
     private final Pose collectUpWallPose = new Pose(10, 9, Math.toRadians(180));
-    private final Pose collectWallRollout = new Pose(10, 16, Math.toRadians(180));
-    private final Pose lineUp3rdSpike = new Pose(50, 36, Math.toRadians(180));
-    private final Pose collect3rdSpike = new Pose(25, 36, Math.toRadians(180));
+    private final Pose collectWallRollout = new Pose(10, 25, Math.toRadians(180));
+    private final Pose lineUp3rdSpike = new Pose(50, 32, Math.toRadians(180));
+    private final Pose collect3rdSpike = new Pose(12, 32, Math.toRadians(180));
+    private final Pose leavePose = new Pose(56, 50, Math.toRadians(180));
 
 
     //variables
-    private boolean intake = false;
+    private boolean shouldIntake = false;
     private boolean shouldShoot = false;
 
     //loop functions
@@ -53,7 +54,8 @@ public class TestAuto extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
-        setPathState(0);
+        setPathState("collectWallBalls");
+        r.turret.setTeam(false);
     }
 
     /** This is the main loop of the OpMode, it will run repeatedly after clicking "Play". **/
@@ -62,9 +64,10 @@ public class TestAuto extends OpMode {
         follower.update();
         r.clearCache();
         autonomousPathUpdate();
-//        intake();
-//        spindexer();
-//        turret();
+        intake();
+        limelight();
+        spindexer();
+        turret();
         telemetry();
     }
 
@@ -72,14 +75,15 @@ public class TestAuto extends OpMode {
     public void stop() {}
 
     //Pathing
-    private Path collectWallBallsPath, collectGateRunoffPath;
-    private PathChain collect3rdSpikePath;
-    private Path wallBallsToShootPath, gateRunoffToShootPath, spikeToShootPath;
+    private PathChain collect3rdSpikePath, collectGateRunoffPath, collectWallBallsPath;
+    private Path wallBallsToShootPath, gateRunoffToShootPath, spikeToShootPath, shootToLeavePath;
 
 
     public void buildPaths(){
-        collectWallBallsPath = new Path(new BezierLine(startPose, collectUpWallPose));
-        collectWallBallsPath.setConstantHeadingInterpolation(startPose.getHeading());
+        collectWallBallsPath = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, collectUpWallPose))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+                .build();
 
         wallBallsToShootPath = new Path(new BezierLine(collectUpWallPose, shootPose));
         wallBallsToShootPath.setConstantHeadingInterpolation(startPose.getHeading());
@@ -95,61 +99,139 @@ public class TestAuto extends OpMode {
         spikeToShootPath = new Path(new BezierLine(collect3rdSpike, shootPose));
         spikeToShootPath.setConstantHeadingInterpolation(startPose.getHeading());
 
+        collectGateRunoffPath = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, collectWallRollout))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+                .build();
+
+        gateRunoffToShootPath = new Path(new BezierLine(collectWallRollout, shootPose));
+        gateRunoffToShootPath.setConstantHeadingInterpolation(startPose.getHeading());
+
+        shootToLeavePath = new Path(new BezierLine(shootPose, leavePose));
+        shootToLeavePath.setConstantHeadingInterpolation(startPose.getHeading());
+
     }
 
     //Finite State Machine
     public void autonomousPathUpdate(){
-        switch (pathState){
-            case 0:
-                if (!follower.isBusy()) {
-                    follower.followPath(collectWallBallsPath);
-                    //intake = true;
-                    setPathState(1);
-                }
-                break;
-            case 1:
-                if(!follower.isBusy()){
-                    follower.followPath(wallBallsToShootPath);
+        switch (pathState) {
+            case "collectWallBalls":
+                shouldShoot = true;
+                if (!r.spindexer.isShooting() && shouldShoot) {
+                        shouldShoot = false;
+                        follower.followPath(collectWallBallsPath, 0.7, true);
+                        shouldIntake = true;
+                        setPathState("wallBallsToShoot");
+                } else {
                     shouldShoot = true;
-                    //intake = false;
-                    setPathState(2);
                 }
                 break;
-            case 2:
-                if(!follower.isBusy()){
-                    follower.followPath(collect3rdSpikePath);
-                    setPathState(3);
+            case "wallBallsToShoot":
+                if(!follower.isBusy()) {
+                    follower.followPath(wallBallsToShootPath);
+                    shouldIntake = true;
+                    setPathState("collectGateRunoff1");
                 }
                 break;
-            case 3:
-                if(!follower.isBusy()){
+            case "collectGateRunoff1":
+                if(!follower.isBusy()) {
+                    shouldIntake = false;
+                    if(!r.spindexer.isShooting()&& shouldShoot) {
+                        shouldShoot = false;
+                        shouldIntake = true;
+                        follower.followPath(collectGateRunoffPath, 0.7, true);
+                        setPathState("gateRunoffToShoot1");
+                    }else{
+                        shouldShoot = true;
+                    }
+                }
+                break;
+            case "gateRunoffToShoot1":
+                if(!follower.isBusy()) {
+                    shouldIntake = true;
+                    follower.followPath(gateRunoffToShootPath);
+                    setPathState("collectGateRunoff2");
+                }
+                break;
+            case "collectGateRunoff2":
+                if(!follower.isBusy()) {
+                    shouldIntake = false;
+                    if(!r.spindexer.isShooting()&& shouldShoot) {
+                        shouldShoot = false;
+                        shouldIntake = true;
+                        follower.followPath(collectGateRunoffPath, 0.7, true);
+                        setPathState("getRunoffToShoot2");
+                    }else{
+                        shouldShoot = true;
+                    }
+                }
+                break;
+            case "gateRunoffToShoot2":
+                if(!follower.isBusy()) {
+                    shouldIntake = true;
+                    follower.followPath(gateRunoffToShootPath);
+                    setPathState("collect3rdSpikePath");
+                }
+                break;
+            case "collect3rdSpikePath":
+                if(!follower.isBusy()) {
+                    shouldIntake = false;
+                    if(!r.spindexer.isShooting()&& shouldShoot) {
+                        shouldShoot = false;
+                        shouldIntake = true;
+                        follower.followPath(collect3rdSpikePath, 0.7, true);
+                        setPathState("spikeToShoot");
+                    }else{
+                        shouldShoot = true;
+                    }
+                }
+                break;
+            case "spikeToShoot":
+                if(!follower.isBusy()) {
+                    shouldIntake = true;
                     follower.followPath(spikeToShootPath);
-                    setPathState(-1);
+                    setPathState("shootToLeave");
                 }
                 break;
+            case "shootToLeave":
+                if(!follower.isBusy()) {
+                    shouldIntake = false;
+                    if(!r.spindexer.isShooting()&& shouldShoot) {
+                        shouldShoot = false;
+                        shouldIntake = false;
+
+                        follower.followPath(shootToLeavePath);
+                        setPathState("end");
+                    }else{
+                        shouldShoot = true;
+                    }
+                }
         }
     }
-    public void setPathState(int pState) {
+    public void setPathState(String pState) {
         pathState = pState;
         pathTimer.resetTimer();
     }
     //robot subsystems
     private void intake(){
-        if(intake){
+        if(shouldIntake && !r.spindexer.isFull()){
             r.intake.intake();
         }else{
             r.intake.outtake();
         }
         r.intake.run();
     }
-    private void spindexer(){
-        r.spindexer.update(intake, shouldShoot, true,false);
+    private void limelight(){
+        r.limelight.update();
     }
-    private void turret(){
-        r.turret.updateAutoPower(220);
-        r.turret.updatePitch(220);
+    private void spindexer(){
+        r.spindexer.update(shouldIntake, shouldShoot, true,false);
+    }
+    private void turret() {
+        r.turret.updateAutoPower(r.turret.getDistance(follower.getPose()));
+        r.turret.updatePitch(r.turret.getDistance(follower.getPose()));
         r.turret.updateFlywheelPID();
-        r.turret.updatePositionAim(new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading()));
+        r.turret.updateBlackBox(new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
     }
     public void telemetry(){
         // Feedback to Driver Hub for debugging

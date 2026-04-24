@@ -30,7 +30,7 @@ public class Intake {
     public void run() {
         switch (currentIntakeState) {
             case INTAKE:
-                intake.setPower(0.7);
+                intake.setPower(1);
                 break;
             case SLOW_INTAKE:
                 intake.setPower(0.5);

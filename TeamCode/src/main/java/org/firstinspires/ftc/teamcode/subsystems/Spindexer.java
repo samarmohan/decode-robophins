@@ -145,6 +145,7 @@ public class Spindexer {
                 else if (shoot /*&& isFlywheelReady*/) {
                     shootTimer.reset();
                     hasShot = false;
+                    isShooting = true;
                     spindexerState = SpindexerState.SHOOTING;
                 }
                 break;
@@ -154,7 +155,6 @@ public class Spindexer {
                 if (!hasShot) {
                     shoot();
                     hasShot = true;
-                    isShooting = true;
                 }
                 //once done goes back to ready to shoot(defualt state)
                 if (isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 3) {
