@@ -20,6 +20,7 @@ public class Turret {
     private double targetRPM = 0;
     double lastRPM = 0;
     private double targetAngle = 0;
+    private double offsetAngle = 0;
     private double pitchPosition = 0;
     private boolean isTeamRed =  true;
     private Pose redGoalPose = new Pose(144, 144);
@@ -120,9 +121,14 @@ public class Turret {
             updatePositionAim(pose);
         }
     }
+    //aim straight forward, used for ending auto
+    public void aimForward(){
+        turretPower = rotationAnglePID.update(0, getTurretAngle());
+        setTurretPower(turretPower);
+    }
     //-- Position Based --
     public void updatePositionAim(Pose pose){
-        targetAngle = correctTurretAngleToGoal(pose, isTeamRed ? redGoalPose : blueGoalPose);
+        targetAngle = correctTurretAngleToGoal(pose, isTeamRed ? redGoalPose : blueGoalPose) + offsetAngle;
         double turretPower = rotationAnglePID.update(targetAngle, getTurretAngle());
         setTurretPower(turretPower);
     }
@@ -180,6 +186,9 @@ public class Turret {
     public double getTargetAngle(){
         return targetAngle;
     }
+    public void setTargetAngle(double angle){
+        targetAngle = angle;
+    }
     public double correctTurretAngleToGoal(Pose pose, Pose goalPose){
         double xToGoal = goalPose.getX() - pose.getX();
         double yToGoal = goalPose.getY() - pose.getY();
@@ -210,5 +219,11 @@ public class Turret {
     }
     public void resetFlywheelPID(){
         flywheelPID.reset();
+    }
+    public void changeOffset(double change){
+        offsetAngle += change;
+    }
+    public double getOffset(){
+        return offsetAngle;
     }
 }

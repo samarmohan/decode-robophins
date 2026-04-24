@@ -195,7 +195,7 @@ public class Spindexer {
     }
 
     public boolean isWithinTolerance(double current, double target) {
-        return Math.abs(current-target) < 10;
+        return Math.abs(current-target) < 20;
     }
     public void index() {
         setTargetAngle(targetAngle + 120);
@@ -313,7 +313,7 @@ public class Spindexer {
     }
     //--- Sensor Helpers ---
     public boolean ballDetectedSpin(){
-        return (getBackDistance() < CUTOFF_DISTANCE) && !(getSpinDistance() <0.9);
+        return (getBackDistance() < CUTOFF_DISTANCE);
     }
 
     public boolean ballIsGreenSpin(){

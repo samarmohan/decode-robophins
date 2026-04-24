@@ -12,13 +12,14 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
-@Autonomous(name = "Test Auto", group = "Test")
-public class TestAuto extends OpMode {
+@Autonomous(name = "Blue Far Auto", group = "Test")
+public class FarBlueAuto extends OpMode {
     private Follower follower;
     private Robot r;
     private Timer pathTimer, opmodeTimer;
-    private int pathState;
+    private String pathState;
     //points
+    private double INTAKE_SPEED = 0.7;
 
     // FAR
     private final Pose startPose = new Pose(62, 9, Math.toRadians(180));
@@ -34,6 +35,7 @@ public class TestAuto extends OpMode {
     //variables
     private boolean shouldIntake = false;
     private boolean shouldShoot = false;
+    private boolean subsystemsOn = true;
 
     //loop functions
     @Override
@@ -51,7 +53,7 @@ public class TestAuto extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
-        setPathState(1);
+        setPathState("shootPreload");
         r.turret.setTeam(false);
     }
 
@@ -107,28 +109,100 @@ public class TestAuto extends OpMode {
     //Finite State Machine
     public void autonomousPathUpdate() {
         switch (pathState) {
-            case 1:
-                shouldIntake = true;
-                shouldShoot = false;
-                if (pathTimer.getElapsedTimeSeconds() > 8.0) {
-                    shouldIntake = false;
-                    setPathState(2);
-                }
-                break;
-            case 2:
+            case "shootPreload":
                 if (!r.spindexer.isShooting() && shouldShoot) {
-                    shouldShoot = false;
-                    setPathState(3);
+                        shouldShoot = false;
+                        follower.followPath(collectWallBallsPath, INTAKE_SPEED, true);
+                        shouldIntake = true;
+                        setPathState("collectWallBalls");
+                } else {
+                    shouldShoot = true;
                 }
-                shouldShoot = true;
                 break;
-             case 3:
-                 shouldIntake = true;
-                 shouldShoot = false;
-                 break;
+            case "collectWallBalls":
+                if(!follower.isBusy()) {
+                    follower.followPath(wallBallsToShootPath);
+                    shouldIntake = pathTimer.getElapsedTimeSeconds() > 2.0;
+                    setPathState("wallBallsToShoot");
+                }
+                break;
+            case "wallBallsToShoot":
+                if(!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 4.0) {
+                    shouldIntake = false;
+                    if (!r.spindexer.isShooting()&& shouldShoot) {
+                        shouldShoot = false;
+                        shouldIntake = true;
+                        follower.followPath(collectGateRunoffPath, INTAKE_SPEED, true);
+                        setPathState("collectGateRunoff1");
+                    } else {
+                        shouldShoot = true;
+                    }
+                }
+                break;
+            case "collectGateRunoff1":
+                if (!follower.isBusy()) {
+                    shouldIntake = true;
+                    follower.followPath(gateRunoffToShootPath);
+                    setPathState("gateRunoffToShoot1");
+                }
+                break;
+            case "gateRunoffToShoot1":
+                if(!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 4.0) {
+                    shouldIntake = false;
+                    if(!r.spindexer.isShooting()&& shouldShoot) {
+                        shouldShoot = false;
+                        shouldIntake = true;
+                        follower.followPath(collectGateRunoffPath, INTAKE_SPEED, true);
+                        setPathState("collectGateRunoff2");
+                    }else{
+                        shouldShoot = true;
+                    }
+                }
+                break;
+            case "collectGateRunoff2":
+                if (!follower.isBusy()) {
+                    shouldIntake = true;
+                    follower.followPath(gateRunoffToShootPath);
+                    setPathState("gateRunoffToShoot2");
+                }
+                break;
+            case "gateRunoffToShoot2":
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 4.0) {
+                    shouldIntake = false;
+                    if(!r.spindexer.isShooting() && shouldShoot) {
+                        shouldShoot = false;
+                        shouldIntake = true;
+                        follower.followPath(collect3rdSpikePath, INTAKE_SPEED, true);
+                        setPathState("collect3rdSpike");
+                    } else {
+                        shouldShoot = true;
+                    }
+                }
+                break;
+            case "collect3rdSpike":
+                if (!follower.isBusy()) {
+                    shouldIntake = true;
+                    follower.followPath(spikeToShootPath);
+                    setPathState("shootSpike");
+                }
+                break;
+            case "shootSpike":
+                if(!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 4.0) {
+                    shouldIntake = false;
+                    if(!r.spindexer.isShooting() && shouldShoot) {
+                        shouldShoot = false;
+                        shouldIntake = false;
+
+                        follower.followPath(shootToLeavePath);
+                        setPathState("end");
+                        subsystemsOn = false;
+                    }else{
+                        shouldShoot = true;
+                    }
+                }
         }
     }
-    public void setPathState(int pState) {
+    public void setPathState(String pState) {
         pathState = pState;
         pathTimer.resetTimer();
     }
@@ -136,7 +210,10 @@ public class TestAuto extends OpMode {
     private void intake(){
         if(shouldIntake && !r.spindexer.isFull()){
             r.intake.intake();
-        }else{
+        }else if(!subsystemsOn){
+            r.intake.turnIntakeOff();
+        }
+        else{
             r.intake.outtake();
         }
         r.intake.run();
@@ -145,13 +222,23 @@ public class TestAuto extends OpMode {
         r.limelight.update();
     }
     private void spindexer() {
-        r.spindexer.update(shouldIntake, shouldShoot, true,false);
+        if(subsystemsOn){
+            r.spindexer.update(shouldIntake, shouldShoot, true,false);
+        }else{
+            r.spindexer.setTargetAngle(240);
+        }
     }
     private void turret() {
-        r.turret.updateAutoPower(r.turret.getDistance(follower.getPose()));
-        r.turret.updatePitch(r.turret.getDistance(follower.getPose()));
-        r.turret.updateFlywheelPID();
-        r.turret.updateBlackBox(new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
+        if(subsystemsOn) {
+            r.turret.updateAutoPower(r.turret.getDistance(follower.getPose()));
+            r.turret.updatePitch(r.turret.getDistance(follower.getPose()));
+            r.turret.updateFlywheelPID();
+            r.turret.updateBlackBox(new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
+        }
+        else{
+            r.turret.updateAutoPower(0);
+            r.turret.aimForward();
+        }
     }
     public void telemetry(){
         // Feedback to Driver Hub for debugging

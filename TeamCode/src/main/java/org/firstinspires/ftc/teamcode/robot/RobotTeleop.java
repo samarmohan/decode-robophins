@@ -115,6 +115,12 @@ public abstract class RobotTeleop extends OpMode {
         } else if (gamepad1.right_bumper) {
             turretOn = true;
         }
+        if(currentGamepad1.dpad_left && !previousGamepad1.dpad_left){
+            r.turret.changeOffset(-1);
+        }
+        else if(currentGamepad1.dpad_right && !previousGamepad1.dpad_right){
+            r.turret.changeOffset(1);
+        }
         if (turretOn) {
             r.turret.updateAutoPower(r.turret.getDistance(f.getPose()));//current just constant
         } else {
