@@ -90,7 +90,12 @@ public class Spindexer {
         switch(spindexerState){
             case INTAKING:
                 intakeState = States.IntakeState.INTAKE;
-                if ((ballDetectedSpin()) || indexOverride) {
+                if (!inButton) {
+                    //moves out of intaking if stop pressing to intake
+                    alignToHold();
+                    spindexerState = SpindexerState.READY_TO_SHOOT;
+                }
+                else if ((ballDetectedSpin()) || indexOverride) {
                     if (ballIsGreenSpin()) {
                         order[0] = 2;
                     } else {
@@ -107,11 +112,6 @@ public class Spindexer {
                         alignToHold();
                         spindexerState = SpindexerState.READY_TO_SHOOT;
                     }
-                }
-                if (!inButton) {
-                    //moves out of intaking if stop pressing to intake
-                    alignToHold();
-                    spindexerState = SpindexerState.READY_TO_SHOOT;
                 }
                 break;
             case INDEXING:
@@ -132,9 +132,9 @@ public class Spindexer {
                  }
                 break;
             case ALIGNING:
-                intakeState = States.IntakeState.OUTTAKE;
-                align();
-                alignToHold();
+                    intakeState = States.IntakeState.OUTTAKE;
+                    align();
+                    alignToHold();
                 spindexerState = SpindexerState.READY_TO_SHOOT;
                 break;
             case READY_TO_SHOOT:
@@ -146,7 +146,7 @@ public class Spindexer {
                 }
                 //if flywheel is up to RPM allows you to shoot
                 // TODO add isFlywheelReady
-                else if (shoot /*&& isFlywheelReady*/) {
+                else if (shoot  && isWithinTolerance(currentAngle, targetAngle)/*&& isFlywheelReady*/) {
                     shootTimer.reset();
                     hasShot = false;
                     isShooting = true;
@@ -162,7 +162,7 @@ public class Spindexer {
                     break;
                 }
                 //once done goes back to ready to shoot(defualt state)
-                if (shootTimer.seconds() > 0.2 && isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 3) {
+                if (shootTimer.seconds() > 0.2 && isWithinTolerance(currentAngle, targetAngle)) {
                     alignToStart();
                     isShooting = false;
                     spindexerState = SpindexerState.READY_TO_SHOOT;

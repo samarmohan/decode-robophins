@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -9,6 +11,7 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
@@ -17,7 +20,9 @@ import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 public class FarBlueAuto extends OpMode {
     private Follower follower;
     private Robot r;
+    private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     private Timer pathTimer, opmodeTimer;
+    private ElapsedTime shootTimer;
     private String pathState;
     //points
     private double INTAKE_SPEED = 0.7;
@@ -37,12 +42,14 @@ public class FarBlueAuto extends OpMode {
     private boolean shouldIntake = false;
     private boolean shouldShoot = false;
     private boolean subsystemsOn = true;
+    private boolean hasResetTimer = false;
 
     //loop functions
     @Override
     public void init() {
         pathTimer = new Timer();
         opmodeTimer = new Timer();
+        shootTimer = new ElapsedTime();
         opmodeTimer.resetTimer();
 
         follower = Constants.createFollower(hardwareMap);
@@ -122,14 +129,21 @@ public class FarBlueAuto extends OpMode {
             case "collectWallBalls":
                 shouldIntake = true;
                 if(!follower.isBusy()) {
-                    follower.followPath(wallBallsToShootPath);
-                    setPathState("wallBallsToShoot");
+                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()){
+                        hasResetTimer = false;
+                        follower.followPath(wallBallsToShootPath);
+                        setPathState("wallBallsToShoot");
+                    }
                 }
                 break;
             case "wallBallsToShoot":
                 if(!follower.isBusy()) {
                     shouldIntake = false;
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT) {
+                    if(!hasResetTimer) {
+                        shootTimer.reset();
+                        hasResetTimer = true;
+                    }
+                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {
                         shouldShoot = true;
                         if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
                             shouldShoot = false;
@@ -143,15 +157,21 @@ public class FarBlueAuto extends OpMode {
             case "collect3rdSpike":
                 shouldIntake = true;
                 if (!follower.isBusy()) {
-                    follower.followPath(spikeToShootPath);
-                    setPathState("shootSpike");
+                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
+                        hasResetTimer = false;
+                        follower.followPath(spikeToShootPath);
+                        setPathState("shootSpike");
+                    }
                 }
                 break;
             case "shootSpike":
                 if(!follower.isBusy()) {
                     shouldIntake = false;
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT) {
-                        shouldShoot = true;
+                    if(!hasResetTimer) {
+                        shootTimer.reset();
+                        hasResetTimer = true;
+                    }
+                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
                         if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
                             shouldShoot = false;
 
@@ -164,15 +184,21 @@ public class FarBlueAuto extends OpMode {
             case "collectGateRunoff1":
                 shouldIntake = true;
                 if (!follower.isBusy()) {
-                    follower.followPath(gateRunoffToShootPath);
-                    setPathState("gateRunoffToShoot1");
+                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
+                        hasResetTimer = false;
+                        follower.followPath(gateRunoffToShootPath);
+                        setPathState("gateRunoffToShoot1");
+                    }
                 }
                 break;
             case "gateRunoffToShoot1":
                 if(!follower.isBusy()) {
                     shouldIntake = false;
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT) {
-                        shouldShoot = true;
+                    if(!hasResetTimer) {
+                        shootTimer.reset();
+                        hasResetTimer = true;
+                    }
+                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
                         if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
                             shouldShoot = false;
                             follower.followPath(collectGateRunoffPath);
@@ -184,15 +210,21 @@ public class FarBlueAuto extends OpMode {
             case "collectGateRunoff2":
                 shouldIntake = true;
                 if (!follower.isBusy()) {
-                    follower.followPath(gateRunoffToShootPath);
-                    setPathState("gateRunoffToShoot2");
+                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
+                        hasResetTimer = false;
+                        follower.followPath(gateRunoffToShootPath);
+                        setPathState("gateRunoffToShoot2");
+                    }
                 }
                 break;
             case "gateRunoffToShoot2":
                 if(!follower.isBusy()) {
                     shouldIntake = false;
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT) {
-                        shouldShoot = true;
+                    if(!hasResetTimer) {
+                        shootTimer.reset();
+                        hasResetTimer = true;
+                    }
+                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
                         if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
                             shouldShoot = false;
                             follower.followPath(collectGateRunoffPath);
@@ -204,15 +236,21 @@ public class FarBlueAuto extends OpMode {
             case "collectGateRunoff3":
                 shouldIntake = true;
                 if (!follower.isBusy()) {
-                    follower.followPath(gateRunoffToShootPath);
-                    setPathState("gateRunoffToShoot3");
+                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
+                        hasResetTimer = false;
+                        follower.followPath(gateRunoffToShootPath);
+                        setPathState("gateRunoffToShoot3");
+                    }
                 }
                 break;
             case "gateRunoffToShoot3":
                 if(!follower.isBusy()) {
                     shouldIntake = false;
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT) {
-                        shouldShoot = true;
+                    if(!hasResetTimer) {
+                        shootTimer.reset();
+                        hasResetTimer = true;
+                    }
+                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
                         if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
                             subsystemsOn = false;
                             follower.followPath(shootToLeavePath);
@@ -251,7 +289,7 @@ public class FarBlueAuto extends OpMode {
     }
     private void turret() {
         if(subsystemsOn) {
-            r.turret.updateAutoPower(r.turret.getDistance(follower.getPose()));
+            r.turret.updateAutoPower(80);
             r.turret.updatePitch(r.turret.getDistance(follower.getPose()));
             r.turret.updateFlywheelPID();
             r.turret.updateBlackBox(new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
@@ -263,7 +301,17 @@ public class FarBlueAuto extends OpMode {
         }
     }
     public void telemetry(){
-        // Feedback to Driver Hub for debugging
+        // Feedback to Driver Hub for debugging\
+        panelsTelemetry.addData("isShooting var", r.spindexer.isShooting() ? 1 : 0);
+        panelsTelemetry.addData("hasBalls var", r.spindexer.hasBalls()? 1 : 0);
+        panelsTelemetry.addData("is Within Tolerance?", r.spindexer.isWithinTolerance(r.spindexer.getCurrentAngle(), r.spindexer.getTargetAngle()) ? 1:0);
+        panelsTelemetry.addData("Current Angle", r.spindexer.getCurrentAngle());
+        panelsTelemetry.addData("Target Angle", r.spindexer.getTargetAngle());
+
+        telemetry.addData("isShooting var", r.spindexer.isShooting());
+        telemetry.addData("hasBalls var", r.spindexer.hasBalls());
+        telemetry.addData("is Within Tolerance?", r.spindexer.isWithinTolerance(r.spindexer.getCurrentAngle(), r.spindexer.getTargetAngle()));
+        telemetry.addData("finish shooting", !r.spindexer.isShooting() && !r.spindexer.hasBalls());
         telemetry.addData("path state", pathState);
         telemetry.addData("shoot?",shouldShoot);
         telemetry.addData("intake?", shouldIntake);
@@ -293,6 +341,7 @@ public class FarBlueAuto extends OpMode {
 //        telemetry.addData("Target Angle", r.spindexer.getTargetAngle());
 //        telemetry.addData("Ball Detected", r.spindexer.ballDetectedSpin());
 //        telemetry.addData("Back Distance", r.spindexer.getBackDistance());
+        panelsTelemetry.update();
         telemetry.update();
     }
 }
