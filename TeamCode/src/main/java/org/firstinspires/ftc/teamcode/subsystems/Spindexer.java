@@ -38,10 +38,10 @@ public class Spindexer {
     private final double CUTOFF_DISTANCE = 7.0;//back sensor cutoff
     //--- Offset Override Variables ---
     private double OFFSET_ANGLE = 0.0;
-    private double offsetTargetAngle = 0.0;
     //--- State Machine Variables ---
     private boolean shouldSort = false;
     private boolean hasShot = false;
+    private boolean hasIndexed = false;
     private boolean isShooting = false;
     private ElapsedTime shootTimer;
     public enum SpindexerState {
@@ -90,7 +90,7 @@ public class Spindexer {
         switch(spindexerState){
             case INTAKING:
                 intakeState = States.IntakeState.INTAKE;
-                if ((isWithinTolerance(currentAngle, targetAngle) && ballDetectedSpin()) || indexOverride) {
+                if ((ballDetectedSpin()) || indexOverride) {
                     if (ballIsGreenSpin()) {
                         order[0] = 2;
                     } else {
@@ -99,6 +99,7 @@ public class Spindexer {
                     //switching state to indexing
                     if(!isFull()) {
                         spindexerState = SpindexerState.INDEXING;
+                        hasIndexed = false;
                     } else if (shouldSort) {
                         //if full starts to align
                         spindexerState = SpindexerState.ALIGNING;
@@ -115,8 +116,11 @@ public class Spindexer {
                 break;
             case INDEXING:
                 intakeState = States.IntakeState.OFF;
-                index();
-                //if (isWithinTolerance(currentAngle, targetAngle)) {
+                if(!hasIndexed) {
+                    index();
+                    hasIndexed = true;
+                }
+                if (isWithinTolerance(currentAngle, targetAngle)) {
                     if (inButton) {
                         //if holding in, goes back to intaking
                         spindexerState = SpindexerState.INTAKING;
@@ -125,7 +129,7 @@ public class Spindexer {
                         alignToHold();
                         spindexerState = SpindexerState.READY_TO_SHOOT;
                     }
-                 //}
+                 }
                 break;
             case ALIGNING:
                 intakeState = States.IntakeState.OUTTAKE;
@@ -155,9 +159,10 @@ public class Spindexer {
                 if (!hasShot) {
                     shoot();
                     hasShot = true;
+                    break;
                 }
                 //once done goes back to ready to shoot(defualt state)
-                if (isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 3) {
+                if (shootTimer.seconds() > 0.2 && isWithinTolerance(currentAngle, targetAngle) || shootTimer.seconds() > 3) {
                     alignToStart();
                     isShooting = false;
                     spindexerState = SpindexerState.READY_TO_SHOOT;
@@ -367,4 +372,8 @@ public class Spindexer {
     public States.IntakeState getIntakeState(){
         return intakeState;
     }
+    public void setOrder(int a, int b, int c){
+        order = new int[] {a, b, c};
+    }
 }
+
