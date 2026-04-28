@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
+import org.firstinspires.ftc.teamcode.utils.AutonPoseSave;
 
 @Autonomous(name = "Blue Close Auto", group = "Test")
 public class CloseBlueAuto extends OpMode {
@@ -245,6 +246,9 @@ public class CloseBlueAuto extends OpMode {
                         }
                     }
                 }
+                break;
+            case "end":
+                AutonPoseSave.lastAutonPose = follower.getPose();
                 break;
         }
     }

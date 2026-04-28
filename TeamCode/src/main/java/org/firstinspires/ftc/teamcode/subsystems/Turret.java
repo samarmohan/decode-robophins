@@ -22,7 +22,7 @@ public class Turret {
     private double targetAngle = 0;
     private double offsetAngle = 0;
     private double pitchPosition = 0;
-    private boolean isTeamRed =  true;
+    private boolean isTeamRed;
     private Pose redGoalPose = new Pose(144, 144);
     private Pose blueGoalPose = new Pose(0, 144);
     //--- Flywheel Encoder Constants ---

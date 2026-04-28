@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.RobotTeleop;
 
-@TeleOp(name="Drive TeleOp", group="!!")
+@TeleOp(name="Drive TeleOp", group="")
 @Disabled
 public class DriveTeleOp extends OpMode {
     protected Robot r;

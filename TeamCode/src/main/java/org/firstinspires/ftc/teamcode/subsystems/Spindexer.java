@@ -145,8 +145,7 @@ public class Spindexer {
                     spindexerState = SpindexerState.INTAKING;
                 }
                 //if flywheel is up to RPM allows you to shoot
-                // TODO add isFlywheelReady
-                else if (shoot  && isWithinTolerance(currentAngle, targetAngle)/*&& isFlywheelReady*/) {
+                else if (shoot  && isWithinTolerance(currentAngle, targetAngle) && isFlywheelReady) {
                     shootTimer.reset();
                     hasShot = false;
                     isShooting = true;

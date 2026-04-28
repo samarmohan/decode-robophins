@@ -5,7 +5,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Tilt {
     //--- Hardware ---
-    private Servo tilt;
+    private Servo tilt1;
+    private Servo tilt2;
+
     //--- States ---
     public enum TiltState {
         UP,
@@ -14,29 +16,39 @@ public class Tilt {
     private TiltState currentTiltState = TiltState.UP;
     //--- Constructor ---
     public Tilt(HardwareMap hardwareMap){
-        tilt = hardwareMap.get(Servo.class, "tilt");
+        tilt1 = hardwareMap.get(Servo.class, "tilt1");
+        tilt2 = hardwareMap.get(Servo.class, "tilt2");
     }
     //--- Main Function ---
-    public void update(){
+    public void update() {
         switch (currentTiltState) {
             case UP:
-                tilt.setPosition(0.7);
+                tilt1.setPosition(0.7);
+                tilt2.setPosition(0.7);
                 break;
             case DOWN:
-                tilt.setPosition(1.0);
+                tilt1.setPosition(0.45);
+                tilt2.setPosition(0.95);
                 break;
         }
     }
     //--- Helpers ---
-    public void setTiltState(TiltState state){
+    public void setTiltState(TiltState state)   {
         currentTiltState = state;
     }
     //teleop set state
-    public void toggleTilt(){
-            if (currentTiltState == TiltState.UP){
-                currentTiltState = TiltState.DOWN;
-            } else if (currentTiltState == TiltState.DOWN) {
-                currentTiltState = TiltState.UP;
-            }
+    public void tiltUp() {
+        if (currentTiltState == TiltState.DOWN) {
+            currentTiltState = TiltState.UP;
+        }
+    }
+    public void tiltDown() {
+        if (currentTiltState == TiltState.UP) {
+            currentTiltState = TiltState.DOWN;
+        }
+    }
+
+    public TiltState getState() {
+        return currentTiltState;
     }
 }

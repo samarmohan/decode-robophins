@@ -7,7 +7,8 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.robot.RobotTeleop;
 
-@TeleOp(name = "Regression TeleOp", group = "!!")
+@TeleOp(name = "Regression TeleOp", group = "")
+@Disabled
 public class RegressionTeleOp extends RobotTeleop {
     private double pitch = 0;
     private double RPM = 0;

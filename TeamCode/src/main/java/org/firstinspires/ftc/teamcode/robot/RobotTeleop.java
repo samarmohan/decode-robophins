@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.utils.AutonPoseSave;
 
 
 public abstract class RobotTeleop extends OpMode {
@@ -27,15 +28,19 @@ public abstract class RobotTeleop extends OpMode {
     public Gamepad previousGamepad2 = new Gamepad();
     private double lastTime;
     private boolean distance;
+    public boolean isTeamRed;
 
     boolean turretOn = true;
+    boolean tilt = false;
     @Override
     public void init(){
         r = new Robot(hardwareMap);
         f = Constants.createFollower(hardwareMap);
-        // TODO set where auton ends
-        f.setStartingPose(new Pose(72, 72, 0));
+        f.setStartingPose(AutonPoseSave.lastAutonPose);
         f.update();
+        r.turret.setTeam(isTeamRed);
+        r.limelight.setTeam(isTeamRed);
+        telemetry.addData("Team", isTeamRed ? "Red" : "Blue");
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
     }
@@ -96,11 +101,18 @@ public abstract class RobotTeleop extends OpMode {
         r.lights.update();
     }
     public void spindexer() {
-        r.spindexer.update(gamepad1.cross, gamepad1.right_trigger > 0.3, true, gamepad2.right_trigger >0.1);
+        r.spindexer.update(gamepad1.cross, gamepad1.right_trigger > 0.3, r.turret.isFlywheelReady(), gamepad2.right_trigger >0.1);
     }
     public void tilt() {
-        if (gamepad1.square) {
-            r.tilt.toggleTilt();
+        if (currentGamepad1.square && !previousGamepad1.square) {
+            tilt = !tilt;
+        }
+        if (tilt) {
+            r.tilt.tiltDown();
+            turretOn = false;
+        } else {
+            r.tilt.tiltUp();
+            turretOn = true;
         }
         r.tilt.update();
     }
@@ -161,6 +173,7 @@ public abstract class RobotTeleop extends OpMode {
         telemetry.addData("Ball Detected", r.spindexer.ballDetectedSpin());
         telemetry.addData("Back Distance", r.spindexer.getBackDistance());
         telemetry.addData("order", r.spindexer.getOrder());
+        telemetry.addData("Tilt", r.tilt.getState());
         panelsTelemetry.update();
         telemetry.update();
     }

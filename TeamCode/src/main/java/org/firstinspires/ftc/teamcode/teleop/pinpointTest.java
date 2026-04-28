@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp(name="Pinpoint Test")
+@Disabled
 public class pinpointTest extends OpMode {
     public GoBildaPinpointDriver pinpoint;
 

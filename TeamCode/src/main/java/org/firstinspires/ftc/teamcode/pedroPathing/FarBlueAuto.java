@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
+import org.firstinspires.ftc.teamcode.utils.AutonPoseSave;
 
 @Autonomous(name = "Blue Far Auto", group = "Test")
 public class FarBlueAuto extends OpMode {
@@ -254,10 +255,39 @@ public class FarBlueAuto extends OpMode {
                         if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
                             subsystemsOn = false;
                             follower.followPath(shootToLeavePath);
+                            setPathState("collectGateRunoff4");
+                        }
+                    }
+                    break;
+                }
+            case "collectGateRunoff4":
+                shouldIntake = true;
+                if (!follower.isBusy()) {
+                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
+                        hasResetTimer = false;
+                        follower.followPath(gateRunoffToShootPath);
+                        setPathState("gateRunoffToShoot4");
+                    }
+                }
+                break;
+            case "gateRunoffToShoot4":
+                if(!follower.isBusy()) {
+                    shouldIntake = false;
+                    if(!hasResetTimer) {
+                        shootTimer.reset();
+                        hasResetTimer = true;
+                    }
+                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
+                        if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
+                            subsystemsOn = false;
+                            follower.followPath(shootToLeavePath);
                             setPathState("end");
                         }
                     }
+                    break;
                 }
+            case "end":
+                AutonPoseSave.lastAutonPose = follower.getPose();
                 break;
         }
     }

@@ -9,14 +9,14 @@ public class Limelight {
     private LLResult result;
     private boolean lastResultWasValid;
 
-    private boolean isTeamRed = true;
+    private boolean isTeamRed;
 
     // --- Hardware ---
     public Limelight3A limelight;
     // --- Constructor ---
     public Limelight(HardwareMap hardwareMap){
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(1);
+        limelight.pipelineSwitch(isTeamRed ? 1 : 0);
         limelight.start();
     }
     // --- Main Loop Function ---
@@ -44,5 +44,8 @@ public class Limelight {
     public double getTx(){
         if (lastResultWasValid) return result.getTx();
         return 0.0;
+    }
+    public void setTeam(boolean red){
+        isTeamRed = red;
     }
 }
