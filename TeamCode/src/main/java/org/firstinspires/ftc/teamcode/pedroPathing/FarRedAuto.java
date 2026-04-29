@@ -30,7 +30,7 @@ public class FarRedAuto extends OpMode {
     // FAR
     private final Pose startPose = new Pose(144 - 62, 9, Math.toRadians(180 - 180));
 
-    private final Pose shootPose = new Pose(144 - 56, 20, Math.toRadians(180 - 135));
+    private final Pose shootPose = new Pose(144 - 56, 20, Math.toRadians(180 - 180));
     private final Pose collectUpWallPose = new Pose(144 - 10, 9, Math.toRadians(180 - 180));
     private final Pose collectWallRollout = new Pose(144 - 10, 25, Math.toRadians(180 - 180));
     private final Pose lineUp3rdSpike = new Pose(144 - 50, 32, Math.toRadians(180 - 180));

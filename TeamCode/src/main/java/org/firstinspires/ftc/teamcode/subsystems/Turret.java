@@ -114,7 +114,7 @@ public class Turret {
     //-- Black Box --
     public void updateBlackBox(Pose pose, double tx, boolean islimelightValid){
         if (islimelightValid && isWithinBounds(getTurretAngle())) {
-            turretPower = rotationLimelightPID.update(0, tx);
+            turretPower = rotationLimelightPID.update(0, (isTeamRed) ? tx + 0.5 : tx - 0.5);
             setTurretPower(turretPower);
         }
         else {
