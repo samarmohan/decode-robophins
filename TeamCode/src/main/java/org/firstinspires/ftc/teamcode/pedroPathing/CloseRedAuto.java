@@ -5,8 +5,6 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-
-import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -17,8 +15,8 @@ import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 import org.firstinspires.ftc.teamcode.utils.AutonPoseSave;
 
-@Autonomous(name = "Blue Far Auto", group = "Test")
-public class FarBlueAuto extends OpMode {
+@Autonomous(name = "Red Close Auto", group = "Test")
+public class CloseRedAuto extends OpMode {
     private Follower follower;
     private Robot r;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -28,16 +26,14 @@ public class FarBlueAuto extends OpMode {
     //points
     private double INTAKE_SPEED = 0.7;
 
-    // FAR
-    private final Pose startPose = new Pose(62, 9, Math.toRadians(180));
-
-    private final Pose shootPose = new Pose(56, 20, Math.toRadians(135));
-    private final Pose collectUpWallPose = new Pose(10, 9, Math.toRadians(180));
-    private final Pose collectWallRollout = new Pose(10, 25, Math.toRadians(180));
-    private final Pose lineUp3rdSpike = new Pose(50, 32, Math.toRadians(180));
-    private final Pose collect3rdSpike = new Pose(12, 32, Math.toRadians(180));
-    private final Pose leavePose = new Pose(56, 50, Math.toRadians(180));
-
+    private final Pose startPose       = new Pose(144 - 16, 112, Math.toRadians(180));
+    private final Pose shootPose       = new Pose(144 - 54, 84,  Math.toRadians(180 - 180));
+    private final Pose collect1stPose  = new Pose(144 - 16, 84,  Math.toRadians(180 - 180));  // same x/y, adjust if approach differs
+    private final Pose lineup2ndPose   = new Pose(144 - 54, 60,  Math.toRadians(180 - 180));  // pickup2ndSpike
+    private final Pose collect2ndPose  = new Pose(144 - 16, 60,  Math.toRadians(180 - 180));  // collect2ndSpike
+    private final Pose lineup3rdPose   = new Pose(144 - 42, 36,  Math.toRadians(180 - 180));  // pickUp3rdSpike
+    private final Pose collect3rdPose  = new Pose(144 - 16, 36,  Math.toRadians(180 - 180));  // collect3rdSpike
+    private final Pose leavePose       = new Pose(144 - 56, 50,  Math.toRadians(180 - 180));
 
     //variables
     private boolean shouldIntake = false;
@@ -62,8 +58,8 @@ public class FarBlueAuto extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
-        setPathState("shootPreload");
-        r.turret.setTeam(false);
+        setPathState("startToShoot");
+        r.turret.setTeam(true);
         r.spindexer.setOrder(2,1,1);
     }
 
@@ -80,64 +76,107 @@ public class FarBlueAuto extends OpMode {
         telemetry();
     }
 
-    //Pathing
-    private PathChain collect3rdSpikePath, collectGateRunoffPath, collectWallBallsPath;
-    private Path wallBallsToShootPath, gateRunoffToShootPath, spikeToShootPath, shootToLeavePath;
 
-    public void buildPaths(){
-        collectWallBallsPath = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, collectUpWallPose))
+    private PathChain startToShoot;       // start -> shoot
+
+    private PathChain shootToCollect1st;  // shoot -> collect 1st (single segment, no lineup needed)
+    private PathChain collect1stToShoot;  // collect 1st -> shoot
+
+    private PathChain shootToCollect2nd;  // shoot -> lineup 2nd -> collect 2nd
+    private PathChain collect2ndToShoot;  // collect 2nd -> shoot
+
+    private PathChain shootToCollect3rd;  // shoot -> lineup 3rd -> collect 3rd
+    private PathChain collect3rdToShoot;  // collect 3rd -> shoot
+
+    private PathChain shootToLeave;       // shoot -> leave
+
+    public void buildPaths() {
+
+        startToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, shootPose))
                 .setConstantHeadingInterpolation(startPose.getHeading())
                 .build();
 
-        wallBallsToShootPath = new Path(new BezierLine(collectUpWallPose, shootPose));
-        wallBallsToShootPath.setConstantHeadingInterpolation(startPose.getHeading());
+        // ---------- Spike 1 ----------
+        // collect1stPose is a direct line from shoot, no separate lineup needed
 
-        collect3rdSpikePath = follower.pathBuilder()
-                .addPath(new BezierLine(shootPose, lineUp3rdSpike))
-                .setConstantHeadingInterpolation(startPose.getHeading())
-
-                .addPath(new BezierLine(lineUp3rdSpike, collect3rdSpike))
+        shootToCollect1st = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, collect1stPose))
                 .setConstantHeadingInterpolation(startPose.getHeading())
                 .build();
 
-        spikeToShootPath = new Path(new BezierLine(collect3rdSpike, shootPose));
-        spikeToShootPath.setConstantHeadingInterpolation(startPose.getHeading());
-
-        collectGateRunoffPath = follower.pathBuilder()
-                .addPath(new BezierLine(shootPose, collectWallRollout))
+        collect1stToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(collect1stPose, shootPose))
                 .setConstantHeadingInterpolation(startPose.getHeading())
                 .build();
 
-        gateRunoffToShootPath = new Path(new BezierLine(collectWallRollout, shootPose));
-        gateRunoffToShootPath.setConstantHeadingInterpolation(startPose.getHeading());
+        // ---------- Spike 2 ----------
 
-        shootToLeavePath = new Path(new BezierLine(shootPose, leavePose));
-        shootToLeavePath.setConstantHeadingInterpolation(startPose.getHeading());
+        shootToCollect2nd = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, lineup2ndPose))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+
+                .addPath(new BezierLine(lineup2ndPose, collect2ndPose))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+                .build();
+
+        collect2ndToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(collect2ndPose, shootPose))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+                .build();
+
+        // ---------- Spike 3 ----------
+
+        shootToCollect3rd = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, lineup3rdPose))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+
+                .addPath(new BezierLine(lineup3rdPose, collect3rdPose))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+                .build();
+
+        collect3rdToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(collect3rdPose, shootPose))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+                .build();
+
+        // ---------- Exit ----------
+
+        shootToLeave = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, leavePose))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+                .build();
     }
+
 
     //Finite State Machine
     public void autonomousPathUpdate() {
         switch (pathState) {
-            case "shootPreload":
-                shouldShoot = true;
-                if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
+            case "startToShoot":
+                follower.followPath(startToShoot);
+                setPathState("shootFirst");
+                break;
+            case "shootFirst":
+                if (!follower.isBusy()) {
+                    shouldShoot = true;
+                    if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
                         shouldShoot = false;
-                        follower.followPath(collectWallBallsPath);
-                        setPathState("collectWallBalls");
+                        follower.followPath(shootToCollect1st);
+                        setPathState("collect1stSpike");
+                    }
                 }
                 break;
-            case "collectWallBalls":
+            case "collect1stSpike":
                 shouldIntake = true;
                 if(!follower.isBusy()) {
                     if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()){
                         hasResetTimer = false;
-                        follower.followPath(wallBallsToShootPath);
-                        setPathState("wallBallsToShoot");
+                        follower.followPath(collect1stToShoot);
+                        setPathState("1stSpikeToShoot");
                     }
                 }
                 break;
-            case "wallBallsToShoot":
+            case "1stSpikeToShoot":
                 if(!follower.isBusy()) {
                     shouldIntake = false;
                     if(!hasResetTimer) {
@@ -149,23 +188,23 @@ public class FarBlueAuto extends OpMode {
                         if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
                             shouldShoot = false;
                             shouldIntake = true;
-                            follower.followPath(collect3rdSpikePath);
-                            setPathState("collect3rdSpike");
+                            follower.followPath(shootToCollect2nd);
+                            setPathState("collect2ndSpike");
                         }
                     }
                 }
                 break;
-            case "collect3rdSpike":
+            case "collect2ndSpike":
                 shouldIntake = true;
                 if (!follower.isBusy()) {
                     if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
                         hasResetTimer = false;
-                        follower.followPath(spikeToShootPath);
-                        setPathState("shootSpike");
+                        follower.followPath(collect2ndToShoot);
+                        setPathState("2ndSpikeToShoot");
                     }
                 }
                 break;
-            case "shootSpike":
+            case "2ndSpikeToShoot":
                 if(!follower.isBusy()) {
                     shouldIntake = false;
                     if(!hasResetTimer) {
@@ -176,75 +215,23 @@ public class FarBlueAuto extends OpMode {
                         if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
                             shouldShoot = false;
 
-                            follower.followPath(collectGateRunoffPath);
-                            setPathState("collectGateRunoff1");
+                            follower.followPath(shootToCollect3rd);
+                            setPathState("collect3rdSpike");
                         }
                     }
                 }
                 break;
-            case "collectGateRunoff1":
+            case "collect3rdSpike":
                 shouldIntake = true;
                 if (!follower.isBusy()) {
                     if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
                         hasResetTimer = false;
-                        follower.followPath(gateRunoffToShootPath);
-                        setPathState("gateRunoffToShoot1");
+                        follower.followPath(collect3rdToShoot);
+                        setPathState("3rdSpikeToShoot");
                     }
                 }
                 break;
-            case "gateRunoffToShoot1":
-                if(!follower.isBusy()) {
-                    shouldIntake = false;
-                    if(!hasResetTimer) {
-                        shootTimer.reset();
-                        hasResetTimer = true;
-                    }
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
-                        if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
-                            shouldShoot = false;
-                            follower.followPath(collectGateRunoffPath);
-                            setPathState("collectGateRunoff2");
-                        }
-                    }
-                }
-                break;
-            case "collectGateRunoff2":
-                shouldIntake = true;
-                if (!follower.isBusy()) {
-                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
-                        hasResetTimer = false;
-                        follower.followPath(gateRunoffToShootPath);
-                        setPathState("gateRunoffToShoot2");
-                    }
-                }
-                break;
-            case "gateRunoffToShoot2":
-                if(!follower.isBusy()) {
-                    shouldIntake = false;
-                    if(!hasResetTimer) {
-                        shootTimer.reset();
-                        hasResetTimer = true;
-                    }
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
-                        if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
-                            shouldShoot = false;
-                            follower.followPath(collectGateRunoffPath);
-                            setPathState("collectGateRunoff3");
-                        }
-                    }
-                }
-                break;
-            case "collectGateRunoff3":
-                shouldIntake = true;
-                if (!follower.isBusy()) {
-                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
-                        hasResetTimer = false;
-                        follower.followPath(gateRunoffToShootPath);
-                        setPathState("gateRunoffToShoot3");
-                    }
-                }
-                break;
-            case "gateRunoffToShoot3":
+            case "3rdSpikeToShoot":
                 if(!follower.isBusy()) {
                     shouldIntake = false;
                     if(!hasResetTimer) {
@@ -254,38 +241,12 @@ public class FarBlueAuto extends OpMode {
                     if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
                         if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
                             subsystemsOn = false;
-                            follower.followPath(shootToLeavePath);
-                            setPathState("collectGateRunoff4");
-                        }
-                    }
-                    break;
-                }
-            case "collectGateRunoff4":
-                shouldIntake = true;
-                if (!follower.isBusy()) {
-                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
-                        hasResetTimer = false;
-                        follower.followPath(gateRunoffToShootPath);
-                        setPathState("gateRunoffToShoot4");
-                    }
-                }
-                break;
-            case "gateRunoffToShoot4":
-                if(!follower.isBusy()) {
-                    shouldIntake = false;
-                    if(!hasResetTimer) {
-                        shootTimer.reset();
-                        hasResetTimer = true;
-                    }
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
-                        if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
-                            subsystemsOn = false;
-                            follower.followPath(shootToLeavePath);
+                            follower.followPath(shootToLeave);
                             setPathState("end");
                         }
                     }
-                    break;
                 }
+                break;
             case "end":
                 AutonPoseSave.lastAutonPose = follower.getPose();
                 break;

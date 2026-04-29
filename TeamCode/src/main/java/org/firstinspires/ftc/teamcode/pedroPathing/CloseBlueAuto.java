@@ -280,7 +280,7 @@ public class CloseBlueAuto extends OpMode {
     }
     private void turret() {
         if(subsystemsOn) {
-            r.turret.updateAutoPower(80);
+            r.turret.updateAutoPower(r.turret.getDistance(follower.getPose()));
             r.turret.updatePitch(r.turret.getDistance(follower.getPose()));
             r.turret.updateFlywheelPID();
             r.turret.updateBlackBox(new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());

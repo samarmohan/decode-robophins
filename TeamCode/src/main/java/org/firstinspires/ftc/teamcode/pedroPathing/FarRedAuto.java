@@ -5,7 +5,6 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
@@ -17,8 +16,8 @@ import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 import org.firstinspires.ftc.teamcode.utils.AutonPoseSave;
 
-@Autonomous(name = "Blue Far Auto", group = "Test")
-public class FarBlueAuto extends OpMode {
+@Autonomous(name = "Red Far Auto", group = "Test")
+public class FarRedAuto extends OpMode {
     private Follower follower;
     private Robot r;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -29,14 +28,14 @@ public class FarBlueAuto extends OpMode {
     private double INTAKE_SPEED = 0.7;
 
     // FAR
-    private final Pose startPose = new Pose(62, 9, Math.toRadians(180));
+    private final Pose startPose = new Pose(144 - 62, 9, Math.toRadians(180 - 180));
 
-    private final Pose shootPose = new Pose(56, 20, Math.toRadians(135));
-    private final Pose collectUpWallPose = new Pose(10, 9, Math.toRadians(180));
-    private final Pose collectWallRollout = new Pose(10, 25, Math.toRadians(180));
-    private final Pose lineUp3rdSpike = new Pose(50, 32, Math.toRadians(180));
-    private final Pose collect3rdSpike = new Pose(12, 32, Math.toRadians(180));
-    private final Pose leavePose = new Pose(56, 50, Math.toRadians(180));
+    private final Pose shootPose = new Pose(144 - 56, 20, Math.toRadians(180 - 135));
+    private final Pose collectUpWallPose = new Pose(144 - 10, 9, Math.toRadians(180 - 180));
+    private final Pose collectWallRollout = new Pose(144 - 10, 25, Math.toRadians(180 - 180));
+    private final Pose lineUp3rdSpike = new Pose(144 - 50, 32, Math.toRadians(180 - 180));
+    private final Pose collect3rdSpike = new Pose(144 - 12, 32, Math.toRadians(180 - 180));
+    private final Pose leavePose = new Pose(144 - 56, 50, Math.toRadians(180 - 180));
 
 
     //variables
@@ -63,7 +62,7 @@ public class FarBlueAuto extends OpMode {
     public void start() {
         opmodeTimer.resetTimer();
         setPathState("shootPreload");
-        r.turret.setTeam(false);
+        r.turret.setTeam(true);
         r.spindexer.setOrder(2,1,1);
     }
 
