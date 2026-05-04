@@ -13,11 +13,12 @@ import org.firstinspires.ftc.teamcode.utils.PID;
 
 public class Turret {
     //--- Hardware ---
-    private CachedMotor flywheel1, flywheel2, turret;
+    public CachedMotor flywheel1, flywheel2, turret;
     private Servo pitch1;
     private Servo pitch2;
     //--- Variables --
     private double targetRPM = 0;
+    private double RPMOffset = 0;
     double lastRPM = 0;
     private double targetAngle = 0;
     private double offsetAngle = 0;
@@ -37,7 +38,7 @@ public class Turret {
     //--- PIDS ---
     private final PID flywheelPID = new PID(FLYWHEEL_kP, FLYWHEEL_kI, FLYWHEEL_kD, FLYWHEEL_kF, 0);
     private final PID rotationAnglePID = new PID(ROTATION_ANGLE_kP, ROTATION_ANGLE_kI, ROTATION_ANGLE_kD,0, 0);
-    private final PID rotationLimelightPID = new PID(ROTATION_LIMELIGHT_kP, ROTATION_LIMELIGHT_kI, ROTATION_LIMELIGHT_kD, ROTATION_LIMELIGHT_kF, ROTATION_LIMELIGHT_FF_DEADZONE);
+    private final PID rotationLimelightPID = new PID(ROTATION_LIMELIGHT_kP, ROTATION_LIMELIGHT_kI, ROTATION_LIMELIGHT_kD, ROTATION_LIMELIGHT_kF,ROTATION_LIMELIGHT_FF_DEADZONE);
 
     double flywheelPower = 0;
     double turretPower = 0;
@@ -94,7 +95,7 @@ public class Turret {
 //            }
 //            flywheelPower = 1;
 //        }
-        flywheelPower = flywheelPID.update(targetRPM, currentRPM);
+        flywheelPower = flywheelPID.update(targetRPM + RPMOffset, currentRPM);
         setFlywheelPower(flywheelPower);
         lastRPM = currentRPM;
     }
@@ -112,9 +113,10 @@ public class Turret {
     }
     // --- Auto-Aim ---
     //-- Black Box --
-    public void updateBlackBox(Pose pose, double tx, boolean islimelightValid){
+    public void updateBlackBox(Pose pose, double tx, boolean islimelightValid, boolean isFar){
+        double offset = isTeamRed ? 0.5 : -0.5;
         if (islimelightValid && isWithinBounds(getTurretAngle())) {
-            turretPower = rotationLimelightPID.update(0, (isTeamRed) ? tx + 0.5 : tx - 0.5);
+            turretPower = rotationLimelightPID.update(0, isFar ? tx+offset : tx);
             setTurretPower(turretPower);
         }
         else {
@@ -134,11 +136,11 @@ public class Turret {
     }
     // --- Auto Calculations ---
     public double autoRPM(double dist) {
-        if (dist < 120) return 177.32155341461 * Math.pow(dist,0.53832768855154);
-        return 2900;
+        if (dist < 120) return 177 * Math.pow(dist,0.53832768855154);
+        return 3050;
     }
     public double autoPitch(double dist) {
-        if (dist < 120) return 0.5496747223156 * Math.log(dist) + -2.0330280945313;
+        if (dist < 120) return 0.5496747223156 * Math.log(dist) + -2.2330280945313;
         return 0.62; // Far pitch
     }
     //--- Hardware Interactions ---
@@ -225,5 +227,11 @@ public class Turret {
     }
     public double getOffset(){
         return offsetAngle;
+    }
+    public void changeRPMOffset(double change){
+        RPMOffset += change;
+    }
+    public double getRPMOffset(){
+        return RPMOffset;
     }
 }

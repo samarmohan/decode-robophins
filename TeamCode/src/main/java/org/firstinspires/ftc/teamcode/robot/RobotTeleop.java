@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.robot;
 
-import android.provider.Settings;
-
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -10,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.AutonPoseSave;
 
@@ -31,6 +30,8 @@ public abstract class RobotTeleop extends OpMode {
     public boolean isTeamRed;
 
     boolean turretOn = true;
+
+    double overridePitch = 0;
     boolean tilt = false;
     @Override
     public void init(){
@@ -70,6 +71,9 @@ public abstract class RobotTeleop extends OpMode {
     public void update(){
         r.clearCache();
         f.update();
+        if(currentGamepad1.circle){
+            f.setPose(isTeamRed ? new Pose(9,9,Math.toRadians(180)) : new Pose(135, 9 ,Math.toRadians(0)));
+        }
     }
 
     public void drive(){
@@ -101,7 +105,7 @@ public abstract class RobotTeleop extends OpMode {
         r.lights.update();
     }
     public void spindexer() {
-        r.spindexer.update(gamepad1.cross, gamepad1.right_trigger > 0.3, r.turret.isFlywheelReady(), gamepad2.right_trigger >0.1);
+        r.spindexer.update(gamepad1.cross, gamepad1.right_trigger > 0.3, r.turret.isFlywheelReady(), false);
     }
     public void tilt() {
         if (currentGamepad1.square && !previousGamepad1.square) {
@@ -134,45 +138,70 @@ public abstract class RobotTeleop extends OpMode {
             r.turret.changeOffset(-2.5);
         }
         if (turretOn) {
-            r.turret.updateAutoPower(r.turret.getDistance(f.getPose()));//current just constant
+            if (currentGamepad2.left_trigger > 0.2  && currentGamepad2.dpad_up && !previousGamepad2.dpad_up) {
+                r.turret.changeRPMOffset(50);
+            }
+            else if (currentGamepad2.left_trigger > 0.2  && currentGamepad2.dpad_down && !previousGamepad2.dpad_down){
+                r.turret.changeRPMOffset(-50);
+            }
         } else {
             r.turret.setTargetRPM(0);
         }
-        r.turret.updateFlywheelPID();
         r.turret.updatePitch(r.turret.getDistance(f.getPose()));
+        r.turret.updateFlywheelPID();
+        r.turret.updateAutoPower(r.turret.getDistance(f.getPose()));//current just constant
         //r.turret.setPitch(0); //0 is min 0.6 is max
         //r.turret.updatePositionAim(f.getPose());
-        r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
+        r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid(), r.turret.getDistance(f.getPose()) > 120);
 
     }
-    public void telemetry(){
-        panelsTelemetry.addData("target RPM", r.turret.getTargetRPM());
-        panelsTelemetry.addData("actual RPM", r.turret.getFlywheelRPM());
-        panelsTelemetry.addData("flywheel power", r.turret.getFlywheelPower());
-        panelsTelemetry.addData("Pitch Postion", r.turret.getPitch());
-        panelsTelemetry.addData("error",r.turret.getFlywheelRPM() - r.turret.getTargetRPM());
-        telemetry.addData("loop time", runtime.seconds()-lastTime);
-        telemetry.addLine("Position: X:"+  f.getPose().getX() + " Y: " +  f.getPose().getY()+ "Heading: " +  f.getPose().getHeading());
-        telemetry.addData("Target Flywheel RPM", r.turret.getTargetRPM());
-        telemetry.addData("Actual Flywheel RPM", r.turret.getFlywheelRPM());
-        telemetry.addData("Flywheel Power", r.turret.getFlywheelPower());
-        telemetry.addLine("------------------------------------");
-        telemetry.addData("Turret Angle", r.turret.getTurretAngle());
-        telemetry.addData("Turret Target Angle", r.turret.getTargetAngle());
-        telemetry.addData("Turret Power", r.turret.getTurretPower());
+    public void telemetry() {
+        panelsTelemetry.addData("Intake Current", r.intake.intake.motor.getCurrent(CurrentUnit.AMPS));
+        panelsTelemetry.addData("Flywheel1 Current", r.turret.flywheel1.motor.getCurrent(CurrentUnit.AMPS));
+        panelsTelemetry.addData("Flywheel2 Current", r.turret.flywheel2.motor.getCurrent(CurrentUnit.AMPS));
+        panelsTelemetry.addData("Rotation Current", r.turret.turret.motor.getCurrent(CurrentUnit.AMPS));
+        panelsTelemetry.addData("Front Right Current", r.drivetrain.frontRight.motor.getCurrent(CurrentUnit.AMPS));
+        panelsTelemetry.addData("Front Left Current", r.drivetrain.frontLeft.motor.getCurrent(CurrentUnit.AMPS));
+        panelsTelemetry.addData("Back Right Current", r.drivetrain.backRight.motor.getCurrent(CurrentUnit.AMPS));
+        panelsTelemetry.addData("Back Left Current", r.drivetrain.backLeft.motor.getCurrent(CurrentUnit.AMPS));
+
+        telemetry.addData("Loop Time", runtime.seconds()-lastTime);
         telemetry.addData("Distance", r.turret.getDistance(f.getPose()));
-        telemetry.addData("is running Bang Bang", r.turret.getBangBang());
-        telemetry.addData("Limelight error", r.limelight.getTx());
-        telemetry.addData("Limelight Valid", r.limelight.wasLastResultValid());
-        telemetry.addData("Target Pitch", r.turret.getPitch());
-        telemetry.addLine("------------------------------------");
-        telemetry.addData("Spindexer State", r.spindexer.getState());
-        telemetry.addData("Is Full?", r.spindexer.isFull());
+        telemetry.addData("Target RPM", r.turret.getTargetRPM());
+        telemetry.addData("Pitch", r.turret.getPitch());
+
+        telemetry.addLine("------------------ODOMETRY------------------");
+        telemetry.addLine("Position: X:"+  f.getPose().getX() + " Y: " +  f.getPose().getY()+ "Heading: " +  f.getPose().getHeading());
+        telemetry.addData("Distance", r.turret.getDistance(f.getPose()));
+
+        telemetry.addLine("------------------FLYWHEEL------------------");
+        telemetry.addData("Target RPM", r.turret.getTargetRPM());
+        telemetry.addData("Actual RPM", r.turret.getFlywheelRPM());
+        telemetry.addData("Error",r.turret.getFlywheelRPM() - r.turret.getTargetRPM());
+        telemetry.addData("Power", r.turret.getFlywheelPower());
+        telemetry.addData("RPM Offset", r.turret.getRPMOffset());
+
+        telemetry.addLine("------------------TURRET------------------");
+        telemetry.addData("Target Angle", r.turret.getTargetAngle());
+        telemetry.addData("Actual Angle", r.turret.getTurretAngle());
+        telemetry.addData("Error", r.turret.getTurretAngle() - r.turret.getTurretAngle());
+        telemetry.addData("Power", r.turret.getTurretPower());
+        telemetry.addData("Pitch", r.turret.getPitch());
+
+        telemetry.addLine("------------------LIMELIGHT------------------");
+        telemetry.addData("Tx", r.limelight.getTx());
+        telemetry.addData("Valid?", r.limelight.wasLastResultValid());
+
+        telemetry.addLine("------------------SPINDEXER------------------");
+        telemetry.addData("State", r.spindexer.getState());
+        telemetry.addData("Full?", r.spindexer.isFull());
         telemetry.addData("Current Angle", r.spindexer.getCurrentAngle());
         telemetry.addData("Target Angle", r.spindexer.getTargetAngle());
         telemetry.addData("Ball Detected", r.spindexer.ballDetectedSpin());
         telemetry.addData("Back Distance", r.spindexer.getBackDistance());
-        telemetry.addData("order", r.spindexer.getOrder());
+        telemetry.addData("Order", r.spindexer.getOrder());
+
+        telemetry.addLine("------------------TILT------------------");
         telemetry.addData("Tilt", r.tilt.getState());
         panelsTelemetry.update();
         telemetry.update();

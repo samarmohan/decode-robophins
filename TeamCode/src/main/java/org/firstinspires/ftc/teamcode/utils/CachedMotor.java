@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
-public class CachedMotor{
-    private final DcMotorEx motor;
+public class CachedMotor {
+    public final DcMotorEx motor;
     private double cachingThreshold = 0.001;
     private double lastPower = 0.0;
 

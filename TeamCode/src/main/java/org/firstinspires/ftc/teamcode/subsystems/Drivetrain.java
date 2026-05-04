@@ -12,10 +12,10 @@ import org.firstinspires.ftc.teamcode.utils.CachedMotor;
 
 public class Drivetrain {
     //--- Hardware ---
-    private final CachedMotor frontLeft;
-    private final CachedMotor backLeft;
-    private final CachedMotor frontRight;
-    private final CachedMotor backRight;
+    public final CachedMotor frontLeft;
+    public final CachedMotor backLeft;
+    public final CachedMotor frontRight;
+    public final CachedMotor backRight;
     public IMU imu;
     //--- Constructor ---
     public Drivetrain(HardwareMap hardwareMap) {

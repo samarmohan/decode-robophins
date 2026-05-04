@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.utils.States;
 
 public class Intake {
     //--- Hardware ---
-    private CachedMotor intake;  // Changed from DcMotorEx to CachedMotor
+    public CachedMotor intake;  // Changed from DcMotorEx to CachedMotor
 
     //--- States ---
 

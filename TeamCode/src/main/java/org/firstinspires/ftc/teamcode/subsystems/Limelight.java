@@ -16,7 +16,6 @@ public class Limelight {
     // --- Constructor ---
     public Limelight(HardwareMap hardwareMap){
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(isTeamRed ? 1 : 0);
         limelight.start();
     }
     // --- Main Loop Function ---
@@ -47,5 +46,6 @@ public class Limelight {
     }
     public void setTeam(boolean red){
         isTeamRed = red;
+        limelight.pipelineSwitch(isTeamRed ? 1 : 0);
     }
 }

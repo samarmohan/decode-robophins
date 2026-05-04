@@ -22,6 +22,9 @@ public class PID {
         lastTime = currentTime;
 
         double error = target - current;
+        if(Math.abs(error) < deadzone){
+            error = 0;
+        }
 //        if (flywheel && Math.abs(error) < FLYWHEEL_PID_DEADZONE) {
 //            error = 0;
 //        }

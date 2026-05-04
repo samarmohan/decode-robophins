@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.teamcode.robot.RobotTeleop;
 
 @TeleOp(name = "Regression TeleOp", group = "")
-@Disabled
 public class RegressionTeleOp extends RobotTeleop {
     private double pitch = 0;
     private double RPM = 0;
@@ -29,12 +28,7 @@ public class RegressionTeleOp extends RobotTeleop {
         r.turret.setPitch(pitch);
         r.turret.setTargetRPM(RPM);
         r.turret.updateFlywheelPID();
-        r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
-    }
-    @Override
-    public void telemetry(){
-        telemetry.addData("Pitch", pitch);
-        super.telemetry();
+        r.turret.updateBlackBox(new Pose(f.getPose().getX(), f.getPose().getY(), f.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid(), r.turret.getDistance(f.getPose()) > 120);
     }
 }
 

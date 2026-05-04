@@ -115,7 +115,7 @@ public class Spindexer {
                 }
                 break;
             case INDEXING:
-                intakeState = States.IntakeState.OFF;
+                intakeState = States.IntakeState.INTAKE;
                 if(!hasIndexed) {
                     index();
                     hasIndexed = true;

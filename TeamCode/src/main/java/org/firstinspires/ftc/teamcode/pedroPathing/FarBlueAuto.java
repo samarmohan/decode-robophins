@@ -5,7 +5,6 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
@@ -29,11 +28,10 @@ public class FarBlueAuto extends OpMode {
     private double INTAKE_SPEED = 0.7;
 
     // FAR
-    private final Pose startPose = new Pose(62, 9, Math.toRadians(180));
+    private final Pose startPose = new Pose(54, 9, Math.toRadians(180));
 
     private final Pose shootPose = new Pose(56, 20, Math.toRadians(180));
     private final Pose collectUpWallPose = new Pose(10, 9, Math.toRadians(180));
-    private final Pose collectWallRollout = new Pose(10, 25, Math.toRadians(180));
     private final Pose lineUp3rdSpike = new Pose(50, 32, Math.toRadians(180));
     private final Pose collect3rdSpike = new Pose(12, 32, Math.toRadians(180));
     private final Pose leavePose = new Pose(56, 50, Math.toRadians(180));
@@ -81,8 +79,8 @@ public class FarBlueAuto extends OpMode {
     }
 
     //Pathing
-    private PathChain collect3rdSpikePath, collectGateRunoffPath, collectWallBallsPath;
-    private Path wallBallsToShootPath, gateRunoffToShootPath, spikeToShootPath, shootToLeavePath;
+    private PathChain collect3rdSpikePath, collectWallBallsPath;
+    private Path wallBallsToShootPath, spikeToShootPath, shootToLeavePath;
 
     public void buildPaths(){
         collectWallBallsPath = follower.pathBuilder()
@@ -104,191 +102,167 @@ public class FarBlueAuto extends OpMode {
         spikeToShootPath = new Path(new BezierLine(collect3rdSpike, shootPose));
         spikeToShootPath.setConstantHeadingInterpolation(startPose.getHeading());
 
-        collectGateRunoffPath = follower.pathBuilder()
-                .addPath(new BezierLine(shootPose, collectWallRollout))
-                .setConstantHeadingInterpolation(startPose.getHeading())
-                .build();
-
-        gateRunoffToShootPath = new Path(new BezierLine(collectWallRollout, shootPose));
-        gateRunoffToShootPath.setConstantHeadingInterpolation(startPose.getHeading());
-
         shootToLeavePath = new Path(new BezierLine(shootPose, leavePose));
         shootToLeavePath.setConstantHeadingInterpolation(startPose.getHeading());
     }
 
     //Finite State Machine
     public void autonomousPathUpdate() {
-        switch (pathState) {
-            case "shootPreload":
-                shouldShoot = true;
-                if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
+        if(opmodeTimer.getElapsedTimeSeconds() < 28){
+            switch (pathState) {
+                case "shootPreload":
+                    shouldShoot = true;
+                    if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
                         shouldShoot = false;
                         follower.followPath(collectWallBallsPath);
                         setPathState("collectWallBalls");
-                }
-                break;
-            case "collectWallBalls":
-                shouldIntake = true;
-                if(!follower.isBusy()) {
-                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()){
-                        hasResetTimer = false;
-                        follower.followPath(wallBallsToShootPath);
-                        setPathState("wallBallsToShoot");
                     }
-                }
-                break;
-            case "wallBallsToShoot":
-                if(!follower.isBusy()) {
-                    shouldIntake = false;
-                    if(!hasResetTimer) {
-                        shootTimer.reset();
-                        hasResetTimer = true;
-                    }
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {
-                        shouldShoot = true;
-                        if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
-                            shouldShoot = false;
-                            shouldIntake = true;
-                            follower.followPath(collect3rdSpikePath);
-                            setPathState("collect3rdSpike");
+                    break;
+                case "collectWallBalls":
+                    shouldIntake = true;
+                    if (!follower.isBusy()) {
+                        if (pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
+                            hasResetTimer = false;
+                            follower.followPath(wallBallsToShootPath);
+                            setPathState("wallBallsToShoot");
                         }
                     }
-                }
-                break;
-            case "collect3rdSpike":
-                shouldIntake = true;
-                if (!follower.isBusy()) {
-                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
-                        hasResetTimer = false;
-                        follower.followPath(spikeToShootPath);
-                        setPathState("shootSpike");
+                    break;
+                case "wallBallsToShoot":
+                    if (!follower.isBusy()) {
+                        shouldIntake = false;
+                        if (!hasResetTimer) {
+                            shootTimer.reset();
+                            hasResetTimer = true;
+                        }
+                        if (r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() > 0.3) {
+                            shouldShoot = true;
+                            if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
+                                shouldShoot = false;
+                                shouldIntake = true;
+                                follower.followPath(collect3rdSpikePath);
+                                setPathState("collect3rdSpike");
+                            }
+                        }
                     }
-                }
-                break;
-            case "shootSpike":
-                if(!follower.isBusy()) {
-                    shouldIntake = false;
-                    if(!hasResetTimer) {
-                        shootTimer.reset();
-                        hasResetTimer = true;
+                    break;
+                case "collect3rdSpike":
+                    shouldIntake = true;
+                    if (!follower.isBusy()) {
+                        if (pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
+                            hasResetTimer = false;
+                            follower.followPath(spikeToShootPath);
+                            setPathState("shootSpike");
+                        }
                     }
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
-                        if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
-                            shouldShoot = false;
+                    break;
+                case "shootSpike":
+                    if (!follower.isBusy()) {
+                        shouldIntake = false;
+                        if (!hasResetTimer) {
+                            shootTimer.reset();
+                            hasResetTimer = true;
+                        }
+                        if (r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() > 0.3) {
+                            shouldShoot = true;
+                            if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
+                                shouldShoot = false;
 
-                            follower.followPath(collectGateRunoffPath);
-                            setPathState("collectGateRunoff1");
-                        }
-                    }
-                }
-                break;
-            case "collectGateRunoff1":
-                shouldIntake = true;
-                if (!follower.isBusy()) {
-                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
-                        hasResetTimer = false;
-                        follower.followPath(gateRunoffToShootPath);
-                        setPathState("gateRunoffToShoot1");
-                    }
-                }
-                break;
-            case "gateRunoffToShoot1":
-                if(!follower.isBusy()) {
-                    shouldIntake = false;
-                    if(!hasResetTimer) {
-                        shootTimer.reset();
-                        hasResetTimer = true;
-                    }
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
-                        if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
-                            shouldShoot = false;
-                            follower.followPath(collectGateRunoffPath);
-                            setPathState("collectGateRunoff2");
-                        }
-                    }
-                }
-                break;
-            case "collectGateRunoff2":
-                shouldIntake = true;
-                if (!follower.isBusy()) {
-                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
-                        hasResetTimer = false;
-                        follower.followPath(gateRunoffToShootPath);
-                        setPathState("gateRunoffToShoot2");
-                    }
-                }
-                break;
-            case "gateRunoffToShoot2":
-                if(!follower.isBusy()) {
-                    shouldIntake = false;
-                    if(!hasResetTimer) {
-                        shootTimer.reset();
-                        hasResetTimer = true;
-                    }
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
-                        if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
-                            shouldShoot = false;
-                            follower.followPath(collectGateRunoffPath);
-                            setPathState("collectGateRunoff3");
-                        }
-                    }
-                }
-                break;
-            case "collectGateRunoff3":
-                shouldIntake = true;
-                if (!follower.isBusy()) {
-                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
-                        hasResetTimer = false;
-                        follower.followPath(gateRunoffToShootPath);
-                        setPathState("gateRunoffToShoot3");
-                    }
-                }
-                break;
-            case "gateRunoffToShoot3":
-                if(!follower.isBusy()) {
-                    shouldIntake = false;
-                    if(!hasResetTimer) {
-                        shootTimer.reset();
-                        hasResetTimer = true;
-                    }
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
-                        if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
-                            subsystemsOn = false;
-                            follower.followPath(shootToLeavePath);
-                            setPathState("collectGateRunoff4");
+                                follower.followPath(collectWallBallsPath);
+                                setPathState("collectGateRunoff1");
+                            }
                         }
                     }
                     break;
-                }
-            case "collectGateRunoff4":
-                shouldIntake = true;
-                if (!follower.isBusy()) {
-                    if(pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
-                        hasResetTimer = false;
-                        follower.followPath(gateRunoffToShootPath);
-                        setPathState("gateRunoffToShoot4");
-                    }
-                }
-                break;
-            case "gateRunoffToShoot4":
-                if(!follower.isBusy()) {
-                    shouldIntake = false;
-                    if(!hasResetTimer) {
-                        shootTimer.reset();
-                        hasResetTimer = true;
-                    }
-                    if(r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() >0.3) {                        shouldShoot = true;
-                        if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
-                            subsystemsOn = false;
-                            follower.followPath(shootToLeavePath);
-                            setPathState("end");
+                case "collectGateRunoff1":
+                    shouldIntake = true;
+                    if (!follower.isBusy()) {
+                        if (pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
+                            hasResetTimer = false;
+                            follower.followPath(wallBallsToShootPath);
+                            setPathState("gateRunoffToShoot1");
                         }
                     }
                     break;
-                }
-            case "end":
-                AutonPoseSave.lastAutonPose = follower.getPose();
-                break;
+                case "gateRunoffToShoot1":
+                    if (!follower.isBusy()) {
+                        shouldIntake = false;
+                        if (!hasResetTimer) {
+                            shootTimer.reset();
+                            hasResetTimer = true;
+                        }
+                        if (r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() > 0.3) {
+                            shouldShoot = true;
+                            if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
+                                shouldShoot = false;
+                                follower.followPath(collectWallBallsPath);
+                                setPathState("collectGateRunoff2");
+                            }
+                        }
+                    }
+                    break;
+                case "collectGateRunoff2":
+                    shouldIntake = true;
+                    if (!follower.isBusy()) {
+                        if (pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
+                            hasResetTimer = false;
+                            follower.followPath(wallBallsToShootPath);
+                            setPathState("gateRunoffToShoot2");
+                        }
+                    }
+                    break;
+                case "gateRunoffToShoot2":
+                    if (!follower.isBusy()) {
+                        shouldIntake = false;
+                        if (!hasResetTimer) {
+                            shootTimer.reset();
+                            hasResetTimer = true;
+                        }
+                        if (r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() > 0.3) {
+                            shouldShoot = true;
+                            if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
+                                shouldShoot = false;
+                                follower.followPath(collectWallBallsPath);
+                                setPathState("collectGateRunoff3");
+                            }
+                        }
+                    }
+                    break;
+                case "collectGateRunoff3":
+                    shouldIntake = true;
+                    if (!follower.isBusy()) {
+                        if (pathTimer.getElapsedTimeSeconds() > 2 || r.spindexer.isFull()) {
+                            hasResetTimer = false;
+                            follower.followPath(wallBallsToShootPath);
+                            setPathState("gateRunoffToShoot3");
+                        }
+                    }
+                    break;
+                case "gateRunoffToShoot3":
+                    if (!follower.isBusy()) {
+                        shouldIntake = false;
+                        if (!hasResetTimer) {
+                            shootTimer.reset();
+                            hasResetTimer = true;
+                        }
+                        if (r.spindexer.getState() == Spindexer.SpindexerState.READY_TO_SHOOT && shootTimer.seconds() > 0.3) {
+                            shouldShoot = true;
+                            if (!r.spindexer.isShooting() && !r.spindexer.hasBalls()) {
+                                subsystemsOn = false;
+                                follower.followPath(shootToLeavePath);
+                                setPathState("end");
+                            }
+                        }
+                        break;
+                    }
+                case "end":
+                    AutonPoseSave.lastAutonPose = follower.getPose();
+                    break;
+            }
+        }
+        else{
+            subsystemsOn = false;
+            AutonPoseSave.lastAutonPose = follower.getPose();
         }
     }
     public void setPathState(String pState) {
@@ -312,7 +286,7 @@ public class FarBlueAuto extends OpMode {
     }
     private void spindexer() {
         if(subsystemsOn){
-            r.spindexer.update(shouldIntake, shouldShoot, true,false);
+            r.spindexer.update(shouldIntake, shouldShoot, r.turret.isFlywheelReady(),false);
         }else{
             r.spindexer.setTargetAngle(240);
         }
@@ -322,7 +296,7 @@ public class FarBlueAuto extends OpMode {
             r.turret.updateAutoPower(r.turret.getDistance(follower.getPose()));
             r.turret.updatePitch(r.turret.getDistance(follower.getPose()));
             r.turret.updateFlywheelPID();
-            r.turret.updateBlackBox(new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading()), r.limelight.getTx(), r.limelight.wasLastResultValid());
+            r.turret.updatePositionAim(new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading()));
         }
         else{
             r.turret.setTargetRPM(0);
